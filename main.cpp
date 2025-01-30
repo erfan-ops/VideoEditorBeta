@@ -1,37 +1,69 @@
 ﻿#include <iostream>
-#include <opencv2/opencv.hpp>
-#include <Windows.h>
 
 #include "videoEditor.cuh"
 #include "utils.h"
 
 
-int main(int argc, char** argv) {
-    if (argc < 9) {
-        std::cerr << "Usage: " << argv[0] << " <pixelWidth> <pixelHeight> <colorThresh> <lineWidth> <lineDarkness> <color1_r> <color1_g> <color1_b> <color2_r> <color2_g> <color2_b> <color3_r> <color3_g> <color3_b>" << std::endl;
-        return 1;
+int main() {
+    unsigned short pixelWidth, pixelHeight, lineWidth;
+    unsigned char colorThresh, lineDarkness;
+    unsigned char color1[3], color2[3], color3[3];
+
+    // Function to safely read an integer within a specified range
+    auto readInput = [](const std::string& prompt, int minVal, int maxVal) -> int {
+        int value;
+        while (true) {
+            std::cout << prompt;
+            std::cin >> value;
+            if (std::cin.fail() || value < minVal || value > maxVal) {
+                std::cin.clear(); // Clear the error flag
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Discard invalid input
+                std::cerr << "Invalid input. Please enter a number between " << minVal << " and " << maxVal << "." << std::endl;
+            }
+            else {
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Discard any extra input
+                return value;
+            }
+        }
+        };
+
+    // File dialogs for input and output paths
+    std::wstring inputPath = fileDialog::OpenFileDialogW();
+    if (inputPath == L"") {
+        std::cerr << "No input file selected." << std::endl;
+        return 0;
     }
 
-    unsigned short pixelWidth = static_cast<unsigned short>(std::stoi(argv[1]));
-    unsigned short pixelHeight = static_cast<unsigned short>(std::stoi(argv[2]));
-    unsigned char colorThresh = static_cast<unsigned char>(std::stoi(argv[3]));
-    unsigned short lineWidth = static_cast<unsigned short>(std::stoi(argv[4]));
-    unsigned char lineDarkness = static_cast<unsigned char>(std::stoi(argv[5]));
-
-    unsigned char color1[3] = { static_cast<unsigned char>(std::stoi(argv[6])), static_cast<unsigned char>(std::stoi(argv[7])), static_cast<unsigned char>(std::stoi(argv[8])) };
-    unsigned char color2[3] = { static_cast<unsigned char>(std::stoi(argv[9])), static_cast<unsigned char>(std::stoi(argv[10])), static_cast<unsigned char>(std::stoi(argv[11])) };
-    unsigned char color3[3] = { static_cast<unsigned char>(std::stoi(argv[12])), static_cast<unsigned char>(std::stoi(argv[13])), static_cast<unsigned char>(std::stoi(argv[14])) };
-
-
-    std::wstring inputPath = fileDialog::OpenFileDialogW();
-    if (inputPath == L"")
-        return 0;
-
     std::wstring outputPath = fileDialog::SaveFileDialogW();
-    if (outputPath == L"")
+    if (outputPath == L"") {
+        std::cerr << "No output file selected." << std::endl;
         return 0;
+    }
 
-	videoVintage8bit3(
+    // Prompt the user for each parameter
+    pixelWidth = static_cast<unsigned short>(readInput("Enter pixel width: ", 0, 65535));
+    pixelHeight = static_cast<unsigned short>(readInput("Enter pixel height: ", 0, 65535));
+    colorThresh = static_cast<unsigned char>(readInput("Enter color threshold: ", 0, 255));
+    lineWidth = static_cast<unsigned short>(readInput("Enter line width: ", 0, 65535));
+    lineDarkness = static_cast<unsigned char>(readInput("Enter line darkness: ", 0, 255));
+
+    std::cout << "Enter color1 (r g b, each 0-255): ";
+    color1[2] = static_cast<unsigned char>(readInput("Red: ", 0, 255));
+    color1[1] = static_cast<unsigned char>(readInput("Green: ", 0, 255));
+    color1[0] = static_cast<unsigned char>(readInput("Blue: ", 0, 255));
+
+    std::cout << "Enter color2 (r g b, each 0-255): ";
+    color2[2] = static_cast<unsigned char>(readInput("Red: ", 0, 255));
+    color2[1] = static_cast<unsigned char>(readInput("Green: ", 0, 255));
+    color2[0] = static_cast<unsigned char>(readInput("Blue: ", 0, 255));
+
+    std::cout << "Enter color3 (r g b, each 0-255): ";
+    color3[2] = static_cast<unsigned char>(readInput("Red: ", 0, 255));
+    color3[1] = static_cast<unsigned char>(readInput("Green: ", 0, 255));
+    color3[0] = static_cast<unsigned char>(readInput("Blue: ", 0, 255));
+
+    // Call the videoVintage8bit3 function with the collected parameters
+    videoVintage8bit3(
         inputPath, outputPath,
         pixelWidth, pixelHeight,
         color1, color2, color3,

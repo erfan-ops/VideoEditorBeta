@@ -455,4 +455,3 @@ __host__ void videoVintage8bit3(
     execute_command(L"del \"" + temp_video_name + L"\"");
     execute_command(L"del \"" + temp_audio_name + L"\"");
 }
-
