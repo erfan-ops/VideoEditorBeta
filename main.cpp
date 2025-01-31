@@ -1,10 +1,14 @@
 ﻿#include <iostream>
+#include <Windows.h>
 
 #include "videoEditor.cuh"
 #include "utils.h"
 
 
 int main() {
+    SetConsoleOutputCP(CP_UTF8);  // Set output to UTF-8
+    std::wcout.imbue(std::locale("en_US.UTF-8")); // Use the system's locale
+
     unsigned short pixelWidth, pixelHeight, lineWidth;
     unsigned char colorThresh, lineDarkness;
     unsigned char color1[3]{}, color2[3]{}, color3[3]{};

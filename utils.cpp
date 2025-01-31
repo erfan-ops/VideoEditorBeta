@@ -2,34 +2,49 @@
 #include <Windows.h>
 #include <string>
 
+
+constinit static const wchar_t PROGRESS_STATES[8] = {L'▏', L'▎', L'▍', L'▌', L'▋', L'▊', L'▉', L'█'};
+constinit static const int PROGRESS_STATES_LEN = sizeof(PROGRESS_STATES) / sizeof(wchar_t);
+constinit static const int PROGRESS_STATES_LEN1 = PROGRESS_STATES_LEN - 1;
+constinit static const int ESTIMATE_FROM_LAST_FRAMES = 30;
+
 // Helper to convert seconds to MM:SS format
-static std::string secondsToTime(float seconds) {
+static std::wstring secondsToTimeW(float seconds) {
     int minutes = static_cast<int>(seconds) / 60;
     float remaining_seconds = seconds - minutes * 60;
 
-    std::ostringstream oss;
-    oss << minutes << ":" << std::fixed << std::setprecision(1)
-        << std::setw(4) << std::setfill('0') << remaining_seconds;
-    return oss.str();
+    std::wstringstream wss;
+    wss << minutes << L":" << std::fixed << std::setprecision(1)
+        << std::setw(4) << std::setfill(L'0') << remaining_seconds;
+    return wss.str();
 }
 
 // Display progress bar
 void videoShowProgress(const Video& video, const Timer& timer, int batch_size) {
-    const int progressBarLength = 30; // Adjust as needed
-    float progressPct = static_cast<float>(video.get_frame_count()) / video.get_total_frames();
-    int filledBars = static_cast<int>(progressPct * progressBarLength);
+    // Get terminal width (default to 80 if not available)
+    int progressBarLength = 80 - 50; // Adjust as needed
 
-    std::cout << "\r" << secondsToTime(timer.getTimeElapsed()) << " elapsed |"
-        << std::string(filledBars, '█')
-        << std::string(progressBarLength - filledBars, ' ')
-        << "| " << video.get_frame_count() << "/" << video.get_total_frames()
-        << " (" << std::fixed << std::setprecision(1) << progressPct * 100 << "%) ["
-        << secondsToTime(static_cast<float>(video.get_frame_count()) / video.get_fps()) << "/"
-        << secondsToTime(video.get_total_video_duration()) << "] Estimate time: "
-        << secondsToTime((video.get_total_frames() - video.get_frame_count()) *
-            std::accumulate(timer.getPreviousTimes().begin(), timer.getPreviousTimes().end(), 0.0) /
-            timer.getPreviousTimes().size() / batch_size)
-        << std::flush;
+    float progressPct = static_cast<float>(video.get_frame_count()) / video.get_total_frames();
+    int progress_in_mini = static_cast<int>(progressPct * (progressBarLength * PROGRESS_STATES_LEN + PROGRESS_STATES_LEN1));
+    int full_bars = progress_in_mini / PROGRESS_STATES_LEN;
+
+    // Build progress bar
+    std::wstring progress_bar = std::wstring(full_bars, L'█') + PROGRESS_STATES[progress_in_mini - static_cast<std::vector<wchar_t, std::allocator<wchar_t>>::size_type>(full_bars) * PROGRESS_STATES_LEN];
+    progress_bar += std::wstring(progressBarLength - full_bars, L' ');
+
+    // Calculate estimate time
+    float avg_time_per_frame = std::accumulate(timer.getPreviousTimes().begin(), timer.getPreviousTimes().end(), 0.0f) / timer.getPreviousTimes().size();
+    float estimate_time = (video.get_total_frames() - video.get_frame_count()) * avg_time_per_frame / batch_size;
+
+    // Print progress
+    std::wcout << L"\r"
+        << secondsToTimeW(timer.getTimeElapsed()) << L" elapsed |"
+        << progress_bar << L"| "
+        << video.get_frame_count() << L"/" << video.get_total_frames()
+        << L" (" << std::fixed << std::setprecision(1) << progressPct * 100 << L"%) ["
+        << secondsToTimeW(static_cast<float>(video.get_frame_count()) / video.get_fps()) << L"/"
+        << secondsToTimeW(video.get_total_video_duration()) << L"] estimate time: "
+        << secondsToTimeW(estimate_time) << L"   " << std::flush;
 }
 
 
@@ -129,19 +144,19 @@ std::string fileDialog::OpenFileDialog() {
 }
 
 std::wstring fileDialog::OpenFileDialogW() {
-    OPENFILENAMEW ofn;
+    OPENFILENAMEW ofnw;
     wchar_t fileName[MAX_PATH] = L"";
 
-    ZeroMemory(&ofn, sizeof(ofn));
-    ofn.lStructSize = sizeof(ofn);
-    ofn.hwndOwner = NULL;
-    ofn.lpstrTitle = L"select the input video file";
-    ofn.lpstrFilter = L"Video Files\0*.mp4;*.avi;*.mkv;*.mov\0mp4\0*.mp4\0avi\0*.avi\0mkv\0*.mkv\0mov\0*.mov\0";
-    ofn.lpstrFile = fileName;
-    ofn.nMaxFile = MAX_PATH;
-    ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
+    ZeroMemory(&ofnw, sizeof(ofnw));
+    ofnw.lStructSize = sizeof(ofnw);
+    ofnw.hwndOwner = NULL;
+    ofnw.lpstrTitle = L"select the input video file";
+    ofnw.lpstrFilter = L"Video Files\0*.mp4;*.avi;*.mkv;*.mov\0mp4\0*.mp4\0avi\0*.avi\0mkv\0*.mkv\0mov\0*.mov\0";
+    ofnw.lpstrFile = fileName;
+    ofnw.nMaxFile = MAX_PATH;
+    ofnw.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
 
-    if (GetOpenFileNameW(&ofn)) {
+    if (GetOpenFileNameW(&ofnw)) {
         return std::wstring(fileName);
     }
     else {
@@ -175,22 +190,22 @@ std::string fileDialog::SaveFileDialog() {
 }
 
 std::wstring fileDialog::SaveFileDialogW() {
-    OPENFILENAMEW ofn;
+    OPENFILENAMEW ofnw;
     wchar_t fileName[MAX_PATH] = L"output.mp4";
 
     // Initialize the OPENFILENAME structure
-    ZeroMemory(&ofn, sizeof(ofn));
-    ofn.lStructSize = sizeof(ofn);
-    ofn.hwndOwner = NULL; // Handle to the owner window (NULL for no owner)
-    ofn.lpstrTitle = L"select the input video file";
-    ofn.lpstrFilter = L"Video Files\0*.mp4;*.avi;*.mkv;*.mov\0mp4\0*.mp4\0avi\0*.avi\0mkv\0*.mkv\0mov\0*.mov\0";
-    ofn.lpstrFile = fileName; // Buffer to store the selected file path
-    ofn.nMaxFile = MAX_PATH; // Size of the buffer
-    ofn.Flags = OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST; // Flags for the dialog
-    ofn.lpstrDefExt = L"mp4";
+    ZeroMemory(&ofnw, sizeof(ofnw));
+    ofnw.lStructSize = sizeof(ofnw);
+    ofnw.hwndOwner = NULL; // Handle to the owner window (NULL for no owner)
+    ofnw.lpstrTitle = L"select the input video file";
+    ofnw.lpstrFilter = L"Video Files\0*.mp4;*.avi;*.mkv;*.mov\0mp4\0*.mp4\0avi\0*.avi\0mkv\0*.mkv\0mov\0*.mov\0";
+    ofnw.lpstrFile = fileName; // Buffer to store the selected file path
+    ofnw.nMaxFile = MAX_PATH; // Size of the buffer
+    ofnw.Flags = OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST; // Flags for the dialog
+    ofnw.lpstrDefExt = L"mp4";
 
     // Open the Save As dialog
-    if (GetSaveFileNameW(&ofn)) {
+    if (GetSaveFileNameW(&ofnw)) {
         return std::wstring(fileName); // Return the selected file path
     }
     else {
