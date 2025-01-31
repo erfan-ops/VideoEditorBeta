@@ -7,7 +7,7 @@
 int main() {
     unsigned short pixelWidth, pixelHeight, lineWidth;
     unsigned char colorThresh, lineDarkness;
-    unsigned char color1[3], color2[3], color3[3];
+    unsigned char color1[3]{}, color2[3]{}, color3[3]{};
 
     // Function to safely read an integer within a specified range
     auto readInput = [](const std::string& prompt, int minVal, int maxVal) -> int {
