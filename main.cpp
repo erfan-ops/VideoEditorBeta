@@ -66,8 +66,7 @@ int main() {
     color3[1] = static_cast<unsigned char>(readInput("Green: ", 0, 255));
     color3[0] = static_cast<unsigned char>(readInput("Blue: ", 0, 255));
 
-    // Call the videoVintage8bit3 function with the collected parameters
-    videoVintage8bit3(
+    videoVintage8bitFFmpegPipe(
         inputPath, outputPath,
         pixelWidth, pixelHeight,
         color1, color2, color3,

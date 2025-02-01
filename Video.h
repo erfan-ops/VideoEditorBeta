@@ -5,11 +5,12 @@
 
 class Video {
 public:
-    Video(const cv::String& video_file_path, const cv::String& video_output_path, int fourcc = -1);
+    Video(const std::wstring& video_file_path, const std::wstring& video_output_path, int fourcc = -1);
     void nextFrame();
 
     // Write the frame to the output video
     void write(const cv::Mat& img);
+    void write(const unsigned char* img);
 
     // Release resources
     void release();
@@ -28,6 +29,7 @@ public:
 
 private:
     cv::VideoCapture video_capture;
+    FILE* ffmpeg_pipe;
     cv::VideoWriter video_write;
     int fourcc;
     double FPS;
