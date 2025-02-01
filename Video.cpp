@@ -1,6 +1,7 @@
 #include "Video.h"
 #include "utils.h"
 
+
 static bool endsWith(cv::String str, cv::String suffix) {
     if (suffix.size() > str.size()) {
         return false;
@@ -38,7 +39,7 @@ Video::Video(const std::wstring& video_file_path, const std::wstring& video_outp
     }
     else {
         if (endsWith(video_output_path_utf8, ".mp4")) {
-            this->fourcc = cv::VideoWriter::fourcc('x', '2', '6', '4');
+            this->fourcc = cv::VideoWriter::fourcc('m', 'p', '4', 'v');
         }
         else if (endsWith(video_output_path_utf8, ".avi")) {
             this->fourcc = cv::VideoWriter::fourcc('I', '4', '2', '0');
@@ -54,22 +55,11 @@ Video::Video(const std::wstring& video_file_path, const std::wstring& video_outp
         }
     }
 
-    std::wstring ffmpeg_cmd = L"ffmpeg -y -loglevel quiet -f rawvideo -vcodec rawvideo -pix_fmt bgr24 -s "
-        + std::to_wstring(this->getWidth()) + L"x" + std::to_wstring(this->getHeight())
-        + L" -r 30 -i - -c:v libx264 -preset ultrafast -tune fastdecode -g 30 -y \""
-        + video_output_path + L"\"";
-
-    this->ffmpeg_pipe = _wpopen(ffmpeg_cmd.c_str(), L"wb");
-
-    if (!this->ffmpeg_pipe) {
-        throw std::runtime_error("Failed to open FFmpeg pipe!");
-    }
-
     // Initialize VideoWriter
-    /*video_write.open(video_output_path, this->fourcc, FPS, cv::Size(width, height));
+    video_write.open(video_output_path_utf8, this->fourcc, FPS, cv::Size(width, height));
     if (!video_write.isOpened()) {
-        throw std::runtime_error("Error: Could not open video output file: " + video_output_path);
-    }*/
+        throw std::runtime_error("Error: Could not open video output file: " + video_output_path_utf8);
+    }
 
     // Read the first frame
     nextFrame();
@@ -89,14 +79,9 @@ void Video::write(const cv::Mat& img) {
     video_write.write(img);
 }
 
-void Video::write(const unsigned char* img) {
-    fwrite(img, 1, this->getSize(), this->ffmpeg_pipe);
-}
-
 void Video::release() {
     video_capture.release();
     video_write.release();
-    fclose(this->ffmpeg_pipe);
 }
 
 int Video::get_frame_count() const { return frame_count; }

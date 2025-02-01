@@ -10,7 +10,6 @@ public:
 
     // Write the frame to the output video
     void write(const cv::Mat& img);
-    void write(const unsigned char* img);
 
     // Release resources
     void release();
@@ -29,7 +28,6 @@ public:
 
 private:
     cv::VideoCapture video_capture;
-    FILE* ffmpeg_pipe;
     cv::VideoWriter video_write;
     int fourcc;
     double FPS;
