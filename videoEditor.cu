@@ -57,9 +57,6 @@ __host__ void videoVintage8bit(
     checkCudaError(cudaMalloc(&d_color2, 3 * sizeof(unsigned char)), "Failed to allocate device memory for color2");
     checkCudaError(cudaMalloc(&d_color3, 3 * sizeof(unsigned char)), "Failed to allocate device memory for color3");
 
-    unsigned char* h_img;
-    checkCudaError(cudaMallocHost(&h_img, video.getSize()), "Failed to allocate host memory for pinned image");
-
     checkCudaError(cudaMemcpy(d_color1, color1, 3 * sizeof(unsigned char), cudaMemcpyHostToDevice), "Failed to copy color to device");
     checkCudaError(cudaMemcpy(d_color2, color2, 3 * sizeof(unsigned char), cudaMemcpyHostToDevice), "Failed to copy color to device");
     checkCudaError(cudaMemcpy(d_color3, color3, 3 * sizeof(unsigned char), cudaMemcpyHostToDevice), "Failed to copy color to device");
@@ -68,7 +65,8 @@ __host__ void videoVintage8bit(
     const int NUM_BUFFERS = 4;
     std::queue<cv::Mat> bufferPool;
     for (int i = 0; i < NUM_BUFFERS; i++) {
-        bufferPool.push(cv::Mat(video.getImage().size(), video.getImage().type()));
+        cv::Mat frame(video.getImage().size(), video.getImage().type());
+        bufferPool.push(frame);
     }
 
     std::queue<cv::Mat> frameQueue;
@@ -121,8 +119,7 @@ __host__ void videoVintage8bit(
         bufferPool.pop();
         bufferLock.unlock();
 
-        memcpy(h_img, video.getData(), video.getSize());
-        cudaMemcpyAsync(d_img, h_img, video.getSize(), cudaMemcpyHostToDevice, stream);
+        cudaMemcpyAsync(d_img, video.getData(), video.getSize(), cudaMemcpyHostToDevice, stream);
 
         // fix intelisense
         triColor_kernel<<<gridDim, blockDim, 0, stream>>>(d_img, video.getHeight(), video.getWidth(), d_color1, d_color2, d_color3);
@@ -130,10 +127,8 @@ __host__ void videoVintage8bit(
         roundColors_kernel<<<gridDim, blockDim, 0, stream>>>(d_img, video.getHeight(), video.getWidth(), threshold);
         horizontalLine_kernel<<<gridDim, blockDim, 0, stream>>>(d_img, video.getHeight(), video.getWidth(), lineWidth, lineDarkeningThresh);
 
-        cudaMemcpyAsync(h_img, d_img, video.getSize(), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(frameBuffer.data, d_img, video.getSize(), cudaMemcpyDeviceToHost, stream);
         cudaStreamSynchronize(stream);
-
-        memcpy(frameBuffer.data, h_img, video.getSize());
 
         {
             std::lock_guard<std::mutex> frameLock(queueMutex);
@@ -155,7 +150,6 @@ __host__ void videoVintage8bit(
     cudaFree(d_color1);
     cudaFree(d_color2);
     cudaFree(d_color3);
-    cudaFreeHost(h_img);
     cudaStreamDestroy(stream);
 
     std::wstring merge_command = L"ffmpeg -loglevel quiet -i \"" + temp_video_name + L"\" -i \"" + temp_audio_name + L"\" -c:v copy -c:a copy -map 0:v:0 -map 1:a:0 \"" + outputPath + L"\" -y";

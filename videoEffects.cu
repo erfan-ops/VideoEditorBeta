@@ -74,27 +74,28 @@ __global__ void triColor_kernel(unsigned char* img, int rows, int cols, const un
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (x < cols && y < rows) {
-        int idx = (y * cols + x) * 3; // Index for the RGB channels
-        float mediant = (img[idx] + img[idx + 1] + img[idx + 2]) / 765.0f; // Scale to 0-1
-        float midpoint = 0.5f; // Midpoint of the gradient
-        float scale_factor;
+    if (x >= cols || y >= rows)
+        return;
 
-        if (mediant < midpoint) {
-            // Blend from color1 to color2
-            scale_factor = mediant / midpoint;
-            for (int i = 0; i < 3; ++i) {
-                img[idx + i] = static_cast<unsigned char>(
-                    color1_BGR[i] + (color2_BGR[i] - color1_BGR[i]) * scale_factor);
-            }
+    int idx = (y * cols + x) * 3; // Index for the RGB channels
+    float mediant = (img[idx] + img[idx + 1] + img[idx + 2]) / 765.0f; // Scale to 0-1
+    float midpoint = 0.5f; // Midpoint of the gradient
+    float scale_factor;
+
+    if (mediant < midpoint) {
+        // Blend from color1 to color2
+        scale_factor = mediant / midpoint;
+        for (int i = 0; i < 3; ++i) {
+            img[idx + i] = static_cast<unsigned char>(
+                color1_BGR[i] + (color2_BGR[i] - color1_BGR[i]) * scale_factor);
         }
-        else {
-            // Blend from color2 to color3
-            scale_factor = (mediant - midpoint) / (1.0f - midpoint);
-            for (int i = 0; i < 3; ++i) {
-                img[idx + i] = static_cast<unsigned char>(
-                    color2_BGR[i] + (color3_BGR[i] - color2_BGR[i]) * scale_factor);
-            }
+    }
+    else {
+        // Blend from color2 to color3
+        scale_factor = (mediant - midpoint) / (1.0f - midpoint);
+        for (int i = 0; i < 3; ++i) {
+            img[idx + i] = static_cast<unsigned char>(
+                color2_BGR[i] + (color3_BGR[i] - color2_BGR[i]) * scale_factor);
         }
     }
 }

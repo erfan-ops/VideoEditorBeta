@@ -61,3 +61,11 @@
 #*.PDF   diff=astextplain
 #*.rtf   diff=astextplain
 #*.RTF   diff=astextplain
+
+###############################################################################
+# Classify .cu and .cuh files as CUDA for GitHub linguist
+###############################################################################
+*.cu linguist-language=CUDA
+*.cuh linguist-language=CUDA
+
+include/opencv2/**

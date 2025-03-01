@@ -70,9 +70,6 @@ void Video::nextFrame() {
     if (success) {
         frame_count++;
     }
-    if (!image.isContinuous()) {
-        image = image.clone();
-    }
 }
 
 void Video::write(const cv::Mat& img) {

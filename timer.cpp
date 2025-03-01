@@ -24,10 +24,10 @@ void Timer::update() {
 
     // Record frame time
     double frame_time = std::chrono::duration<float>(newt - oldt).count();
+    previous_times.push_back(frame_time);
     if (previous_times.size() >= ESTIMATE_FROM_LAST_FRAMES) {
         previous_times.erase(previous_times.begin()); // Remove oldest frame time
     }
-    previous_times.push_back(frame_time);
 }
 
 // Get the total time elapsed since the timer started
