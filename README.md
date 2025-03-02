@@ -29,17 +29,17 @@ make
 
 ## Usage
 
-To use the `videoVintage8bit3` effect, call the function with the required parameters:
+To use the `videoVintage8bit` effect, call the function with the required parameters:
 
 ```cpp
-videoVintage8bit3(
+videoVintage8bit(
     L"input_video.mp4",  // Path to the input video
     L"output_video.mp4", // Path to the output video
     8,                  // Pixel width for pixelation
     8,                  // Pixel height for pixelation
-    color1,              // Color 1 in RGB format (unsigned char[3])
-    color2,              // Color 2 in RGB format (unsigned char[3])
-    color3,              // Color 3 in RGB format (unsigned char[3])
+    color1,              // Color 1 in BGR format (unsigned char[3])
+    color2,              // Color 2 in BGR format (unsigned char[3])
+    color3,              // Color 3 in BGR format (unsigned char[3])
     64,           // Threshold for color rounding
     8,                   // Line width for line effects
     10                   // Line darkening threshold
@@ -59,11 +59,11 @@ videoVintage8bit3(
 ### Example
 
 ```cpp
-unsigned char color1[3] = {255, 0, 0}; // Red
+unsigned char color1[3] = {255, 0, 0}; // Blue
 unsigned char color2[3] = {0, 255, 0}; // Green
-unsigned char color3[3] = {0, 0, 255}; // Blue
+unsigned char color3[3] = {0, 0, 255}; // Red
 
-videoVintage8bit3(
+videoVintage8bit(
     L"example_input.mp4",
     L"example_output.mp4",
     8, 8, color1, color2, color3, 64, 8, 10
