@@ -12,5 +12,6 @@ __global__ void nearestColor_kernel(unsigned char* img, int rows, int cols, cons
 __global__ void radial_blur_kernel(unsigned char* img, int rows, int cols, float centerX, float centerY, int blurRadius, float intensity);
 __global__ void reverse_contrast(unsigned char* img, int rows, int cols);
 __global__ void shift_hue_kernel(unsigned char* img, int rows, int cols, float rotationFactor);
-__global__ void outlines(unsigned char* img, const unsigned char* img_copy, const int rows, const int cols, const int shiftX, const int shiftY);
-__global__ void subtract(unsigned char* img1, const unsigned char* img2, const int rows, const int cols);
+__global__ void outlines_kernel(unsigned char* img, const unsigned char* img_copy, const int rows, const int cols, const int shiftX, const int shiftY);
+__global__ void subtract_kernel(unsigned char* img1, const unsigned char* img2, const int rows, const int cols);
+__global__ void blur_kernel(unsigned char* img, const unsigned char* img_copy, const int rows, const int cols, const int blur_radius);

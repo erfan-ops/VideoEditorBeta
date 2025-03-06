@@ -314,7 +314,7 @@ __global__ void shift_hue_kernel(unsigned char* img, int rows, int cols, float r
     img[idx + 2] = static_cast<unsigned char>(min(max(b, 0.0f), 1.0f) * 255);
 }
 
-__global__ void outlines
+__global__ void outlines_kernel
 (
     unsigned char* img, const unsigned char* img_copy,
     const int rows, const int cols,
@@ -334,7 +334,7 @@ __global__ void outlines
     }
 }
 
-__global__ void subtract(unsigned char* img1, const unsigned char* img2, const int rows, const int cols) {
+__global__ void subtract_kernel(unsigned char* img1, const unsigned char* img2, const int rows, const int cols) {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
 
@@ -347,4 +347,44 @@ __global__ void subtract(unsigned char* img1, const unsigned char* img2, const i
         short diff = static_cast<short>(img1[color_idx]) - static_cast<short>(img2[color_idx]);
         img1[color_idx] = static_cast<unsigned char>(abs(diff));
     }
+}
+
+__global__ void blur_kernel(unsigned char* img, const unsigned char* img_copy, const int rows, const int cols, const int blur_radius) {
+    int x = blockIdx.x * blockDim.x + threadIdx.x;
+    int y = blockIdx.y * blockDim.y + threadIdx.y;
+
+    // Ensure the thread is within the image bounds
+    if (x >= cols || y >= rows) {
+        return;
+    }
+
+    int idx = (y * cols + x) * 3;
+    int sumR = 0, sumG = 0, sumB = 0;
+    int count = 0;
+
+    // Iterate over the rounded neighborhood
+    for (int i = -blur_radius; i <= blur_radius; ++i) {
+        for (int j = -blur_radius; j <= blur_radius; ++j) {
+            // Calculate the distance from the center pixel
+            float distance = sqrtf(i * i + j * j);
+            if (distance <= blur_radius) {
+                int sampleX = x + i;
+                int sampleY = y + j;
+
+                // Check if the sampled pixel is within the image bounds
+                if (sampleX >= 0 && sampleX < cols && sampleY >= 0 && sampleY < rows) {
+                    int sampleIdx = (sampleY * cols + sampleX) * 3;
+                    sumR += img_copy[sampleIdx];
+                    sumG += img_copy[sampleIdx + 1];
+                    sumB += img_copy[sampleIdx + 2];
+                    count++;
+                }
+            }
+        }
+    }
+
+    // Write the averaged color back to the original image
+    img[idx] = static_cast<unsigned char>(sumR / count);
+    img[idx + 1] = static_cast<unsigned char>(sumG / count);
+    img[idx + 2] = static_cast<unsigned char>(sumB / count);
 }

@@ -46,3 +46,9 @@ __host__ void videoHighlightMotion(
     const std::wstring& inputPath,
     const std::wstring& outputPath
 );
+
+__host__ void videoBlur(
+    const std::wstring& inputPath,
+    const std::wstring& outputPath,
+    const int blurRadius
+);

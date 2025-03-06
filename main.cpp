@@ -22,7 +22,7 @@ int main() {
         return 0;
     }
 
-    videoHighlightMotion(inputPath, outputPath);
+    videoBlur(inputPath, outputPath, 5);
 
     return 0;
 }
