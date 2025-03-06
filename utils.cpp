@@ -1,6 +1,9 @@
 ﻿#include "utils.h"
+
 #include <Windows.h>
-#include <string>
+#include <numeric>
+#include <codecvt>
+#include <filesystem>
 
 
 constinit static const wchar_t PROGRESS_STATES[8] = {L'▏', L'▎', L'▍', L'▌', L'▋', L'▊', L'▉', L'█'};
@@ -125,7 +128,7 @@ std::pair<std::wstring, std::wstring> fileUtils::splitextw(const std::wstring& p
     return { path, L"" };
 }
 
-void fileUtils::delete_file(const std::filesystem::path& path) {
+void fileUtils::deleteFile(const std::wstring& path) {
     std::filesystem::remove(path);
 }
 

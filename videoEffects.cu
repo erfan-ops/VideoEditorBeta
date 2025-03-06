@@ -1,5 +1,6 @@
 #include "videoEffects.cuh"
 #include <math_functions.h>
+#include <cmath>
 
 
 __global__ void censor_kernel(unsigned char* img, int rows, int cols, int pixelWidth, int pixelHeight) {
@@ -311,4 +312,39 @@ __global__ void shift_hue_kernel(unsigned char* img, int rows, int cols, float r
     img[idx] = static_cast<unsigned char>(min(max(r, 0.0f), 1.0f) * 255);
     img[idx + 1] = static_cast<unsigned char>(min(max(g, 0.0f), 1.0f) * 255);
     img[idx + 2] = static_cast<unsigned char>(min(max(b, 0.0f), 1.0f) * 255);
+}
+
+__global__ void outlines
+(
+    unsigned char* img, const unsigned char* img_copy,
+    const int rows, const int cols,
+    const int shiftX, const int shiftY
+) {
+    int x = blockIdx.x * blockDim.x + threadIdx.x;
+    int y = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if (x >= cols - shiftX || y >= rows - shiftY) return;
+
+    int idx = (y * cols + x) * 3;
+    int shiftedIdx = idx + 3 * (shiftY * cols + shiftX);
+
+    for (int c = 0; c < 3; c++) {
+        int color_idx = idx + c;
+        img[color_idx] = static_cast<unsigned char>(abs(static_cast<short>(img_copy[color_idx]) - img_copy[shiftedIdx + c]));
+    }
+}
+
+__global__ void subtract(unsigned char* img1, const unsigned char* img2, const int rows, const int cols) {
+    int x = blockIdx.x * blockDim.x + threadIdx.x;
+    int y = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if (x >= cols || y >= rows) return;
+
+    int idx = (y * cols + x) * 3;
+
+    for (int c = 0; c < 3; c++) {
+        int color_idx = idx + c;
+        short diff = static_cast<short>(img1[color_idx]) - static_cast<short>(img2[color_idx]);
+        img1[color_idx] = static_cast<unsigned char>(abs(diff));
+    }
 }

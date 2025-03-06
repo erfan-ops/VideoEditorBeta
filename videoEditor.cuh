@@ -35,3 +35,14 @@ __host__ void videoShiftHue(
     const std::wstring& outputPath,
     float hue_shift
 );
+
+__host__ void videoOutlines(
+    const std::wstring& inputPath,
+    const std::wstring& outputPath,
+    int shiftX, int shiftY
+);
+
+__host__ void videoHighlightMotion(
+    const std::wstring& inputPath,
+    const std::wstring& outputPath
+);

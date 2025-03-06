@@ -22,7 +22,7 @@ int main() {
         return 0;
     }
 
-    videoShiftHue(inputPath, outputPath, 2.5f);
+    videoHighlightMotion(inputPath, outputPath);
 
     return 0;
 }
