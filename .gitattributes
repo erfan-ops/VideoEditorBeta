@@ -68,4 +68,5 @@
 *.cu linguist-language=CUDA
 *.cuh linguist-language=CUDA
 
-include/opencv2/**
+include/opencv2/** linguist-vendored
+lib/** linguist-vendored
