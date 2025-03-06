@@ -21,8 +21,11 @@ static std::wstring secondsToTimeW(float seconds) {
 
 // Display progress bar
 void videoShowProgress(const Video& video, const Timer& timer, int batch_size) {
-    // Get terminal width (default to 80 if not available)
-    int progressBarLength = 80 - 50; // Adjust as needed
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+
+    int columns = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+    int progressBarLength = columns - 80; // Adjust as needed
 
     float progressPct = static_cast<float>(video.get_frame_count()) / video.get_total_frames();
     int progress_in_mini = static_cast<int>(progressPct * (progressBarLength * PROGRESS_STATES_LEN + PROGRESS_STATES_LEN1));

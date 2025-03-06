@@ -11,7 +11,7 @@ int main() {
 
     unsigned short pixelWidth, pixelHeight, lineWidth;
     unsigned char colorThresh, lineDarkness;
-    unsigned char color1[3]{}, color2[3]{}, color3[3]{};
+    int nColors;
 
     // Function to safely read an integer within a specified range
     auto readInput = [](const std::string& prompt, int minVal, int maxVal) -> int {
@@ -50,29 +50,28 @@ int main() {
     colorThresh = static_cast<unsigned char>(readInput("Enter color threshold: ", 0, 255));
     lineWidth = static_cast<unsigned short>(readInput("Enter line width: ", 0, 65535));
     lineDarkness = static_cast<unsigned char>(readInput("Enter line darkness: ", 0, 255));
+    nColors = static_cast<int>(readInput("Enter number of colors: ", 0, 100));
 
-    std::cout << "Enter color1 (r g b, each 0-255): ";
-    color1[2] = static_cast<unsigned char>(readInput("Red: ", 0, 255));
-    color1[1] = static_cast<unsigned char>(readInput("Green: ", 0, 255));
-    color1[0] = static_cast<unsigned char>(readInput("Blue: ", 0, 255));
+    unsigned char* colors_BGR = new unsigned char[nColors * 3];
 
-    std::cout << "Enter color2 (r g b, each 0-255): ";
-    color2[2] = static_cast<unsigned char>(readInput("Red: ", 0, 255));
-    color2[1] = static_cast<unsigned char>(readInput("Green: ", 0, 255));
-    color2[0] = static_cast<unsigned char>(readInput("Blue: ", 0, 255));
 
-    std::cout << "Enter color3 (r g b, each 0-255): ";
-    color3[2] = static_cast<unsigned char>(readInput("Red: ", 0, 255));
-    color3[1] = static_cast<unsigned char>(readInput("Green: ", 0, 255));
-    color3[0] = static_cast<unsigned char>(readInput("Blue: ", 0, 255));
+    for (int i = 0; i < nColors; ++i) {
+        std::cout << "Enter color" << i+1 << " (r g b, each 0 - 255) : ";
+        int idxFactor = i * 3;
+        colors_BGR[2+idxFactor] = static_cast<unsigned char>(readInput("Red: ", 0, 255));
+        colors_BGR[1+idxFactor] = static_cast<unsigned char>(readInput("Green: ", 0, 255));
+        colors_BGR[0+idxFactor] = static_cast<unsigned char>(readInput("Blue: ", 0, 255));
+    }
 
     videoVintage8bit(
         inputPath, outputPath,
         pixelWidth, pixelHeight,
-        color1, color2, color3,
+        colors_BGR, nColors,
         colorThresh,
         lineWidth, lineDarkness
     );
+
+    delete[] colors_BGR;
 
     return 0;
 }

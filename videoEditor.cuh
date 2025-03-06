@@ -9,9 +9,8 @@ __host__ void videoVintage8bit(
     const std::wstring& outputPath,
     const unsigned short& pixelWidth,
     const unsigned short& pixelHeight,
-    const unsigned char* color1,
-    const unsigned char* color2,
-    const unsigned char* color3,
+    const unsigned char* colors_BGR,
+    const size_t& nColors,
     const unsigned char& threshold,
     const unsigned short& lineWidth,
     const unsigned char& lineDarkeningThresh

@@ -24,5 +24,5 @@ private:
     std::chrono::high_resolution_clock::time_point oldt;
     std::chrono::high_resolution_clock::time_point start_time;
     float time_elapsed;
-    static constexpr size_t ESTIMATE_FROM_LAST_FRAMES = 30;
+    static constexpr size_t ESTIMATE_FROM_LAST_FRAMES = 60;
 };

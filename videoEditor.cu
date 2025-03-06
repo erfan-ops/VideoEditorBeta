@@ -20,9 +20,8 @@ __host__ void videoVintage8bit(
     const std::wstring& outputPath,
     const unsigned short& pixelWidth,
     const unsigned short& pixelHeight,
-    const unsigned char* color1,
-    const unsigned char* color2,
-    const unsigned char* color3,
+    const unsigned char* colors_BGR,
+    const size_t& nColors,
     const unsigned char& threshold,
     const unsigned short& lineWidth,
     const unsigned char& lineDarkeningThresh
@@ -47,19 +46,15 @@ __host__ void videoVintage8bit(
     Timer timer;
 
     unsigned char* d_img;
-    unsigned char* d_color1;
-    unsigned char* d_color2;
-    unsigned char* d_color3;
+    unsigned char* d_colors_BGR;
+
+    size_t color_size = 3ULL * nColors * sizeof(unsigned char);
 
     // Allocate device memory
     checkCudaError(cudaMalloc(&d_img, video.getSize()), "Failed to allocate device memory for image");
-    checkCudaError(cudaMalloc(&d_color1, 3 * sizeof(unsigned char)), "Failed to allocate device memory for color1");
-    checkCudaError(cudaMalloc(&d_color2, 3 * sizeof(unsigned char)), "Failed to allocate device memory for color2");
-    checkCudaError(cudaMalloc(&d_color3, 3 * sizeof(unsigned char)), "Failed to allocate device memory for color3");
+    checkCudaError(cudaMalloc(&d_colors_BGR, color_size), "Failed to allocate device memory for colors");
 
-    checkCudaError(cudaMemcpy(d_color1, color1, 3 * sizeof(unsigned char), cudaMemcpyHostToDevice), "Failed to copy color to device");
-    checkCudaError(cudaMemcpy(d_color2, color2, 3 * sizeof(unsigned char), cudaMemcpyHostToDevice), "Failed to copy color to device");
-    checkCudaError(cudaMemcpy(d_color3, color3, 3 * sizeof(unsigned char), cudaMemcpyHostToDevice), "Failed to copy color to device");
+    checkCudaError(cudaMemcpy(d_colors_BGR, colors_BGR, color_size, cudaMemcpyHostToDevice), "Failed to copy colors to device");
 
     // Frame buffer pool (preallocated)
     const int NUM_BUFFERS = 4;
@@ -122,7 +117,7 @@ __host__ void videoVintage8bit(
         cudaMemcpyAsync(d_img, video.getData(), video.getSize(), cudaMemcpyHostToDevice, stream);
 
         // fix intelisense
-        triColor_kernel<<<gridDim, blockDim, 0, stream>>>(d_img, video.getHeight(), video.getWidth(), d_color1, d_color2, d_color3);
+        dynamicColor_kernel<<<gridDim, blockDim, 0, stream>>>(d_img, video.getHeight(), video.getWidth(), d_colors_BGR, nColors);
         censor_kernel<<<gridDim, blockDim, 0, stream>>>(d_img, video.getHeight(), video.getWidth(), pixelWidth, pixelHeight);
         roundColors_kernel<<<gridDim, blockDim, 0, stream>>>(d_img, video.getHeight(), video.getWidth(), threshold);
         horizontalLine_kernel<<<gridDim, blockDim, 0, stream>>>(d_img, video.getHeight(), video.getWidth(), lineWidth, lineDarkeningThresh);
@@ -147,9 +142,7 @@ __host__ void videoVintage8bit(
 
     video.release();
     cudaFree(d_img);
-    cudaFree(d_color1);
-    cudaFree(d_color2);
-    cudaFree(d_color3);
+    cudaFree(d_colors_BGR);
     cudaStreamDestroy(stream);
 
     std::wstring merge_command = L"ffmpeg -loglevel quiet -i \"" + temp_video_name + L"\" -i \"" + temp_audio_name + L"\" -c:v copy -c:a copy -map 0:v:0 -map 1:a:0 \"" + outputPath + L"\" -y";

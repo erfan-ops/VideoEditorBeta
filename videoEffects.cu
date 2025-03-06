@@ -1,28 +1,22 @@
 #include "videoEffects.cuh"
 
+
 __global__ void censor_kernel(unsigned char* img, int rows, int cols, int pixelWidth, int pixelHeight) {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (x >= cols || y >= rows || x % pixelWidth || y % pixelHeight) {
+    if (x >= cols || y >= rows) {
         return;
     }
 
-    // Process every block of pixels
-    // Calculate block boundaries
-    int yw = (y + pixelHeight < rows) ? (y + pixelHeight) : rows;
-    int xw = (x + pixelWidth < cols) ? (x + pixelWidth) : cols;
+    int block_y = (y / pixelHeight) * pixelHeight;
+    int block_x = (x / pixelWidth) * pixelWidth;
 
-    int block_idx = (y * cols + x) * 3; // Top-left pixel index in the block
+    int block_idx = (block_y * cols + block_x) * 3; // Top-left pixel index in the block
+    int idx = (y * cols + x) * 3;
 
-    // Apply censoring to all pixels in the block
-    for (int i = y; i < yw; ++i) {
-        for (int j = x; j < xw; ++j) {
-            int idx = (i * cols + j) * 3; // RGB index for the pixel
-            for (int c = 0; c < 3; ++c) {
-                img[idx + c] = img[block_idx + c]; // Copy the color from the top-left pixel
-            }
-        }
+    for (int c = 0; c < 3; ++c) {
+        img[idx + c] = img[block_idx + c]; // Copy the color from the top-left pixel
     }
 }
 
@@ -70,7 +64,7 @@ __global__ void horizontalLine_kernel(unsigned char* img, int rows, int cols, in
     }
 }
 
-__global__ void triColor_kernel(unsigned char* img, int rows, int cols, const unsigned char* color1_BGR, const unsigned char* color2_BGR, const unsigned char* color3_BGR) {
+__global__ void dynamicColor_kernel(unsigned char* img, int rows, int cols, const unsigned char* colors_BGR, int num_colors) {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
 
@@ -79,25 +73,23 @@ __global__ void triColor_kernel(unsigned char* img, int rows, int cols, const un
 
     int idx = (y * cols + x) * 3; // Index for the RGB channels
     float mediant = (img[idx] + img[idx + 1] + img[idx + 2]) / 765.0f; // Scale to 0-1
-    float midpoint = 0.5f; // Midpoint of the gradient
-    float scale_factor;
 
-    if (mediant < midpoint) {
-        // Blend from color1 to color2
-        scale_factor = mediant / midpoint;
-        for (int i = 0; i < 3; ++i) {
-            img[idx + i] = static_cast<unsigned char>(
-                color1_BGR[i] + (color2_BGR[i] - color1_BGR[i]) * scale_factor);
-        }
-    }
-    else {
-        // Blend from color2 to color3
-        scale_factor = (mediant - midpoint) / (1.0f - midpoint);
-        for (int i = 0; i < 3; ++i) {
-            img[idx + i] = static_cast<unsigned char>(
-                color2_BGR[i] + (color3_BGR[i] - color2_BGR[i]) * scale_factor);
-        }
+    // Calculate the segment of the gradient based on the number of colors
+    float segment_size = 1.0f / (num_colors - 1);
+    int segment_index = static_cast<int>(mediant / segment_size);
+    segment_index = segment_index <= num_colors - 2 ? segment_index : num_colors - 2;
+
+    // Calculate the blending factor within the segment
+    float segment_start = segment_index * segment_size;
+    float segment_end = (segment_index + 1) * segment_size;
+    float scale_factor = (mediant - segment_start) / (segment_end - segment_start);
+
+    // Blend the colors
+    for (int i = 0; i < 3; ++i) {
+        unsigned char color_start = colors_BGR[segment_index * 3 + i];
+        unsigned char color_end = colors_BGR[(segment_index + 1) * 3 + i];
+        img[idx + i] = static_cast<unsigned char>(
+            color_start + (color_end - color_start) * scale_factor
+            );
     }
 }
-
-
