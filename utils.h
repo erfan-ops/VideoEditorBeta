@@ -4,6 +4,8 @@
 #include <numeric>
 #include <string>
 #include <codecvt>
+#include <filesystem>
+
 #include "Video.h"
 #include "Timer.h"
 
@@ -14,6 +16,7 @@ std::string wideStringToUtf8(const std::wstring& wstr);
 namespace fileUtils {
     std::pair<std::string, std::string> splitext(const std::string& path);
     std::pair<std::wstring, std::wstring> splitextw(const std::wstring& path);
+    void delete_file(const std::filesystem::path& path);
 }
 
 namespace fileDialog {

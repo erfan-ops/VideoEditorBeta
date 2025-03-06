@@ -5,6 +5,7 @@
 #include "utils.h"
 
 #include <Windows.h>
+#include <filesystem>
 
 
 static void checkCudaError(cudaError_t err, const char* msg) {
@@ -12,6 +13,17 @@ static void checkCudaError(cudaError_t err, const char* msg) {
         std::cerr << msg << ": " << cudaGetErrorString(err) << std::endl;
         exit(EXIT_FAILURE);
     }
+}
+
+
+static void extractAudio(const std::wstring& inputVideo, const std::wstring& outputAudio) {
+    std::wstring audio_command = L"ffmpeg -loglevel quiet -i \"" + inputVideo + L"\" -vn -acodec copy \"" + outputAudio + L"\"";
+    execute_command(audio_command);
+}
+
+static void mergeAudio(const std::wstring& inputVideo, const std::wstring& inputAudio, const std::wstring& outputVideo) {
+    std::wstring merge_command = L"ffmpeg -loglevel quiet -i \"" + inputVideo + L"\" -i \"" + inputAudio + L"\" -c:v copy -c:a copy -map 0:v:0 -map 1:a:0 \"" + outputVideo + L"\" -y";
+    execute_command(merge_command);
 }
 
 
@@ -27,20 +39,16 @@ __host__ void videoVintage8bit(
     const unsigned char lineDarkeningThresh
 ) {
     // Generate temporary file names
-    std::time_t current_time = std::time(nullptr);
-    std::wstring time_string = stringUtils::string_to_wstring(std::ctime(&current_time));
-    time_string.erase(std::remove(time_string.begin(), time_string.end(), ':'), time_string.end());
-    time_string.erase(time_string.find_last_not_of('\n') + 1);
+    std::wstring current_time = std::to_wstring(std::time(nullptr));
 
     std::wstring video_root = fileUtils::splitextw(inputPath).first;
     std::wstring output_ext = fileUtils::splitextw(outputPath).second;
 
-    std::wstring temp_video_name = video_root + L" " + time_string + output_ext;
-    std::wstring temp_audio_name = video_root + L" " + time_string + L".aac";
+    std::wstring temp_video_name = video_root + L" " + current_time + output_ext;
+    std::wstring temp_audio_name = video_root + L" " + current_time + L".aac";
 
     // Extract audio
-    std::wstring audio_command = L"ffmpeg -loglevel quiet -i \"" + inputPath + L"\" -vn -acodec copy \"" + temp_audio_name + L"\"";
-    execute_command(audio_command);
+    extractAudio(inputPath, temp_audio_name);
 
     Video video(inputPath, temp_video_name);
     Timer timer;
@@ -145,11 +153,10 @@ __host__ void videoVintage8bit(
     cudaFree(d_colors_BGR);
     cudaStreamDestroy(stream);
 
-    std::wstring merge_command = L"ffmpeg -loglevel quiet -i \"" + temp_video_name + L"\" -i \"" + temp_audio_name + L"\" -c:v copy -c:a copy -map 0:v:0 -map 1:a:0 \"" + outputPath + L"\" -y";
-    execute_command(merge_command);
+    mergeAudio(temp_video_name, temp_audio_name, outputPath);
 
-    execute_command(L"del \"" + temp_video_name + L"\"");
-    execute_command(L"del \"" + temp_audio_name + L"\"");
+    fileUtils::delete_file(temp_video_name);
+    fileUtils::delete_file(temp_audio_name);
 }
 
 
@@ -162,20 +169,16 @@ __host__ void videoRadialBlur(
     float centerY
 ) {
     // Generate temporary file names
-    std::time_t current_time = std::time(nullptr);
-    std::wstring time_string = stringUtils::string_to_wstring(std::ctime(&current_time));
-    time_string.erase(std::remove(time_string.begin(), time_string.end(), ':'), time_string.end());
-    time_string.erase(time_string.find_last_not_of('\n') + 1);
+    std::wstring current_time = std::to_wstring(std::time(nullptr));
 
     std::wstring video_root = fileUtils::splitextw(inputPath).first;
     std::wstring output_ext = fileUtils::splitextw(outputPath).second;
 
-    std::wstring temp_video_name = video_root + L" " + time_string + output_ext;
-    std::wstring temp_audio_name = video_root + L" " + time_string + L".aac";
+    std::wstring temp_video_name = video_root + L" " + current_time + output_ext;
+    std::wstring temp_audio_name = video_root + L" " + current_time + L".aac";
 
     // Extract audio
-    std::wstring audio_command = L"ffmpeg -loglevel quiet -i \"" + inputPath + L"\" -vn -acodec copy \"" + temp_audio_name + L"\"";
-    execute_command(audio_command);
+    extractAudio(inputPath, temp_audio_name);
 
     Video video(inputPath, temp_video_name);
     Timer timer;
@@ -275,11 +278,10 @@ __host__ void videoRadialBlur(
     cudaFree(d_img);
     cudaStreamDestroy(stream);
 
-    std::wstring merge_command = L"ffmpeg -loglevel quiet -i \"" + temp_video_name + L"\" -i \"" + temp_audio_name + L"\" -c:v copy -c:a copy -map 0:v:0 -map 1:a:0 \"" + outputPath + L"\" -y";
-    execute_command(merge_command);
+    mergeAudio(temp_video_name, temp_audio_name, outputPath);
 
-    execute_command(L"del \"" + temp_video_name + L"\"");
-    execute_command(L"del \"" + temp_audio_name + L"\"");
+    fileUtils::delete_file(temp_video_name);
+    fileUtils::delete_file(temp_audio_name);
 }
 
 
@@ -288,20 +290,16 @@ __host__ void videoReverseContrast(
     const std::wstring& outputPath
 ) {
     // Generate temporary file names
-    std::time_t current_time = std::time(nullptr);
-    std::wstring time_string = stringUtils::string_to_wstring(std::ctime(&current_time));
-    time_string.erase(std::remove(time_string.begin(), time_string.end(), ':'), time_string.end());
-    time_string.erase(time_string.find_last_not_of('\n') + 1);
+    std::wstring current_time = std::to_wstring(std::time(nullptr));
 
     std::wstring video_root = fileUtils::splitextw(inputPath).first;
     std::wstring output_ext = fileUtils::splitextw(outputPath).second;
 
-    std::wstring temp_video_name = video_root + L" " + time_string + output_ext;
-    std::wstring temp_audio_name = video_root + L" " + time_string + L".aac";
+    std::wstring temp_video_name = video_root + L" " + current_time + output_ext;
+    std::wstring temp_audio_name = video_root + L" " + current_time + L".aac";
 
     // Extract audio
-    std::wstring audio_command = L"ffmpeg -loglevel quiet -i \"" + inputPath + L"\" -vn -acodec copy \"" + temp_audio_name + L"\"";
-    execute_command(audio_command);
+    extractAudio(inputPath, temp_audio_name);
 
     Video video(inputPath, temp_video_name);
     Timer timer;
@@ -392,15 +390,15 @@ __host__ void videoReverseContrast(
     queueCV.notify_one();
     writer.join();
 
+    // clean up
     video.release();
     cudaFree(d_img);
     cudaStreamDestroy(stream);
 
-    std::wstring merge_command = L"ffmpeg -loglevel quiet -i \"" + temp_video_name + L"\" -i \"" + temp_audio_name + L"\" -c:v copy -c:a copy -map 0:v:0 -map 1:a:0 \"" + outputPath + L"\" -y";
-    execute_command(merge_command);
+    mergeAudio(temp_video_name, temp_audio_name, outputPath);
 
-    execute_command(L"del \"" + temp_video_name + L"\"");
-    execute_command(L"del \"" + temp_audio_name + L"\"");
+    fileUtils::delete_file(temp_video_name);
+    fileUtils::delete_file(temp_audio_name);
 }
 
 
@@ -410,20 +408,16 @@ __host__ void videoShiftHue(
     float hue_shift
 ) {
     // Generate temporary file names
-    std::time_t current_time = std::time(nullptr);
-    std::wstring time_string = stringUtils::string_to_wstring(std::ctime(&current_time));
-    time_string.erase(std::remove(time_string.begin(), time_string.end(), ':'), time_string.end());
-    time_string.erase(time_string.find_last_not_of('\n') + 1);
+    std::wstring current_time = std::to_wstring(std::time(nullptr));
 
     std::wstring video_root = fileUtils::splitextw(inputPath).first;
     std::wstring output_ext = fileUtils::splitextw(outputPath).second;
 
-    std::wstring temp_video_name = video_root + L" " + time_string + output_ext;
-    std::wstring temp_audio_name = video_root + L" " + time_string + L".aac";
+    std::wstring temp_video_name = video_root + L" " + current_time + output_ext;
+    std::wstring temp_audio_name = video_root + L" " + current_time + L".aac";
 
     // Extract audio
-    std::wstring audio_command = L"ffmpeg -loglevel quiet -i \"" + inputPath + L"\" -vn -acodec copy \"" + temp_audio_name + L"\"";
-    execute_command(audio_command);
+    extractAudio(inputPath, temp_audio_name);
 
     Video video(inputPath, temp_video_name);
     Timer timer;
@@ -516,14 +510,14 @@ __host__ void videoShiftHue(
     queueCV.notify_one();
     writer.join();
 
+    // clean up
     video.release();
     cudaFree(d_img);
     cudaStreamDestroy(stream);
 
-    std::wstring merge_command = L"ffmpeg -loglevel quiet -i \"" + temp_video_name + L"\" -i \"" + temp_audio_name + L"\" -c:v copy -c:a copy -map 0:v:0 -map 1:a:0 \"" + outputPath + L"\" -y";
-    execute_command(merge_command);
+    mergeAudio(temp_video_name, temp_audio_name, outputPath);
 
-    execute_command(L"del \"" + temp_video_name + L"\"");
-    execute_command(L"del \"" + temp_audio_name + L"\"");
+    fileUtils::delete_file(temp_video_name);
+    fileUtils::delete_file(temp_audio_name);
 }
 

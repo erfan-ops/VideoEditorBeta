@@ -273,13 +273,13 @@ __global__ void reverse_contrast(unsigned char* img, int rows, int cols) {
     img[idx + 2] = min(max(static_cast<int>(b * scale), 0), 255);
 }
 
-__device__ static void rgb_to_yiq(float r, float g, float b, float& y, float& i, float& q) {
+__device__ static inline void rgb_to_yiq(float r, float g, float b, float& y, float& i, float& q) {
     y = 0.299f * r + 0.587f * g + 0.114f * b;
     i = 0.596f * r - 0.274f * g - 0.322f * b;
     q = 0.211f * r - 0.523f * g + 0.312f * b;
 }
 
-__device__ static void yiq_to_rgb(float y, float i, float q, float& r, float& g, float& b) {
+__device__ static inline void yiq_to_rgb(float y, float i, float q, float& r, float& g, float& b) {
     r = y + 0.956f * i + 0.621f * q;
     g = y - 0.272f * i - 0.647f * q;
     b = y - 1.106f * i + 1.703f * q;

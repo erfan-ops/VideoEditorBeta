@@ -125,6 +125,11 @@ std::pair<std::wstring, std::wstring> fileUtils::splitextw(const std::wstring& p
     return { path, L"" };
 }
 
+void fileUtils::delete_file(const std::filesystem::path& path) {
+    std::filesystem::remove(path);
+}
+
+
 std::string fileDialog::OpenFileDialog() {
     OPENFILENAMEA ofn;
     char fileName[MAX_PATH] = "";
