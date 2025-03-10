@@ -39,7 +39,7 @@ __host__ void videoShiftHue(
 __host__ void videoOutlines(
     const std::wstring& inputPath,
     const std::wstring& outputPath,
-    int shiftX, int shiftY
+    int shiftX = 1, int shiftY = 1
 );
 
 __host__ void videoHighlightMotion(
@@ -50,5 +50,12 @@ __host__ void videoHighlightMotion(
 __host__ void videoBlur(
     const std::wstring& inputPath,
     const std::wstring& outputPath,
-    const int blurRadius
+    const int blurRadius,
+    const int blending = 0
+);
+
+__host__ void videoTrueOutlines(
+    const std::wstring& inputPath,
+    const std::wstring& outputPath,
+    const int thresh = 1
 );

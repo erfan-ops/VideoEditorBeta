@@ -31,6 +31,7 @@ Video::Video(const std::wstring& video_file_path, const std::wstring& video_outp
 
     width = static_cast<int>(video_capture.get(cv::CAP_PROP_FRAME_WIDTH));
     height = static_cast<int>(video_capture.get(cv::CAP_PROP_FRAME_HEIGHT));
+    nPixels = width * height;
     imgSize = static_cast<unsigned long long>(width) * height * 3 * sizeof(unsigned char);
 
     // Set the fourcc codec
@@ -89,5 +90,6 @@ cv::Mat& Video::getImage() { return image; }
 uchar* Video::getData() const { return image.data; }
 int Video::getWidth() const { return width; }
 int Video::getHeight() const { return height; }
+int Video::getNumPixels() const { return nPixels; }
 size_t Video::getSize() const { return imgSize; }
 bool Video::getSuccess() const { return success; }

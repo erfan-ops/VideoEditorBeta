@@ -8,6 +8,9 @@
 #include <filesystem>
 
 
+constexpr int nBuffers = 8;
+
+
 static void checkCudaError(cudaError_t err, const char* msg) {
     if (err != cudaSuccess) {
         std::cerr << msg << ": " << cudaGetErrorString(err) << std::endl;
@@ -65,7 +68,7 @@ __host__ void videoVintage8bit(
     checkCudaError(cudaMemcpy(d_colors_BGR, colors_BGR, color_size, cudaMemcpyHostToDevice), "Failed to copy colors to device");
 
     // Frame buffer pool (preallocated)
-    const int NUM_BUFFERS = 4;
+    const int NUM_BUFFERS = nBuffers;
     std::queue<cv::Mat> bufferPool;
     for (int i = 0; i < NUM_BUFFERS; i++) {
         cv::Mat frame(video.getImage().size(), video.getImage().type());
@@ -111,6 +114,9 @@ __host__ void videoVintage8bit(
     dim3 blockDim(32, 32);
     dim3 gridDim((video.getWidth() + blockDim.x - 1) / blockDim.x, (video.getHeight() + blockDim.y - 1) / blockDim.y);
 
+    int flatBlockSize = 1024;
+    int flatGridSize = (video.getNumPixels() + flatBlockSize - 1) / flatBlockSize;
+
     std::thread writer(writerThread);
 
     timer.start();
@@ -125,9 +131,9 @@ __host__ void videoVintage8bit(
         cudaMemcpyAsync(d_img, video.getData(), video.getSize(), cudaMemcpyHostToDevice, stream);
 
         // fix intelisense
-        dynamicColor_kernel<<<gridDim, blockDim, 0, stream>>>(d_img, video.getHeight(), video.getWidth(), d_colors_BGR, nColors);
+        dynamicColor_kernel<<<flatGridSize, flatBlockSize, 0, stream>>>(d_img, video.getNumPixels(), d_colors_BGR, nColors);
         censor_kernel<<<gridDim, blockDim, 0, stream>>>(d_img, video.getHeight(), video.getWidth(), pixelWidth, pixelHeight);
-        roundColors_kernel<<<gridDim, blockDim, 0, stream>>>(d_img, video.getHeight(), video.getWidth(), threshold);
+        roundColors_kernel<<<flatGridSize, flatBlockSize, 0, stream>>>(d_img, video.getNumPixels(), threshold);
         horizontalLine_kernel<<<gridDim, blockDim, 0, stream>>>(d_img, video.getHeight(), video.getWidth(), lineWidth, lineDarkeningThresh);
 
         cudaMemcpyAsync(frameBuffer.data, d_img, video.getSize(), cudaMemcpyDeviceToHost, stream);
@@ -194,7 +200,7 @@ __host__ void videoRadialBlur(
     checkCudaError(cudaMalloc(&d_img, video.getSize()), "Failed to allocate device memory for image");
 
     // Frame buffer pool (preallocated)
-    const int NUM_BUFFERS = 4;
+    const int NUM_BUFFERS = nBuffers;
     std::queue<cv::Mat> bufferPool;
     for (int i = 0; i < NUM_BUFFERS; i++) {
         cv::Mat frame(video.getImage().size(), video.getImage().type());
@@ -310,7 +316,7 @@ __host__ void videoReverseContrast(
     checkCudaError(cudaMalloc(&d_img, video.getSize()), "Failed to allocate device memory for image");
 
     // Frame buffer pool (preallocated)
-    const int NUM_BUFFERS = 4;
+    const int NUM_BUFFERS = nBuffers;
     std::queue<cv::Mat> bufferPool;
     for (int i = 0; i < NUM_BUFFERS; i++) {
         cv::Mat frame(video.getImage().size(), video.getImage().type());
@@ -353,8 +359,8 @@ __host__ void videoReverseContrast(
     cudaStream_t stream;
     checkCudaError(cudaStreamCreate(&stream), "Failed to create stream");
 
-    dim3 blockDim(32, 32);
-    dim3 gridDim((video.getWidth() + blockDim.x - 1) / blockDim.x, (video.getHeight() + blockDim.y - 1) / blockDim.y);
+    int blockSize = 1024;
+    int gridSize = (video.getNumPixels() + blockSize - 1) / blockSize;
 
     std::thread writer(writerThread);
 
@@ -370,7 +376,7 @@ __host__ void videoReverseContrast(
         cudaMemcpyAsync(d_img, video.getData(), video.getSize(), cudaMemcpyHostToDevice, stream);
 
         // fix intelisense
-        reverse_contrast<<<gridDim, blockDim, 0, stream>>>(d_img, video.getHeight(), video.getWidth());
+        reverse_contrast<<<gridSize, blockSize, 0, stream>>>(d_img, video.getNumPixels());
 
         cudaMemcpyAsync(frameBuffer.data, d_img, video.getSize(), cudaMemcpyDeviceToHost, stream);
         cudaStreamSynchronize(stream);
@@ -430,7 +436,7 @@ __host__ void videoShiftHue(
     checkCudaError(cudaMalloc(&d_img, video.getSize()), "Failed to allocate device memory for image");
 
     // Frame buffer pool (preallocated)
-    const int NUM_BUFFERS = 4;
+    const int NUM_BUFFERS = nBuffers;
     std::queue<cv::Mat> bufferPool;
     for (int i = 0; i < NUM_BUFFERS; i++) {
         cv::Mat frame(video.getImage().size(), video.getImage().type());
@@ -473,8 +479,8 @@ __host__ void videoShiftHue(
     cudaStream_t stream;
     checkCudaError(cudaStreamCreate(&stream), "Failed to create stream");
 
-    dim3 blockDim(32, 32);
-    dim3 gridDim((video.getWidth() + blockDim.x - 1) / blockDim.x, (video.getHeight() + blockDim.y - 1) / blockDim.y);
+    int blockSize = 1024;
+    int gridSize = (video.getNumPixels() + blockSize - 1) / blockSize;
 
     std::thread writer(writerThread);
 
@@ -490,7 +496,7 @@ __host__ void videoShiftHue(
         cudaMemcpyAsync(d_img, video.getData(), video.getSize(), cudaMemcpyHostToDevice, stream);
 
         // fix intelisense
-        shift_hue_kernel<<<gridDim, blockDim, 0, stream>>>(d_img, video.getHeight(), video.getWidth(), rotationFactor);
+        shift_hue_kernel<<<gridSize, blockSize, 0, stream>>>(d_img, video.getNumPixels(), rotationFactor);
 
         cudaMemcpyAsync(frameBuffer.data, d_img, video.getSize(), cudaMemcpyDeviceToHost, stream);
         cudaStreamSynchronize(stream);
@@ -550,7 +556,7 @@ __host__ void videoOutlines(
     checkCudaError(cudaMalloc(&d_img_copy, video.getSize()), "Failed to allocate device memory for image copy");
 
     // Frame buffer pool (preallocated)
-    const int NUM_BUFFERS = 4;
+    const int NUM_BUFFERS = nBuffers;
     std::queue<cv::Mat> bufferPool;
     for (int i = 0; i < NUM_BUFFERS; i++) {
         cv::Mat frame(video.getImage().size(), video.getImage().type());
@@ -670,7 +676,7 @@ __host__ void videoHighlightMotion(
     checkCudaError(cudaMalloc(&d_newImg, video.getSize()), "Failed to allocate device memory for image copy");
 
     // Frame buffer pool (preallocated)
-    const int NUM_BUFFERS = 4;
+    const int NUM_BUFFERS = nBuffers;
     std::queue<cv::Mat> bufferPool;
     for (int i = 0; i < NUM_BUFFERS; i++) {
         cv::Mat frame(video.getImage().size(), video.getImage().type());
@@ -713,8 +719,8 @@ __host__ void videoHighlightMotion(
     cudaStream_t stream;
     checkCudaError(cudaStreamCreate(&stream), "Failed to create stream");
 
-    dim3 blockDim(32, 32);
-    dim3 gridDim((video.getWidth() + blockDim.x - 1) / blockDim.x, (video.getHeight() + blockDim.y - 1) / blockDim.y);
+    int blockSize = 1024;
+    int gridSize = (video.getNumPixels() + blockSize - 1) / blockSize;
 
     std::thread writer(writerThread);
 
@@ -733,7 +739,7 @@ __host__ void videoHighlightMotion(
         cudaMemcpyAsync(d_newImg, video.getData(), video.getSize(), cudaMemcpyHostToDevice, stream);
 
         // fix intelisense
-        subtract_kernel<<<gridDim, blockDim, 0, stream>>>(d_oldImg, d_newImg, video.getHeight(), video.getWidth());
+        subtract_kernel<<<gridSize, blockSize, 0, stream>>>(d_oldImg, d_newImg, video.getNumPixels());
 
         cudaMemcpyAsync(frameBuffer.data, d_oldImg, video.getSize(), cudaMemcpyDeviceToHost, stream);
         cudaStreamSynchronize(stream);
@@ -768,8 +774,23 @@ __host__ void videoHighlightMotion(
 __host__ void videoBlur(
     const std::wstring& inputPath,
     const std::wstring& outputPath,
-    const int blurRadius
+    const int blurRadius,
+    const int blending
 ) {
+
+    using KernelFunction = void (*)(unsigned char* __restrict__ img, const unsigned char* __restrict__ img_copy, const int rows, const int cols, const int blur_radius);
+    KernelFunction blur_func = nullptr;
+    if (blending == 0) {
+        blur_func = &fastBlur_kernel;
+    }
+    else if (blending == 1) {
+        blur_func = &trueBlur_kernel;
+    }
+    else {
+        std::wcout << L"Invalid blending value. Using fast blur as default.\n";
+        blur_func = &fastBlur_kernel;
+    }
+
     // Generate temporary file names
     std::wstring current_time = std::to_wstring(std::time(nullptr));
 
@@ -793,7 +814,7 @@ __host__ void videoBlur(
     checkCudaError(cudaMalloc(&d_img_copy, video.getSize()), "Failed to allocate device memory for image copy");
 
     // Frame buffer pool (preallocated)
-    const int NUM_BUFFERS = 4;
+    const int NUM_BUFFERS = nBuffers;
     std::queue<cv::Mat> bufferPool;
     for (int i = 0; i < NUM_BUFFERS; i++) {
         cv::Mat frame(video.getImage().size(), video.getImage().type());
@@ -854,7 +875,132 @@ __host__ void videoBlur(
         cudaMemcpyAsync(d_img_copy, d_img, video.getSize(), cudaMemcpyDeviceToDevice, stream);
 
         // fix intelisense
-        blur_kernel<<<gridDim, blockDim, 0, stream>>>(d_img, d_img_copy, video.getHeight(), video.getWidth(), blurRadius);
+        trueBlur_kernel<<<gridDim, blockDim, 0, stream>>>(d_img, d_img_copy, video.getHeight(), video.getWidth(), blurRadius);
+
+        cudaMemcpyAsync(frameBuffer.data, d_img, video.getSize(), cudaMemcpyDeviceToHost, stream);
+        cudaStreamSynchronize(stream);
+
+        {
+            std::lock_guard<std::mutex> frameLock(queueMutex);
+            frameQueue.push(frameBuffer);
+        }
+        queueCV.notify_one();
+
+        timer.update();
+        videoShowProgress(video, timer);
+        video.nextFrame();
+    }
+
+    isProcessing = false;
+    queueCV.notify_one();
+    writer.join();
+
+    // clean up
+    video.release();
+    cudaFree(d_img);
+    cudaFree(d_img_copy);
+    cudaStreamDestroy(stream);
+
+    mergeAudio(temp_video_name, temp_audio_name, outputPath);
+
+    fileUtils::deleteFile(temp_video_name);
+    fileUtils::deleteFile(temp_audio_name);
+}
+
+__host__ void videoTrueOutlines(
+    const std::wstring& inputPath,
+    const std::wstring& outputPath,
+    const int thresh
+) {
+    // Generate temporary file names
+    std::wstring current_time = std::to_wstring(std::time(nullptr));
+
+    std::wstring video_root = fileUtils::splitextw(inputPath).first;
+    std::wstring output_ext = fileUtils::splitextw(outputPath).second;
+
+    std::wstring temp_video_name = video_root + L" " + current_time + output_ext;
+    std::wstring temp_audio_name = video_root + L" " + current_time + L".aac";
+
+    // Extract audio
+    extractAudio(inputPath, temp_audio_name);
+
+    Video video(inputPath, temp_video_name);
+    Timer timer;
+
+    unsigned char* d_img;
+    unsigned char* d_img_copy;
+
+    // Allocate device memory
+    checkCudaError(cudaMalloc(&d_img, video.getSize()), "Failed to allocate device memory for image");
+    checkCudaError(cudaMalloc(&d_img_copy, video.getSize()), "Failed to allocate device memory for image copy");
+
+    // Frame buffer pool (preallocated)
+    const int NUM_BUFFERS = nBuffers;
+    std::queue<cv::Mat> bufferPool;
+    for (int i = 0; i < NUM_BUFFERS; i++) {
+        cv::Mat frame(video.getImage().size(), video.getImage().type());
+        bufferPool.push(frame);
+    }
+
+    std::queue<cv::Mat> frameQueue;
+    std::mutex queueMutex;
+    std::condition_variable queueCV;
+    std::atomic<bool> isProcessing(true);
+
+    std::mutex bufferMutex;
+    std::condition_variable bufferCV;
+
+    // Writer thread function
+    auto writerThread = [&]() {
+        while (true) {
+            cv::Mat frame;
+            {
+                std::unique_lock<std::mutex> lock(queueMutex);
+                queueCV.wait(lock, [&]() { return !frameQueue.empty() || !isProcessing; });
+
+                if (!isProcessing && frameQueue.empty()) break;
+
+                frame = frameQueue.front();
+                frameQueue.pop();
+            }
+
+            video.write(frame);
+
+            // Recycle buffer
+            {
+                std::lock_guard<std::mutex> bufferLock(bufferMutex);
+                bufferPool.push(frame);
+                bufferCV.notify_one();
+            }
+        }
+        };
+
+    cudaStream_t stream;
+    checkCudaError(cudaStreamCreate(&stream), "Failed to create stream");
+
+    dim3 blockDim(32, 32);
+    dim3 gridDim((video.getWidth() + blockDim.x - 1) / blockDim.x, (video.getHeight() + blockDim.y - 1) / blockDim.y);
+
+    int blockSize = 1024;
+    int gridSize = (video.getNumPixels() + blockSize - 1) / blockSize;
+
+    std::thread writer(writerThread);
+
+    timer.start();
+    while (video.getSuccess()) {
+        std::unique_lock<std::mutex> bufferLock(bufferMutex);
+        bufferCV.wait(bufferLock, [&]() { return !bufferPool.empty(); });
+
+        cv::Mat frameBuffer = bufferPool.front();
+        bufferPool.pop();
+        bufferLock.unlock();
+
+        cudaMemcpyAsync(d_img, video.getData(), video.getSize(), cudaMemcpyHostToDevice, stream);
+        cudaMemcpyAsync(d_img_copy, d_img, video.getSize(), cudaMemcpyDeviceToDevice, stream);
+
+        // fix intelisense
+        trueBlur_kernel<<<gridDim, blockDim, 0, stream>>>(d_img, d_img_copy, video.getHeight(), video.getWidth(), thresh);
+        subtract_kernel<<<gridSize, blockSize, 0, stream>>>(d_img, d_img_copy, video.getNumPixels());
 
         cudaMemcpyAsync(frameBuffer.data, d_img, video.getSize(), cudaMemcpyDeviceToHost, stream);
         cudaStreamSynchronize(stream);

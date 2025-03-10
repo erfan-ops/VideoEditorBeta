@@ -23,6 +23,7 @@ public:
     uchar* getData() const;
     int getWidth() const;
     int getHeight() const;
+    int getNumPixels() const;
     size_t getSize() const;
     bool getSuccess() const;
 
@@ -37,5 +38,6 @@ private:
     int width, height;
     bool success;
     cv::Mat image;
+    int nPixels;
     size_t imgSize;
 };
