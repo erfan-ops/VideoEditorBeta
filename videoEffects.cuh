@@ -16,3 +16,5 @@ __global__ void outlines_kernel(unsigned char* __restrict__ img, const unsigned 
 __global__ void subtract_kernel(unsigned char* __restrict__ img1, const unsigned char* __restrict__ img2, const int nPixels);
 __global__ void fastBlur_kernel(unsigned char* __restrict__ img, const unsigned char* __restrict__ img_copy, const int rows, const int cols, const int blur_radius);
 __global__ void trueBlur_kernel(unsigned char* __restrict__ img, const unsigned char* __restrict__ img_copy, const int rows, const int cols, const int blur_radius);
+__global__ void monoChrome_kernel(unsigned char* __restrict__ img, const int nPixels);
+__global__ void passColors_kernel(unsigned char* __restrict__ img, const int nPixels, const float* __restrict__ passThreshValues);

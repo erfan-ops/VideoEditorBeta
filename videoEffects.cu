@@ -113,7 +113,9 @@ __global__ void dynamicColor_kernel(unsigned char* __restrict__ img, const int n
     if (pIdx >= nPixels) return;
 
     int idx = pIdx * 3; // Index for the RGB channels
-    float mediant = (img[idx] + img[idx + 1] + img[idx + 2]) / 765.0f; // Scale to 0-1
+    float mediant = (0.114f * static_cast<float>(img[idx]) +
+                     0.587f * static_cast<float>(img[idx + 1]) +
+                     0.299f * static_cast<float>(img[idx + 2])) / 255.0f;
 
     // Calculate the segment of the gradient based on the number of colors
     float segment_size = 1.0f / (num_colors - 1);
@@ -384,6 +386,8 @@ __global__ void trueBlur_kernel(unsigned char* __restrict__ img, const unsigned 
     float sumR = 0, sumG = 0, sumB = 0;
     float totalWeight = 0;
 
+    int blur_radius_sqr = blur_radius * blur_radius;
+
     // Iterate over the rounded neighborhood
     for (int i = -blur_radius - 1; i <= blur_radius + 1; ++i) {
         for (int j = -blur_radius - 1; j <= blur_radius + 1; ++j) {
@@ -395,12 +399,12 @@ __global__ void trueBlur_kernel(unsigned char* __restrict__ img, const unsigned 
                 int sampleIdx = (sampleY * cols + sampleX) * 3;
 
                 // Calculate the distance from the center pixel
-                float distance = sqrtf(i * i + j * j);
+                float distance_sqr = i * i + j * j;
 
                 // Calculate the blending factor
                 float weight = 1.0f;
-                if (distance > blur_radius) {
-                    weight = (blur_radius + 1) - distance; // Smooth transition beyond the blur radius
+                if (distance_sqr > blur_radius_sqr) {
+                    weight = (blur_radius + 1) - sqrtf(distance_sqr); // Smooth transition beyond the blur radius
                     if (weight < 0) weight = 0; // Clamp to 0 for pixels too far away
                 }
 
@@ -419,4 +423,32 @@ __global__ void trueBlur_kernel(unsigned char* __restrict__ img, const unsigned 
         img[idx + 1] = static_cast<unsigned char>(sumG / totalWeight); // Green
         img[idx + 2] = static_cast<unsigned char>(sumB / totalWeight); // Blue
     }
+}
+
+__global__ void monoChrome_kernel(unsigned char* __restrict__ img, const int nPixels) {
+    int pIdx = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (pIdx >= nPixels) return;
+
+    int idx = pIdx * 3;
+
+    unsigned char m = static_cast<unsigned char>(0.114f * static_cast<float>(img[idx]) +
+                                                 0.587f * static_cast<float>(img[idx + 1]) +
+                                                 0.299f * static_cast<float>(img[idx + 2]));
+
+    img[idx] = m;
+    img[idx + 1] = m;
+    img[idx + 2] = m;
+}
+
+__global__ void passColors_kernel(unsigned char* __restrict__ img, const int nPixels, const float* __restrict__ passThreshValues) {
+    int pIdx = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (pIdx >= nPixels) return;
+
+    int idx = pIdx * 3;
+
+    img[idx] = passThreshValues[0] * img[idx];
+    img[idx] = passThreshValues[1] * img[idx + 1];
+    img[idx] = passThreshValues[2] * img[idx + 2];
 }

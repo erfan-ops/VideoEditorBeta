@@ -28,7 +28,7 @@ void videoShowProgress(const Video& video, const Timer& timer, int batch_size) {
     GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
 
     int columns = csbi.srWindow.Right - csbi.srWindow.Left + 1;
-    int progressBarLength = columns - 80; // Adjust as needed
+    int progressBarLength = columns - 82; // Adjust as needed
 
     float progressPct = static_cast<float>(video.get_frame_count()) / video.get_total_frames();
     int progress_in_mini = static_cast<int>(progressPct * (progressBarLength * PROGRESS_STATES_LEN + PROGRESS_STATES_LEN1));

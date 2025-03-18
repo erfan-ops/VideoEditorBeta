@@ -59,3 +59,21 @@ __host__ void videoTrueOutlines(
     const std::wstring& outputPath,
     const int thresh = 1
 );
+
+__host__ void videoMonoChrome(
+    const std::wstring& inputPath,
+    const std::wstring& outputPath
+);
+
+__host__ void videoMonoMask(
+    const std::wstring& inputPath,
+    const std::wstring& outputPath,
+    const unsigned char* colors_BGR,
+    const size_t nColors
+);
+
+__host__ void videoPassColors(
+    const std::wstring& inputPath,
+    const std::wstring& outputPath,
+    const float* __restrict passThresh
+);
