@@ -3,7 +3,7 @@
 #include <cmath>
 
 
-__global__ void censor_kernel(unsigned char* __restrict__ img, int rows, int cols, int pixelWidth, int pixelHeight) {
+__global__ void censor_kernel(unsigned char* __restrict__ img, const int rows, const int cols, const int pixelWidth, const int pixelHeight) {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
 
@@ -14,23 +14,24 @@ __global__ void censor_kernel(unsigned char* __restrict__ img, int rows, int col
     int block_y = (y / pixelHeight) * pixelHeight;
     int block_x = (x / pixelWidth) * pixelWidth;
 
-    int block_idx = (block_y * cols + block_x) * 3; // Top-left pixel index in the block
+    int blockCenterIdx = ((block_y + pixelHeight / 2) * cols + (block_x + pixelWidth / 2)) * 3; // Top-left pixel index in the block
     int idx = (y * cols + x) * 3;
 
     for (int c = 0; c < 3; ++c) {
-        img[idx + c] = img[block_idx + c]; // Copy the color from the top-left pixel
+        img[idx + c] = img[blockCenterIdx + c]; // Copy the color from the top-left pixel
     }
 }
 
 __global__ void pixelate_kernel(unsigned char* __restrict__ img, int rows, int cols, int pixelWidth, int pixelHeight) {
-    // Calculate the block's starting position
-    int blockX = blockIdx.x * pixelWidth;
-    int blockY = blockIdx.y * pixelHeight;
+    int x = blockIdx.x * blockDim.x + threadIdx.x;
+    int y = blockIdx.y * blockDim.y + threadIdx.y;
 
-    // Ensure the block is within the image bounds
-    if (blockX >= cols || blockY >= rows) {
+    if (x >= cols || y >= rows) {
         return;
     }
+
+    int blockY = (y / pixelHeight) * pixelHeight;
+    int blockX = (x / pixelWidth) * pixelWidth;
 
     // Calculate the block's end position
     int blockEndX = min(blockX + pixelWidth, cols);
@@ -451,4 +452,72 @@ __global__ void passColors_kernel(unsigned char* __restrict__ img, const int nPi
     img[idx] = passThreshValues[0] * img[idx];
     img[idx] = passThreshValues[1] * img[idx + 1];
     img[idx] = passThreshValues[2] * img[idx + 2];
+}
+
+__device__ static inline float calculatePixelWeight(const float x, const float y, const float cx, const float cy, const float r, const float precision) {
+    // Define the pixel boundaries
+    float x0 = x - 0.5f; // Left edge of the pixel
+    float x1 = x + 0.5f; // Right edge of the pixel
+    float y0 = y - 0.5f; // Bottom edge of the pixel
+    float y1 = y + 0.5f; // Top edge of the pixel
+
+    // Clamp the boundaries to the circle
+    x0 = fmaxf(x0, cx - r);
+    x1 = fminf(x1, cx + r);
+    y0 = fmaxf(y0, cy - r);
+    y1 = fminf(y1, cy + r);
+
+    // Calculate the weight of the pixel based on its overlap with the circle
+    float weight = 0.0f;
+    for (float px = x0; px <= x1; px += precision) {
+        for (float py = y0; py <= y1; py += precision) {
+            float dx = px - cx;
+            float dy = py - cy;
+            if (dx * dx + dy * dy <= r * r) {
+                weight += precision * precision; // Add the weight of the small square
+            }
+        }
+    }
+
+    return weight;
+}
+
+__global__ void preciseBlur_kernel(unsigned char* __restrict__ img, const unsigned char* __restrict__ img_copy, const int rows, const int cols, const int blur_radius, const float precision) {
+    int x = blockIdx.x * blockDim.x + threadIdx.x;
+    int y = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if (x >= cols || y >= rows) return;
+
+    // Initialize sums for each color channel
+    float sumR = 0.0f, sumG = 0.0f, sumB = 0.0f;
+    float totalWeight = 0.0f;
+
+    // Iterate over the circular neighborhood
+    for (int i = -blur_radius; i <= blur_radius; ++i) {
+        for (int j = -blur_radius; j <= blur_radius; ++j) {
+            int sampleX = x + i;
+            int sampleY = y + j;
+
+            // Check if the sampled pixel is within the image bounds
+            if (sampleX >= 0 && sampleX < cols && sampleY >= 0 && sampleY < rows) {
+                // Calculate the weight of the sampled pixel
+                float weight = calculatePixelWeight(sampleX, sampleY, x, y, blur_radius, precision);
+
+                // Accumulate the weighted color values
+                int sampleIdx = (sampleY * cols + sampleX) * 3;
+                sumR += img_copy[sampleIdx] * weight;
+                sumG += img_copy[sampleIdx + 1] * weight;
+                sumB += img_copy[sampleIdx + 2] * weight;
+                totalWeight += weight;
+            }
+        }
+    }
+
+    // Normalize the accumulated color values by the total weight
+    if (totalWeight > 0.0f) {
+        int idx = (y * cols + x) * 3;
+        img[idx] = static_cast<unsigned char>(sumR / totalWeight); // Red
+        img[idx + 1] = static_cast<unsigned char>(sumG / totalWeight); // Green
+        img[idx + 2] = static_cast<unsigned char>(sumB / totalWeight); // Blue
+    }
 }

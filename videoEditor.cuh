@@ -51,7 +51,8 @@ __host__ void videoBlur(
     const std::wstring& inputPath,
     const std::wstring& outputPath,
     const int blurRadius,
-    const int blending = 0
+    const int blending = 0,
+    const float precision = 0.1f
 );
 
 __host__ void videoTrueOutlines(
@@ -77,3 +78,24 @@ __host__ void videoPassColors(
     const std::wstring& outputPath,
     const float* __restrict passThresh
 );
+
+__host__ void videoPixelate(
+    const std::wstring& inputPath,
+    const std::wstring& outputPath,
+    const unsigned short pixelWidth,
+    const unsigned short pixelHeight
+);
+
+__host__ void videoCensor(
+    const std::wstring& inputPath,
+    const std::wstring& outputPath,
+    const unsigned short pixelWidth,
+    const unsigned short pixelHeight
+);
+
+__host__ void videoRoundColors(
+    const std::wstring& inputPath,
+    const std::wstring& outputPath,
+    const unsigned char thresh
+);
+

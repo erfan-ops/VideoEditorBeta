@@ -775,7 +775,8 @@ __host__ void videoBlur(
     const std::wstring& inputPath,
     const std::wstring& outputPath,
     const int blurRadius,
-    const int blending
+    const int blending,
+    const float precision
 ) {
 
     using KernelFunction = void (*)(unsigned char* __restrict__ img, const unsigned char* __restrict__ img_copy, const int rows, const int cols, const int blur_radius);
@@ -787,7 +788,6 @@ __host__ void videoBlur(
         blur_func = &trueBlur_kernel;
     }
     else {
-        std::wcout << L"Invalid blending value. Using fast blur as default.\n";
         blur_func = &fastBlur_kernel;
     }
 
@@ -863,32 +863,63 @@ __host__ void videoBlur(
     std::thread writer(writerThread);
 
     timer.start();
-    while (video.getSuccess()) {
-        std::unique_lock<std::mutex> bufferLock(bufferMutex);
-        bufferCV.wait(bufferLock, [&]() { return !bufferPool.empty(); });
+    if (blending == 2) {
+        while (video.getSuccess()) {
+            std::unique_lock<std::mutex> bufferLock(bufferMutex);
+            bufferCV.wait(bufferLock, [&]() { return !bufferPool.empty(); });
 
-        cv::Mat frameBuffer = bufferPool.front();
-        bufferPool.pop();
-        bufferLock.unlock();
+            cv::Mat frameBuffer = bufferPool.front();
+            bufferPool.pop();
+            bufferLock.unlock();
 
-        cudaMemcpyAsync(d_img, video.getData(), video.getSize(), cudaMemcpyHostToDevice, stream);
-        cudaMemcpyAsync(d_img_copy, d_img, video.getSize(), cudaMemcpyDeviceToDevice, stream);
+            cudaMemcpyAsync(d_img, video.getData(), video.getSize(), cudaMemcpyHostToDevice, stream);
+            cudaMemcpyAsync(d_img_copy, d_img, video.getSize(), cudaMemcpyDeviceToDevice, stream);
 
-        // fix intelisense
-        trueBlur_kernel<<<gridDim, blockDim, 0, stream>>>(d_img, d_img_copy, video.getHeight(), video.getWidth(), blurRadius);
+            // fix intelisense
+            preciseBlur_kernel<<<gridDim, blockDim, 0, stream>>>(d_img, d_img_copy, video.getHeight(), video.getWidth(), blurRadius, precision);
 
-        cudaMemcpyAsync(frameBuffer.data, d_img, video.getSize(), cudaMemcpyDeviceToHost, stream);
-        cudaStreamSynchronize(stream);
+            cudaMemcpyAsync(frameBuffer.data, d_img, video.getSize(), cudaMemcpyDeviceToHost, stream);
+            cudaStreamSynchronize(stream);
 
-        {
-            std::lock_guard<std::mutex> frameLock(queueMutex);
-            frameQueue.push(frameBuffer);
+            {
+                std::lock_guard<std::mutex> frameLock(queueMutex);
+                frameQueue.push(frameBuffer);
+            }
+            queueCV.notify_one();
+
+            timer.update();
+            videoShowProgress(video, timer);
+            video.nextFrame();
         }
-        queueCV.notify_one();
+    }
+    else {
+        while (video.getSuccess()) {
+            std::unique_lock<std::mutex> bufferLock(bufferMutex);
+            bufferCV.wait(bufferLock, [&]() { return !bufferPool.empty(); });
 
-        timer.update();
-        videoShowProgress(video, timer);
-        video.nextFrame();
+            cv::Mat frameBuffer = bufferPool.front();
+            bufferPool.pop();
+            bufferLock.unlock();
+
+            cudaMemcpyAsync(d_img, video.getData(), video.getSize(), cudaMemcpyHostToDevice, stream);
+            cudaMemcpyAsync(d_img_copy, d_img, video.getSize(), cudaMemcpyDeviceToDevice, stream);
+
+            // fix intelisense
+            trueBlur_kernel << <gridDim, blockDim, 0, stream >> > (d_img, d_img_copy, video.getHeight(), video.getWidth(), blurRadius);
+
+            cudaMemcpyAsync(frameBuffer.data, d_img, video.getSize(), cudaMemcpyDeviceToHost, stream);
+            cudaStreamSynchronize(stream);
+
+            {
+                std::lock_guard<std::mutex> frameLock(queueMutex);
+                frameQueue.push(frameBuffer);
+            }
+            queueCV.notify_one();
+
+            timer.update();
+            videoShowProgress(video, timer);
+            video.nextFrame();
+        }
     }
 
     isProcessing = false;
@@ -1385,6 +1416,358 @@ __host__ void videoPassColors(
     writer.join();
 
     // clean up
+    video.release();
+    cudaFree(d_img);
+    cudaStreamDestroy(stream);
+
+    mergeAudio(temp_video_name, temp_audio_name, outputPath);
+
+    fileUtils::deleteFile(temp_video_name);
+    fileUtils::deleteFile(temp_audio_name);
+}
+
+__host__ void videoPixelate(
+    const std::wstring& inputPath,
+    const std::wstring& outputPath,
+    const unsigned short pixelWidth,
+    const unsigned short pixelHeight
+) {
+    // Generate temporary file names
+    std::wstring current_time = std::to_wstring(std::time(nullptr));
+
+    std::wstring video_root = fileUtils::splitextw(inputPath).first;
+    std::wstring output_ext = fileUtils::splitextw(outputPath).second;
+
+    std::wstring temp_video_name = video_root + L" " + current_time + output_ext;
+    std::wstring temp_audio_name = video_root + L" " + current_time + L".aac";
+
+    // Extract audio
+    extractAudio(inputPath, temp_audio_name);
+
+    Video video(inputPath, temp_video_name);
+    Timer timer;
+
+    unsigned char* d_img;
+
+    // Allocate device memory
+    checkCudaError(cudaMalloc(&d_img, video.getSize()), "Failed to allocate device memory for image");
+
+    // Frame buffer pool (preallocated)
+    const int NUM_BUFFERS = nBuffers;
+    std::queue<cv::Mat> bufferPool;
+    for (int i = 0; i < NUM_BUFFERS; i++) {
+        cv::Mat frame(video.getImage().size(), video.getImage().type());
+        bufferPool.push(frame);
+    }
+
+    std::queue<cv::Mat> frameQueue;
+    std::mutex queueMutex;
+    std::condition_variable queueCV;
+    std::atomic<bool> isProcessing(true);
+
+    std::mutex bufferMutex;
+    std::condition_variable bufferCV;
+
+    // Writer thread function
+    auto writerThread = [&]() {
+        while (true) {
+            cv::Mat frame;
+            {
+                std::unique_lock<std::mutex> lock(queueMutex);
+                queueCV.wait(lock, [&]() { return !frameQueue.empty() || !isProcessing; });
+
+                if (!isProcessing && frameQueue.empty()) break;
+
+                frame = frameQueue.front();
+                frameQueue.pop();
+            }
+
+            video.write(frame);
+
+            // Recycle buffer
+            {
+                std::lock_guard<std::mutex> bufferLock(bufferMutex);
+                bufferPool.push(frame);
+                bufferCV.notify_one();
+            }
+        }
+        };
+
+    cudaStream_t stream;
+    checkCudaError(cudaStreamCreate(&stream), "Failed to create stream");
+
+    dim3 blockDim(32, 32);
+    dim3 gridDim((video.getWidth() + blockDim.x - 1) / blockDim.x, (video.getHeight() + blockDim.y - 1) / blockDim.y);
+
+    std::thread writer(writerThread);
+
+    timer.start();
+    while (video.getSuccess()) {
+        std::unique_lock<std::mutex> bufferLock(bufferMutex);
+        bufferCV.wait(bufferLock, [&]() { return !bufferPool.empty(); });
+
+        cv::Mat frameBuffer = bufferPool.front();
+        bufferPool.pop();
+        bufferLock.unlock();
+
+        cudaMemcpyAsync(d_img, video.getData(), video.getSize(), cudaMemcpyHostToDevice, stream);
+
+        // fix intelisense
+        pixelate_kernel<<<gridDim, blockDim, 0, stream>>>(d_img, video.getHeight(), video.getWidth(), pixelWidth, pixelHeight);
+
+        cudaMemcpyAsync(frameBuffer.data, d_img, video.getSize(), cudaMemcpyDeviceToHost, stream);
+        cudaStreamSynchronize(stream);
+
+        {
+            std::lock_guard<std::mutex> frameLock(queueMutex);
+            frameQueue.push(frameBuffer);
+        }
+        queueCV.notify_one();
+
+        timer.update();
+        videoShowProgress(video, timer);
+        video.nextFrame();
+    }
+
+    isProcessing = false;
+    queueCV.notify_one();
+    writer.join();
+
+    // clean up
+    video.release();
+    cudaFree(d_img);
+    cudaStreamDestroy(stream);
+
+    mergeAudio(temp_video_name, temp_audio_name, outputPath);
+
+    fileUtils::deleteFile(temp_video_name);
+    fileUtils::deleteFile(temp_audio_name);
+}
+
+__host__ void videoCensor(
+    const std::wstring& inputPath,
+    const std::wstring& outputPath,
+    const unsigned short pixelWidth,
+    const unsigned short pixelHeight
+) {
+    // Generate temporary file names
+    std::wstring current_time = std::to_wstring(std::time(nullptr));
+
+    std::wstring video_root = fileUtils::splitextw(inputPath).first;
+    std::wstring output_ext = fileUtils::splitextw(outputPath).second;
+
+    std::wstring temp_video_name = video_root + L" " + current_time + output_ext;
+    std::wstring temp_audio_name = video_root + L" " + current_time + L".aac";
+
+    // Extract audio
+    extractAudio(inputPath, temp_audio_name);
+
+    Video video(inputPath, temp_video_name);
+    Timer timer;
+
+    unsigned char* d_img;
+
+    // Allocate device memory
+    checkCudaError(cudaMalloc(&d_img, video.getSize()), "Failed to allocate device memory for image");
+
+    // Frame buffer pool (preallocated)
+    const int NUM_BUFFERS = nBuffers;
+    std::queue<cv::Mat> bufferPool;
+    for (int i = 0; i < NUM_BUFFERS; i++) {
+        cv::Mat frame(video.getImage().size(), video.getImage().type());
+        bufferPool.push(frame);
+    }
+
+    std::queue<cv::Mat> frameQueue;
+    std::mutex queueMutex;
+    std::condition_variable queueCV;
+    std::atomic<bool> isProcessing(true);
+
+    std::mutex bufferMutex;
+    std::condition_variable bufferCV;
+
+    // Writer thread function
+    auto writerThread = [&]() {
+        while (true) {
+            cv::Mat frame;
+            {
+                std::unique_lock<std::mutex> lock(queueMutex);
+                queueCV.wait(lock, [&]() { return !frameQueue.empty() || !isProcessing; });
+
+                if (!isProcessing && frameQueue.empty()) break;
+
+                frame = frameQueue.front();
+                frameQueue.pop();
+            }
+
+            video.write(frame);
+
+            // Recycle buffer
+            {
+                std::lock_guard<std::mutex> bufferLock(bufferMutex);
+                bufferPool.push(frame);
+                bufferCV.notify_one();
+            }
+        }
+        };
+
+    cudaStream_t stream;
+    checkCudaError(cudaStreamCreate(&stream), "Failed to create stream");
+
+    dim3 blockDim(32, 32);
+    dim3 gridDim((video.getWidth() + blockDim.x - 1) / blockDim.x, (video.getHeight() + blockDim.y - 1) / blockDim.y);
+
+    std::thread writer(writerThread);
+
+    timer.start();
+    while (video.getSuccess()) {
+        std::unique_lock<std::mutex> bufferLock(bufferMutex);
+        bufferCV.wait(bufferLock, [&]() { return !bufferPool.empty(); });
+
+        cv::Mat frameBuffer = bufferPool.front();
+        bufferPool.pop();
+        bufferLock.unlock();
+
+        cudaMemcpyAsync(d_img, video.getData(), video.getSize(), cudaMemcpyHostToDevice, stream);
+
+        // fix intelisense
+        censor_kernel<<<gridDim, blockDim, 0, stream>>>(d_img, video.getHeight(), video.getWidth(), pixelWidth, pixelHeight);
+
+        cudaMemcpyAsync(frameBuffer.data, d_img, video.getSize(), cudaMemcpyDeviceToHost, stream);
+        cudaStreamSynchronize(stream);
+
+        {
+            std::lock_guard<std::mutex> frameLock(queueMutex);
+            frameQueue.push(frameBuffer);
+        }
+        queueCV.notify_one();
+
+        timer.update();
+        videoShowProgress(video, timer);
+        video.nextFrame();
+    }
+
+    isProcessing = false;
+    queueCV.notify_one();
+    writer.join();
+
+    // clean up
+    video.release();
+    cudaFree(d_img);
+    cudaStreamDestroy(stream);
+
+    mergeAudio(temp_video_name, temp_audio_name, outputPath);
+
+    fileUtils::deleteFile(temp_video_name);
+    fileUtils::deleteFile(temp_audio_name);
+}
+
+__host__ void videoRoundColors(
+    const std::wstring& inputPath,
+    const std::wstring& outputPath,
+    const unsigned char thresh
+) {
+    // Generate temporary file names
+    std::wstring current_time = std::to_wstring(std::time(nullptr));
+
+    std::wstring video_root = fileUtils::splitextw(inputPath).first;
+    std::wstring output_ext = fileUtils::splitextw(outputPath).second;
+
+    std::wstring temp_video_name = video_root + L" " + current_time + output_ext;
+    std::wstring temp_audio_name = video_root + L" " + current_time + L".aac";
+
+    // Extract audio
+    extractAudio(inputPath, temp_audio_name);
+
+    Video video(inputPath, temp_video_name);
+    Timer timer;
+
+    unsigned char* d_img;
+
+    // Allocate device memory
+    checkCudaError(cudaMalloc(&d_img, video.getSize()), "Failed to allocate device memory for image");
+
+    // Frame buffer pool (preallocated)
+    const int NUM_BUFFERS = nBuffers;
+    std::queue<cv::Mat> bufferPool;
+    for (int i = 0; i < NUM_BUFFERS; i++) {
+        cv::Mat frame(video.getImage().size(), video.getImage().type());
+        bufferPool.push(frame);
+    }
+
+    std::queue<cv::Mat> frameQueue;
+    std::mutex queueMutex;
+    std::condition_variable queueCV;
+    std::atomic<bool> isProcessing(true);
+
+    std::mutex bufferMutex;
+    std::condition_variable bufferCV;
+
+    // Writer thread function
+    auto writerThread = [&]() {
+        while (true) {
+            cv::Mat frame;
+            {
+                std::unique_lock<std::mutex> lock(queueMutex);
+                queueCV.wait(lock, [&]() { return !frameQueue.empty() || !isProcessing; });
+
+                if (!isProcessing && frameQueue.empty()) break;
+
+                frame = frameQueue.front();
+                frameQueue.pop();
+            }
+
+            video.write(frame);
+
+            // Recycle buffer
+            {
+                std::lock_guard<std::mutex> bufferLock(bufferMutex);
+                bufferPool.push(frame);
+                bufferCV.notify_one();
+            }
+        }
+        };
+
+    cudaStream_t stream;
+    checkCudaError(cudaStreamCreate(&stream), "Failed to create stream");
+
+    int blockSize = 1024;
+    int gridSize = (video.getNumPixels() + blockSize - 1) / blockSize;
+
+    std::thread writer(writerThread);
+
+    timer.start();
+    while (video.getSuccess()) {
+        std::unique_lock<std::mutex> bufferLock(bufferMutex);
+        bufferCV.wait(bufferLock, [&]() { return !bufferPool.empty(); });
+
+        cv::Mat frameBuffer = bufferPool.front();
+        bufferPool.pop();
+        bufferLock.unlock();
+
+        cudaMemcpyAsync(d_img, video.getData(), video.getSize(), cudaMemcpyHostToDevice, stream);
+
+        // fix intelisense
+        roundColors_kernel<<<gridSize, blockSize, 0, stream>>>(d_img, video.getNumPixels(), thresh);
+
+        cudaMemcpyAsync(frameBuffer.data, d_img, video.getSize(), cudaMemcpyDeviceToHost, stream);
+        cudaStreamSynchronize(stream);
+
+        {
+            std::lock_guard<std::mutex> frameLock(queueMutex);
+            frameQueue.push(frameBuffer);
+        }
+        queueCV.notify_one();
+
+        timer.update();
+        videoShowProgress(video, timer);
+        video.nextFrame();
+    }
+
+    isProcessing = false;
+    queueCV.notify_one();
+    writer.join();
+
     video.release();
     cudaFree(d_img);
     cudaStreamDestroy(stream);
