@@ -22,7 +22,7 @@ int main() {
         return 0;
     }
 
-    videoInverseColors(inputPath, outputPath);
+    videoMagicEye(inputPath, outputPath);
 
     return 0;
 }

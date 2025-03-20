@@ -104,10 +104,12 @@
     <ClCompile Include="Video.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="imageEffects.cu" />
     <CudaCompile Include="videoEditor.cu" />
     <CudaCompile Include="videoEffects.cu" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="imageEffects.cuh" />
     <ClInclude Include="timer.h" />
     <ClInclude Include="utils.h" />
     <ClInclude Include="Video.h" />

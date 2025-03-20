@@ -103,3 +103,13 @@ __host__ void videoInverseColors(
     const std::wstring& inputPath,
     const std::wstring& outputPath
 );
+
+__host__ void videoBlackWhite(
+    const std::wstring& inputPath,
+    const std::wstring& outputPath
+);
+
+__host__ void videoMagicEye(
+    const std::wstring& inputPath,
+    const std::wstring& outputPath
+);

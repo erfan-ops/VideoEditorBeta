@@ -29,6 +29,9 @@
     <CudaCompile Include="videoEditor.cu">
       <Filter>Source Files</Filter>
     </CudaCompile>
+    <CudaCompile Include="imageEffects.cu">
+      <Filter>Source Files</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="videoEffects.cuh">
@@ -44,6 +47,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="videoEditor.cuh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="imageEffects.cuh">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
