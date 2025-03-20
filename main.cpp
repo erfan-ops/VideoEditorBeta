@@ -21,17 +21,8 @@ int main() {
         std::cerr << "No output file selected." << std::endl;
         return 0;
     }
-    
-    unsigned char colors_BGR[] = {
-       55, 4, 45,
-        72, 127, 182,
-        162, 230, 255,
-    };
 
-    float passColors[] = { 1.0f, 0.5f, 0.0f };
-
-    //videoVintage8bit(inputPath, outputPath, 1, 1, colors_BGR, 3, 64, 8, 0);
-    videoBlur(inputPath, outputPath, 5, 2, 0.1f);
+    videoInverseColors(inputPath, outputPath);
 
     return 0;
 }

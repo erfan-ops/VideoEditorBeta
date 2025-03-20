@@ -99,3 +99,7 @@ __host__ void videoRoundColors(
     const unsigned char thresh
 );
 
+__host__ void videoInverseColors(
+    const std::wstring& inputPath,
+    const std::wstring& outputPath
+);

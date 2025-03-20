@@ -237,32 +237,51 @@ __global__ void radial_blur_kernel(unsigned char* __restrict__ img, int rows, in
 
 __global__ void reverse_contrast(unsigned char* __restrict__ img, const int nPixels) {
     int pIdx = blockIdx.x * blockDim.x + threadIdx.x;
-
     if (pIdx >= nPixels) return;
 
     int idx = pIdx * 3;
 
-    // Get the RGB values of the current pixel
-    int r = img[idx];
-    int g = img[idx+1];
-    int b = img[idx+2];
+    // Load RGB components and normalize to [0,1]
+    float r = img[idx] / 255.0f;
+    float g = img[idx + 1] / 255.0f;
+    float b = img[idx + 2] / 255.0f;
 
-    // Calculate the maximum and minimum RGB values
-    unsigned char max_color = max(max(r, g), b);
-    unsigned char min_color = min(min(r, g), b);
+    // Compute max and min values
+    float max_color = fmaxf(fmaxf(r, g), b);
+    float min_color = fminf(fminf(r, g), b);
 
-    // Calculate the "lightness" (average of max and min)
-    unsigned char lightness = (max_color + min_color) / 2;
+    // Compute original lightness (L)
+    float l = 0.5f * (max_color + min_color);
 
-    // Invert the lightness
-    unsigned char inverted_lightness = 255 - lightness;
+    // Invert lightness
+    float inverted_l = 1.0f - l;
 
-    float scale = static_cast<float>(inverted_lightness) / lightness;
+    // Avoid division by zero
+    float delta = max_color - min_color;
+    if (delta < 1e-6f) {
+        // If the color is grayscale, simply invert it
+        img[idx] = static_cast<unsigned char>(inverted_l * 255.0f);
+        img[idx + 1] = static_cast<unsigned char>(inverted_l * 255.0f);
+        img[idx + 2] = static_cast<unsigned char>(inverted_l * 255.0f);
+        return;
+    }
 
-    // Adjust the RGB values based on the inverted lightness
-    img[idx] = min(max(static_cast<int>(r * scale), 0), 255);
-    img[idx + 1] = min(max(static_cast<int>(g * scale), 0), 255);
-    img[idx + 2] = min(max(static_cast<int>(b * scale), 0), 255);
+    // Compute saturation (S) to maintain color intensity
+    float s = delta / (1.0f - fabsf(2.0f * l - 1.0f));
+
+    // Compute new min/max values based on inverted lightness
+    float new_max = inverted_l + s * (1.0f - fabsf(2.0f * inverted_l - 1.0f)) * 0.5f;
+    float new_min = inverted_l - s * (1.0f - fabsf(2.0f * inverted_l - 1.0f)) * 0.5f;
+
+    // Remap RGB values while preserving hue
+    float new_r = (r == max_color) ? new_max : new_min + (r - min_color) * (new_max - new_min) / delta;
+    float new_g = (g == max_color) ? new_max : new_min + (g - min_color) * (new_max - new_min) / delta;
+    float new_b = (b == max_color) ? new_max : new_min + (b - min_color) * (new_max - new_min) / delta;
+
+    // Store back to image buffer
+    img[idx] = static_cast<unsigned char>(fminf(fmaxf(new_r * 255.0f, 0.0f), 255.0f));
+    img[idx + 1] = static_cast<unsigned char>(fminf(fmaxf(new_g * 255.0f, 0.0f), 255.0f));
+    img[idx + 2] = static_cast<unsigned char>(fminf(fmaxf(new_b * 255.0f, 0.0f), 255.0f));
 }
 
 __device__ static inline void rgb_to_yiq(float r, float g, float b, float& y, float& i, float& q) {
@@ -283,6 +302,7 @@ __global__ void shift_hue_kernel(unsigned char* __restrict__ img, const int nPix
     if (pIdx >= nPixels) return;
 
     int idx = pIdx * 3;
+
     float r = img[idx] / 255.0f;
     float g = img[idx + 1] / 255.0f;
     float b = img[idx + 2] / 255.0f;
@@ -437,9 +457,9 @@ __global__ void monoChrome_kernel(unsigned char* __restrict__ img, const int nPi
                                                  0.587f * static_cast<float>(img[idx + 1]) +
                                                  0.299f * static_cast<float>(img[idx + 2]));
 
+    img[idx++] = m;
+    img[idx++] = m;
     img[idx] = m;
-    img[idx + 1] = m;
-    img[idx + 2] = m;
 }
 
 __global__ void passColors_kernel(unsigned char* __restrict__ img, const int nPixels, const float* __restrict__ passThreshValues) {
@@ -520,4 +540,16 @@ __global__ void preciseBlur_kernel(unsigned char* __restrict__ img, const unsign
         img[idx + 1] = static_cast<unsigned char>(sumG / totalWeight); // Green
         img[idx + 2] = static_cast<unsigned char>(sumB / totalWeight); // Blue
     }
+}
+
+__global__ void inverseColors_kernel(unsigned char* __restrict__ img, const int nPixels) {
+    int pIdx = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (pIdx >= nPixels) return;
+
+    int idx = pIdx * 3;
+
+    img[idx++] = 255ui8 - img[idx];
+    img[idx++] = 255ui8 - img[idx];
+    img[idx] = 255ui8 - img[idx];
 }
