@@ -1,8 +1,7 @@
 #pragma once
 
 #include "videoEditor.cuh"
-#include "videoEffects.cuh"
-#include "imageEffects.cuh"
+#include "effects.cuh"
 #include "utils.h"
 
 #include <Windows.h>

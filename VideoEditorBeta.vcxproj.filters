@@ -21,20 +21,23 @@
     <ClCompile Include="Video.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="image.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="videoEffects.cu">
+    <CudaCompile Include="effects.cu">
       <Filter>Source Files</Filter>
     </CudaCompile>
     <CudaCompile Include="videoEditor.cu">
       <Filter>Source Files</Filter>
     </CudaCompile>
-    <CudaCompile Include="imageEffects.cu">
+    <CudaCompile Include="imageEditor.cu">
       <Filter>Source Files</Filter>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="videoEffects.cuh">
+    <ClInclude Include="effects.cuh">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="utils.h">
@@ -49,8 +52,14 @@
     <ClInclude Include="videoEditor.cuh">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="imageEffects.cuh">
+    <ClInclude Include="imageEditor.cuh">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="image.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

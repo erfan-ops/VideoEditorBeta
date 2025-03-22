@@ -2,6 +2,7 @@
 #include <Windows.h>
 
 #include "videoEditor.cuh"
+#include "imageEditor.cuh"
 #include "utils.h"
 
 
@@ -22,7 +23,7 @@ int main() {
         return 0;
     }
 
-    videoMagicEye(inputPath, outputPath);
+    imageRoundColors(inputPath, outputPath, 64);
 
     return 0;
 }

@@ -11,6 +11,43 @@ constinit static const int PROGRESS_STATES_LEN = sizeof(PROGRESS_STATES) / sizeo
 constinit static const int PROGRESS_STATES_LEN1 = PROGRESS_STATES_LEN - 1;
 constinit static const int ESTIMATE_FROM_LAST_FRAMES = 30;
 
+constexpr static const wchar_t filtersw[] =
+L"Video Files\0*.mp4;*.avi;*.mkv;*.mov\0"
+L"MP4\0*.mp4\0"
+L"AVI\0*.avi\0"
+L"MKV\0*.mkv\0"
+L"MOV\0*.mov\0"
+L"Image Files\0*.jpg;*.jpeg;*.png;*.bmp;*.tif;*.tiff;*.webp;*.ppm;*.pgm;*.pbm;*.hdr;*.exr;*.sr;*.ras\0"
+L"JPEG\0*.jpg;*.jpeg\0"
+L"PNG\0*.png\0"
+L"BMP\0*.bmp\0"
+L"TIFF\0*.tif;*.tiff\0"
+L"WebP\0*.webp\0"
+L"PPM/PGM/PBM\0*.ppm;*.pgm;*.pbm\0"
+L"HDR\0*.hdr\0"
+L"OpenEXR\0*.exr\0"
+L"Sun Raster\0*.sr;*.ras\0"
+L"All Files\0*.*\0";
+
+constexpr static const char filters[] =
+"Video Files\0*.mp4;*.avi;*.mkv;*.mov\0"
+"MP4\0*.mp4\0"
+"AVI\0*.avi\0"
+"MKV\0*.mkv\0"
+"MOV\0*.mov\0"
+"Image Files\0*.jpg;*.jpeg;*.png;*.bmp;*.tif;*.tiff;*.webp;*.ppm;*.pgm;*.pbm;*.hdr;*.exr;*.sr;*.ras\0"
+"JPEG\0*.jpg;*.jpeg\0"
+"PNG\0*.png\0"
+"BMP\0*.bmp\0"
+"TIFF\0*.tif;*.tiff\0"
+"WebP\0*.webp\0"
+"PPM/PGM/PBM\0*.ppm;*.pgm;*.pbm\0"
+"HDR\0*.hdr\0"
+"OpenEXR\0*.exr\0"
+"Sun Raster\0*.sr;*.ras\0"
+"All Files\0*.*\0";
+
+
 // Helper to convert seconds to MM:SS format
 static std::wstring secondsToTimeW(float seconds) {
     int minutes = static_cast<int>(seconds) / 60;
@@ -140,8 +177,8 @@ std::string fileDialog::OpenFileDialog() {
     ZeroMemory(&ofn, sizeof(ofn));
     ofn.lStructSize = sizeof(ofn);
     ofn.hwndOwner = NULL;
-    ofn.lpstrTitle = "select the input video file";
-    ofn.lpstrFilter = "Video Files\0*.mp4;*.avi;*.mkv;*.mov\0mp4\0*.mp4\0avi\0*.avi\0mkv\0*.mkv\0mov\0*.mov\0";
+    ofn.lpstrTitle = "select the input file";
+    ofn.lpstrFilter = filters;
     ofn.lpstrFile = fileName;
     ofn.nMaxFile = MAX_PATH;
     ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
@@ -161,8 +198,8 @@ std::wstring fileDialog::OpenFileDialogW() {
     ZeroMemory(&ofnw, sizeof(ofnw));
     ofnw.lStructSize = sizeof(ofnw);
     ofnw.hwndOwner = NULL;
-    ofnw.lpstrTitle = L"select the input video file";
-    ofnw.lpstrFilter = L"Video Files\0*.mp4;*.avi;*.mkv;*.mov\0mp4\0*.mp4\0avi\0*.avi\0mkv\0*.mkv\0mov\0*.mov\0";
+    ofnw.lpstrTitle = L"select the input file";
+    ofnw.lpstrFilter = filtersw;
     ofnw.lpstrFile = fileName;
     ofnw.nMaxFile = MAX_PATH;
     ofnw.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
@@ -184,8 +221,8 @@ std::string fileDialog::SaveFileDialog() {
     ZeroMemory(&ofn, sizeof(ofn));
     ofn.lStructSize = sizeof(ofn);
     ofn.hwndOwner = NULL; // Handle to the owner window (NULL for no owner)
-    ofn.lpstrTitle = "select the input video file";
-    ofn.lpstrFilter = "Video Files\0*.mp4;*.avi;*.mkv;*.mov\0mp4\0*.mp4\0avi\0*.avi\0mkv\0*.mkv\0mov\0*.mov\0";
+    ofn.lpstrTitle = "Save as";
+    ofn.lpstrFilter = filters;
     ofn.lpstrFile = fileName; // Buffer to store the selected file path
     ofn.nMaxFile = MAX_PATH; // Size of the buffer
     ofn.Flags = OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST; // Flags for the dialog
@@ -208,8 +245,8 @@ std::wstring fileDialog::SaveFileDialogW() {
     ZeroMemory(&ofnw, sizeof(ofnw));
     ofnw.lStructSize = sizeof(ofnw);
     ofnw.hwndOwner = NULL; // Handle to the owner window (NULL for no owner)
-    ofnw.lpstrTitle = L"select the input video file";
-    ofnw.lpstrFilter = L"Video Files\0*.mp4;*.avi;*.mkv;*.mov\0mp4\0*.mp4\0avi\0*.avi\0mkv\0*.mkv\0mov\0*.mov\0";
+    ofnw.lpstrTitle = L"Save as";
+    ofnw.lpstrFilter = filtersw;
     ofnw.lpstrFile = fileName; // Buffer to store the selected file path
     ofnw.nMaxFile = MAX_PATH; // Size of the buffer
     ofnw.Flags = OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST; // Flags for the dialog
