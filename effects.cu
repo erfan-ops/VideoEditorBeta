@@ -555,7 +555,7 @@ __global__ void inverseColors_kernel(unsigned char* __restrict__ img, const int 
     img[idx] = 255ui8 - img[idx];
 }
 
-__global__ void blackNwhite_kernel(unsigned char* __restrict__ img, const int nPixels) {
+__global__ void blackNwhite_kernel(unsigned char* __restrict__ img, const int nPixels, const float middle) {
     int pIdx = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (pIdx >= nPixels) return;
@@ -566,7 +566,7 @@ __global__ void blackNwhite_kernel(unsigned char* __restrict__ img, const int nP
               0.587f * static_cast<float>(img[idx + 1]) +
               0.299f * static_cast<float>(img[idx + 2]);
 
-    unsigned char c = m > 127.5 ? 255 : 0;
+    unsigned char c = m > middle ? 255 : 0;
 
     img[idx++] = c;
     img[idx++] = c;

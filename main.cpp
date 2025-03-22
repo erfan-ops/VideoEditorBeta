@@ -11,19 +11,19 @@ int main() {
     std::wcout.imbue(std::locale("en_US.UTF-8")); // Use the system's locale
 
     // File dialogs for input and output paths
-    std::wstring inputPath = fileDialog::OpenFileDialogW();
+    std::wstring inputPath = fileDialog::OpenFileDialogW(L"Image Files");
     if (inputPath == L"") {
         std::cerr << "No input file selected." << std::endl;
         return 0;
     }
 
-    std::wstring outputPath = fileDialog::SaveFileDialogW();
+    std::wstring outputPath = fileDialog::SaveFileDialogW(L"Image Files");
     if (outputPath == L"") {
         std::cerr << "No output file selected." << std::endl;
         return 0;
     }
 
-    imageRoundColors(inputPath, outputPath, 64);
+    imageBlur(inputPath, outputPath, 30);
 
     return 0;
 }

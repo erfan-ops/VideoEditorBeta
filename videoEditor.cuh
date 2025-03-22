@@ -106,10 +106,12 @@ __host__ void videoInverseColors(
 
 __host__ void videoBlackWhite(
     const std::wstring& inputPath,
-    const std::wstring& outputPath
+    const std::wstring& outputPath,
+    const float middle = 127.5f
 );
 
 __host__ void videoMagicEye(
     const std::wstring& inputPath,
-    const std::wstring& outputPath
+    const std::wstring& outputPath,
+    const float middle = 127.5f
 );

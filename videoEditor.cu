@@ -777,7 +777,6 @@ __host__ void videoBlur(
     const int blending,
     const float precision
 ) {
-
     using KernelFunction = void (*)(unsigned char* __restrict__ img, const unsigned char* __restrict__ img_copy, const int rows, const int cols, const int blur_radius);
     KernelFunction blur_func = nullptr;
     if (blending == 0) {
@@ -1895,7 +1894,8 @@ __host__ void videoInverseColors(
 
 __host__ void videoBlackWhite(
     const std::wstring& inputPath,
-    const std::wstring& outputPath
+    const std::wstring& outputPath,
+    const float middle
 ) {
     // Generate temporary file names
     std::wstring current_time = std::to_wstring(std::time(nullptr));
@@ -1978,7 +1978,7 @@ __host__ void videoBlackWhite(
         cudaMemcpyAsync(d_img, video.getData(), video.getSize(), cudaMemcpyHostToDevice, stream);
 
         // fix intelisense
-        blackNwhite_kernel<<<gridSize, blockSize, 0, stream>>>(d_img, video.getNumPixels());
+        blackNwhite_kernel<<<gridSize, blockSize, 0, stream>>>(d_img, video.getNumPixels(), middle);
 
         cudaMemcpyAsync(frameBuffer.data, d_img, video.getSize(), cudaMemcpyDeviceToHost, stream);
         cudaStreamSynchronize(stream);
@@ -2011,7 +2011,8 @@ __host__ void videoBlackWhite(
 
 __host__ void videoMagicEye(
     const std::wstring& inputPath,
-    const std::wstring& outputPath
+    const std::wstring& outputPath,
+    const float middle
 ) {
     // Generate temporary file names
     std::wstring current_time = std::to_wstring(std::time(nullptr));
@@ -2100,7 +2101,7 @@ __host__ void videoMagicEye(
         cudaMemcpyAsync(d_img, video.getData(), video.getSize(), cudaMemcpyHostToDevice, stream);
 
         // fix intelisense
-        blackNwhite_kernel<<<gridSize, blockSize, 0, stream>>>(d_img, video.getNumPixels());
+        blackNwhite_kernel<<<gridSize, blockSize, 0, stream>>>(d_img, video.getNumPixels(), middle);
         subtract_kernel<<<gridSize, blockSize, 0, stream>>>(d_img, d_noise, video.getNumPixels());
 
         cudaMemcpyAsync(frameBuffer.data, d_img, video.getSize(), cudaMemcpyDeviceToHost, stream);

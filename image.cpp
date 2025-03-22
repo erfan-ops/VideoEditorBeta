@@ -18,7 +18,7 @@ Image::Image(const std::wstring& imagePath) {
 
 void Image::save(const std::wstring& savePath) {
     if (cv::imwrite(wideStringToUtf8(savePath), mat)) {
-        std::cout << "Image saved successfully as 'output.jpg'" << std::endl;
+        std::wcout << L"Image saved successfully as \"" << savePath << L'"' << std::endl;
     }
     else {
         std::cerr << "Error: Could not save the image!" << std::endl;

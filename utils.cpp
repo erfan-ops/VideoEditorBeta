@@ -177,7 +177,7 @@ std::string fileDialog::OpenFileDialog() {
     ZeroMemory(&ofn, sizeof(ofn));
     ofn.lStructSize = sizeof(ofn);
     ofn.hwndOwner = NULL;
-    ofn.lpstrTitle = "select the input file";
+    ofn.lpstrTitle = "select input file";
     ofn.lpstrFilter = filters;
     ofn.lpstrFile = fileName;
     ofn.nMaxFile = MAX_PATH;
@@ -191,18 +191,38 @@ std::string fileDialog::OpenFileDialog() {
     }
 }
 
-std::wstring fileDialog::OpenFileDialogW() {
+std::wstring fileDialog::OpenFileDialogW(const std::wstring& filterName) {
     OPENFILENAMEW ofnw;
     wchar_t fileName[MAX_PATH] = L"";
-
     ZeroMemory(&ofnw, sizeof(ofnw));
+
     ofnw.lStructSize = sizeof(ofnw);
     ofnw.hwndOwner = NULL;
-    ofnw.lpstrTitle = L"select the input file";
+    ofnw.lpstrTitle = L"Select input file";
     ofnw.lpstrFilter = filtersw;
     ofnw.lpstrFile = fileName;
     ofnw.nMaxFile = MAX_PATH;
+    ofnw.nFilterIndex = 1; // Default to first filter if not found
     ofnw.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
+
+    // Find the filter index based on filter name
+    int index = 1;
+    const wchar_t* ptr = filtersw;
+
+    if (!filterName.empty()) {
+        while (*ptr) {
+            std::wstring currentFilter = ptr;
+            ptr += currentFilter.length() + 1; // Move past the filter name
+
+            if (filterName == currentFilter) {
+                ofnw.nFilterIndex = index;
+                break;
+            }
+
+            ptr += wcslen(ptr) + 1; // Move past the wildcard pattern
+            index++;
+        }
+    }
 
     if (GetOpenFileNameW(&ofnw)) {
         return std::wstring(fileName);
@@ -237,9 +257,9 @@ std::string fileDialog::SaveFileDialog() {
     }
 }
 
-std::wstring fileDialog::SaveFileDialogW() {
+std::wstring fileDialog::SaveFileDialogW(const std::wstring& filterName) {
     OPENFILENAMEW ofnw;
-    wchar_t fileName[MAX_PATH] = L"output.mp4";
+    wchar_t fileName[MAX_PATH] = L"output";
 
     // Initialize the OPENFILENAME structure
     ZeroMemory(&ofnw, sizeof(ofnw));
@@ -250,7 +270,25 @@ std::wstring fileDialog::SaveFileDialogW() {
     ofnw.lpstrFile = fileName; // Buffer to store the selected file path
     ofnw.nMaxFile = MAX_PATH; // Size of the buffer
     ofnw.Flags = OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST; // Flags for the dialog
-    ofnw.lpstrDefExt = L"mp4";
+
+    // Find the filter index based on filter name
+    int index = 1;
+    const wchar_t* ptr = filtersw;
+
+    if (!filterName.empty()) {
+        while (*ptr) {
+            std::wstring currentFilter = ptr;
+            ptr += currentFilter.length() + 1; // Move past the filter name
+
+            if (filterName == currentFilter) {
+                ofnw.nFilterIndex = index;
+                break;
+            }
+
+            ptr += wcslen(ptr) + 1; // Move past the wildcard pattern
+            index++;
+        }
+    }
 
     // Open the Save As dialog
     if (GetSaveFileNameW(&ofnw)) {

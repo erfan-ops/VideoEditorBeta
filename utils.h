@@ -18,10 +18,10 @@ namespace fileUtils {
 
 namespace fileDialog {
     std::string OpenFileDialog();
-    std::wstring OpenFileDialogW();
+    std::wstring OpenFileDialogW(const std::wstring& filterName = L"");
 
     std::string SaveFileDialog();
-    std::wstring SaveFileDialogW();
+    std::wstring SaveFileDialogW(const std::wstring& filterName = L"");
 }
 
 namespace stringUtils {
