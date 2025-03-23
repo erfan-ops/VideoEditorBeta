@@ -15,17 +15,17 @@ public:
     void release();
 
     // Getters for video properties
-    int get_frame_count() const;
-    double get_fps() const;
-    int get_total_frames() const;
-    double get_total_video_duration() const;
-    cv::Mat& getImage();
-    uchar* getData() const;
-    int getWidth() const;
-    int getHeight() const;
-    int getNumPixels() const;
-    size_t getSize() const;
-    bool getSuccess() const;
+    int get_frame_count() const noexcept;
+    double get_fps() const noexcept;
+    int get_total_frames() const noexcept;
+    double get_total_video_duration() const noexcept;
+    uchar* getData() const noexcept;
+    int getWidth() const noexcept;
+    int getHeight() const noexcept;
+    int getNumPixels() const noexcept;
+    size_t getSize() const noexcept;
+    bool getSuccess() const noexcept;
+    int getType() const noexcept;
 
 private:
     cv::VideoCapture video_capture;
@@ -40,4 +40,5 @@ private:
     cv::Mat image;
     int nPixels;
     size_t imgSize;
+    int type;
 };

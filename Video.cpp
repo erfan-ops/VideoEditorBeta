@@ -64,6 +64,7 @@ Video::Video(const std::wstring& video_file_path, const std::wstring& video_outp
 
     // Read the first frame
     nextFrame();
+    type = image.type();
 }
 
 void Video::nextFrame() {
@@ -82,14 +83,14 @@ void Video::release() {
     video_write.release();
 }
 
-int Video::get_frame_count() const { return frame_count; }
-double Video::get_fps() const { return FPS; }
-int Video::get_total_frames() const { return total_frames; }
-double Video::get_total_video_duration() const { return total_video_duration; }
-cv::Mat& Video::getImage() { return image; }
-uchar* Video::getData() const { return image.data; }
-int Video::getWidth() const { return width; }
-int Video::getHeight() const { return height; }
-int Video::getNumPixels() const { return nPixels; }
-size_t Video::getSize() const { return imgSize; }
-bool Video::getSuccess() const { return success; }
+int Video::get_frame_count() const noexcept { return frame_count; }
+double Video::get_fps() const noexcept { return FPS; }
+int Video::get_total_frames() const noexcept { return total_frames; }
+double Video::get_total_video_duration() const noexcept { return total_video_duration; }
+uchar* Video::getData() const noexcept { return image.data; }
+int Video::getWidth() const noexcept { return width; }
+int Video::getHeight() const noexcept { return height; }
+int Video::getNumPixels() const noexcept { return nPixels; }
+size_t Video::getSize() const noexcept { return imgSize; }
+bool Video::getSuccess() const noexcept { return success; }
+int Video::getType() const noexcept { return type; }

@@ -71,7 +71,7 @@ __host__ void videoVintage8bit(
     const int NUM_BUFFERS = nBuffers;
     std::queue<cv::Mat> bufferPool;
     for (int i = 0; i < NUM_BUFFERS; i++) {
-        cv::Mat frame(video.getImage().size(), video.getImage().type());
+        cv::Mat frame(video.getHeight(), video.getWidth(), video.getType());
         bufferPool.push(frame);
     }
 
@@ -203,7 +203,7 @@ __host__ void videoRadialBlur(
     const int NUM_BUFFERS = nBuffers;
     std::queue<cv::Mat> bufferPool;
     for (int i = 0; i < NUM_BUFFERS; i++) {
-        cv::Mat frame(video.getImage().size(), video.getImage().type());
+        cv::Mat frame(video.getHeight(), video.getWidth(), video.getType());
         bufferPool.push(frame);
     }
 
@@ -319,7 +319,7 @@ __host__ void videoReverseContrast(
     const int NUM_BUFFERS = nBuffers;
     std::queue<cv::Mat> bufferPool;
     for (int i = 0; i < NUM_BUFFERS; i++) {
-        cv::Mat frame(video.getImage().size(), video.getImage().type());
+        cv::Mat frame(video.getHeight(), video.getWidth(), video.getType());
         bufferPool.push(frame);
     }
 
@@ -439,7 +439,7 @@ __host__ void videoShiftHue(
     const int NUM_BUFFERS = nBuffers;
     std::queue<cv::Mat> bufferPool;
     for (int i = 0; i < NUM_BUFFERS; i++) {
-        cv::Mat frame(video.getImage().size(), video.getImage().type());
+        cv::Mat frame(video.getHeight(), video.getWidth(), video.getType());
         bufferPool.push(frame);
     }
 
@@ -558,7 +558,7 @@ __host__ void videoOutlines(
     const int NUM_BUFFERS = nBuffers;
     std::queue<cv::Mat> bufferPool;
     for (int i = 0; i < NUM_BUFFERS; i++) {
-        cv::Mat frame(video.getImage().size(), video.getImage().type());
+        cv::Mat frame(video.getHeight(), video.getWidth(), video.getType());
         bufferPool.push(frame);
     }
 
@@ -678,7 +678,7 @@ __host__ void videoHighlightMotion(
     const int NUM_BUFFERS = nBuffers;
     std::queue<cv::Mat> bufferPool;
     for (int i = 0; i < NUM_BUFFERS; i++) {
-        cv::Mat frame(video.getImage().size(), video.getImage().type());
+        cv::Mat frame(video.getHeight(), video.getWidth(), video.getType());
         bufferPool.push(frame);
     }
 
@@ -815,7 +815,7 @@ __host__ void videoBlur(
     const int NUM_BUFFERS = nBuffers;
     std::queue<cv::Mat> bufferPool;
     for (int i = 0; i < NUM_BUFFERS; i++) {
-        cv::Mat frame(video.getImage().size(), video.getImage().type());
+        cv::Mat frame(video.getHeight(), video.getWidth(), video.getType());
         bufferPool.push(frame);
     }
 
@@ -967,7 +967,7 @@ __host__ void videoTrueOutlines(
     const int NUM_BUFFERS = nBuffers;
     std::queue<cv::Mat> bufferPool;
     for (int i = 0; i < NUM_BUFFERS; i++) {
-        cv::Mat frame(video.getImage().size(), video.getImage().type());
+        cv::Mat frame(video.getHeight(), video.getWidth(), video.getType());
         bufferPool.push(frame);
     }
 
@@ -1089,7 +1089,7 @@ __host__ void videoMonoChrome(
     const int NUM_BUFFERS = nBuffers;
     std::queue<cv::Mat> bufferPool;
     for (int i = 0; i < NUM_BUFFERS; i++) {
-        cv::Mat frame(video.getImage().size(), video.getImage().type());
+        cv::Mat frame(video.getHeight(), video.getWidth(), video.getType());
         bufferPool.push(frame);
     }
 
@@ -1213,7 +1213,7 @@ __host__ void videoMonoMask(
     const int NUM_BUFFERS = nBuffers;
     std::queue<cv::Mat> bufferPool;
     for (int i = 0; i < NUM_BUFFERS; i++) {
-        cv::Mat frame(video.getImage().size(), video.getImage().type());
+        cv::Mat frame(video.getHeight(), video.getWidth(), video.getType());
         bufferPool.push(frame);
     }
 
@@ -1336,7 +1336,7 @@ __host__ void videoPassColors(
     const int NUM_BUFFERS = nBuffers;
     std::queue<cv::Mat> bufferPool;
     for (int i = 0; i < NUM_BUFFERS; i++) {
-        cv::Mat frame(video.getImage().size(), video.getImage().type());
+        cv::Mat frame(video.getHeight(), video.getWidth(), video.getType());
         bufferPool.push(frame);
     }
 
@@ -1454,7 +1454,7 @@ __host__ void videoPixelate(
     const int NUM_BUFFERS = nBuffers;
     std::queue<cv::Mat> bufferPool;
     for (int i = 0; i < NUM_BUFFERS; i++) {
-        cv::Mat frame(video.getImage().size(), video.getImage().type());
+        cv::Mat frame(video.getHeight(), video.getWidth(), video.getType());
         bufferPool.push(frame);
     }
 
@@ -1572,7 +1572,7 @@ __host__ void videoCensor(
     const int NUM_BUFFERS = nBuffers;
     std::queue<cv::Mat> bufferPool;
     for (int i = 0; i < NUM_BUFFERS; i++) {
-        cv::Mat frame(video.getImage().size(), video.getImage().type());
+        cv::Mat frame(video.getHeight(), video.getWidth(), video.getType());
         bufferPool.push(frame);
     }
 
@@ -1689,7 +1689,7 @@ __host__ void videoRoundColors(
     const int NUM_BUFFERS = nBuffers;
     std::queue<cv::Mat> bufferPool;
     for (int i = 0; i < NUM_BUFFERS; i++) {
-        cv::Mat frame(video.getImage().size(), video.getImage().type());
+        cv::Mat frame(video.getHeight(), video.getWidth(), video.getType());
         bufferPool.push(frame);
     }
 
@@ -1804,7 +1804,7 @@ __host__ void videoInverseColors(
     const int NUM_BUFFERS = nBuffers;
     std::queue<cv::Mat> bufferPool;
     for (int i = 0; i < NUM_BUFFERS; i++) {
-        cv::Mat frame(video.getImage().size(), video.getImage().type());
+        cv::Mat frame(video.getHeight(), video.getWidth(), video.getType());
         bufferPool.push(frame);
     }
 
@@ -1921,7 +1921,7 @@ __host__ void videoBlackWhite(
     const int NUM_BUFFERS = nBuffers;
     std::queue<cv::Mat> bufferPool;
     for (int i = 0; i < NUM_BUFFERS; i++) {
-        cv::Mat frame(video.getImage().size(), video.getImage().type());
+        cv::Mat frame(video.getHeight(), video.getWidth(), video.getType());
         bufferPool.push(frame);
     }
 
@@ -2038,7 +2038,7 @@ __host__ void videoMagicEye(
     const int NUM_BUFFERS = nBuffers;
     std::queue<cv::Mat> bufferPool;
     for (int i = 0; i < NUM_BUFFERS; i++) {
-        cv::Mat frame(video.getImage().size(), video.getImage().type());
+        cv::Mat frame(video.getHeight(), video.getWidth(), video.getType());
         bufferPool.push(frame);
     }
 

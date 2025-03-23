@@ -23,7 +23,7 @@ int main() {
         return 0;
     }
 
-    imageBlur(inputPath, outputPath, 30);
+    videoTrueOutlines(inputPath, outputPath, 3);
 
     return 0;
 }
