@@ -1,0 +1,55 @@
+#include "filedialog.h"
+
+// Define the static member
+const QString FileDialog::filters =
+"Video Files (*.mp4 *.avi *.mkv *.mov);;"
+"MP4 (*.mp4);;"
+"AVI (*.avi);;"
+"MKV (*.mkv);;"
+"MOV (*.mov);;"
+"Image Files (*.jpg *.jpeg *.png *.bmp *.tif *.tiff *.webp *.ppm *.pgm *.pbm *.hdr *.exr *.sr *.ras);;"
+"JPEG (*.jpg *.jpeg);;"
+"PNG (*.png);;"
+"BMP (*.bmp);;"
+"TIFF (*.tif *.tiff);;"
+"WebP (*.webp);;"
+"PPM/PGM/PBM (*.ppm *.pgm *.pbm);;"
+"HDR (*.hdr);;"
+"OpenEXR (*.exr);;"
+"Sun Raster (*.sr *.ras);;"
+"All Files (*.*)";
+
+// Helper functions (local to .cpp file)
+namespace {
+    QString toQString(const std::wstring& wstr) {
+        return QString::fromStdWString(wstr);
+    }
+
+    std::wstring toStdWString(const QString& qstr) {
+        return qstr.toStdWString();
+    }
+}
+
+std::wstring FileDialog::OpenFileDialog(const std::wstring& selectedFilter) {
+    QString selected = toQString(selectedFilter);
+    QString file = QFileDialog::getOpenFileName(
+        nullptr,                   // Parent widget
+        "Open File",               // Dialog title
+        "",                        // Default directory
+        filters,                   // Use the class-static filters
+        &selected                  // Preselect a filter
+    );
+    return toStdWString(file);
+}
+
+std::wstring FileDialog::SaveFileDialog(const std::wstring& selectedFilter, const std::wstring& defaultName) {
+    QString selected = toQString(selectedFilter);
+    QString file = QFileDialog::getSaveFileName(
+        nullptr,                   // Parent widget
+        "Save File",               // Dialog title
+        toQString(defaultName),    // Default filename
+        filters,                   // Use the class-static filters
+        &selected                  // Preselect a filter
+    );
+    return toStdWString(file);
+}

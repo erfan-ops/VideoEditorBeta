@@ -81,6 +81,7 @@ void Video::write(const cv::Mat& img) {
 void Video::release() {
     video_capture.release();
     video_write.release();
+    image.release();
 }
 
 int Video::get_frame_count() const noexcept { return frame_count; }

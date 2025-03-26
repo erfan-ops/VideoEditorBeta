@@ -1,29 +1,84 @@
-﻿#include <iostream>
-#include <Windows.h>
+﻿#include <QApplication>
+#include <QWidget>
+#include <QVBoxLayout>
+#include <QPushButton>
+#include <QLabel>
+#include <QSpinBox>
+#include <QMessageBox>
+#include <QProgressBar>
 
+#include "filedialog.h"
 #include "videoEditor.cuh"
-#include "imageEditor.cuh"
-#include "utils.h"
 
+int main(int argc, char* argv[]) {
+    QApplication app(argc, argv);
 
-int main() {
-    SetConsoleOutputCP(CP_UTF8);  // Set output to UTF-8
-    std::wcout.imbue(std::locale("en_US.UTF-8")); // Use the system's locale
+    // Create main window
+    QWidget window;
+    window.setWindowTitle("Video Processor with Settings");
+    window.resize(400, 300);
 
-    // File dialogs for input and output paths
-    std::wstring inputPath = fileDialog::OpenFileDialogW(L"Image Files");
-    if (inputPath == L"") {
-        std::cerr << "No input file selected." << std::endl;
-        return 0;
-    }
+    // Create UI elements
+    QPushButton btnSelect("Select Video File");
+    QPushButton btnOutlines("Generate Outlines");
+    QLabel label("No file selected yet");
 
-    std::wstring outputPath = fileDialog::SaveFileDialogW(L"Image Files");
-    if (outputPath == L"") {
-        std::cerr << "No output file selected." << std::endl;
-        return 0;
-    }
+    // Number input widgets
+    QSpinBox intInput;
+    QLabel intLabel("Threshold:");
 
-    videoTrueOutlines(inputPath, outputPath, 3);
+    // Configure number inputs
+    intInput.setMinimum(1);
+    intInput.setValue(1);               // Default value
 
-    return 0;
+    // Create layout
+    QVBoxLayout layout(&window);
+    layout.addWidget(&btnSelect);
+    layout.addWidget(&btnOutlines);
+    layout.addWidget(&label);
+
+    // Add number inputs with labels
+    layout.addWidget(&intLabel);
+    layout.addWidget(&intInput);
+
+    QProgressBar progressBar;
+    progressBar.setRange(0, 100);  // 0-100%
+    progressBar.setValue(0);       // Start at 0%
+    progressBar.setTextVisible(true);  // Show percentage text
+    layout.addWidget(&progressBar);
+
+    // Variables to store values
+    std::wstring selectedFilePath;
+    int Thresh{ 0 };
+
+    // Connect signals
+    QObject::connect(&btnSelect, &QPushButton::clicked, [&]() {
+        selectedFilePath = FileDialog::OpenFileDialog(L"Video Files");
+        if (!selectedFilePath.empty()) {
+            label.setText(QString::fromStdWString(L"Selected: " + selectedFilePath));
+        }
+        });
+
+    QObject::connect(&btnOutlines, &QPushButton::clicked, [&]() {
+        if (selectedFilePath.empty()) {
+            QMessageBox::warning(&window, "Error", "Please select a video file first!");
+            return;
+        }
+
+        // Get current values from spin boxes
+        Thresh = intInput.value();
+
+        qDebug() << "Processing with Thresh:" << Thresh;
+
+        std::wstring savePath = FileDialog::SaveFileDialog(L"Video Files", L"video.mp4");
+        if (!savePath.empty()) {
+            videoOutlines(selectedFilePath, savePath, Thresh, Thresh);
+            QMessageBox::information(&window, "Success",
+                QString("Processed with Thresh %1")
+                .arg(Thresh));
+        }
+        });
+
+    window.show();
+    return app.exec();
 }

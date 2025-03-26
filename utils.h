@@ -16,14 +16,6 @@ namespace fileUtils {
     void deleteFile(const std::wstring& path);
 }
 
-namespace fileDialog {
-    std::string OpenFileDialog();
-    std::wstring OpenFileDialogW(const std::wstring& filterName = L"");
-
-    std::string SaveFileDialog();
-    std::wstring SaveFileDialogW(const std::wstring& filterName = L"");
-}
-
 namespace stringUtils {
     std::string to_utf8(const std::wstring& wstr);
     std::wstring string_to_wstring(const std::string& str);

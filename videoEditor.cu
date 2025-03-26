@@ -628,7 +628,7 @@ __host__ void videoOutlines(
         queueCV.notify_one();
 
         timer.update();
-        videoShowProgress(video, timer);
+        // progressBar.setValue(static_cast<int>(video.get_frame_count() / video.get_total_frames()) * 100);
         video.nextFrame();
     }
 
