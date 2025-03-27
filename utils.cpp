@@ -5,6 +5,9 @@
 #include <codecvt>
 #include <filesystem>
 
+#include <QProcess>
+#include <QDebug>
+
 
 constinit static const wchar_t PROGRESS_STATES[8] = {L'▏', L'▎', L'▍', L'▌', L'▋', L'▊', L'▉', L'█'};
 constinit static const int PROGRESS_STATES_LEN = sizeof(PROGRESS_STATES) / sizeof(wchar_t);
@@ -60,43 +63,50 @@ std::string wideStringToUtf8(const std::wstring& wstr) {
     return converter.to_bytes(wstr);
 }
 
-// Function to execute a command with Unicode support
 int execute_command(const std::wstring& command) {
-    // Convert the command to a wide-character string
-    std::wstring wide_command = L"cmd.exe /c " + command;
+    QProcess process;
+    process.setProcessChannelMode(QProcess::MergedChannels); // Combine stdout/stderr
 
-    // Initialize the STARTUPINFO and PROCESS_INFORMATION structures
-    STARTUPINFO si = { sizeof(si) };
-    PROCESS_INFORMATION pi;
+    process.start(QString::fromStdWString(command));
 
-    // Create the process
-    if (CreateProcess(
-        nullptr,                  // No module name (use command line)
-        &wide_command[0],         // Command line (wide-character)
-        nullptr,                  // Process handle not inheritable
-        nullptr,                  // Thread handle not inheritable
-        FALSE,                    // Set handle inheritance to FALSE
-        0,                        // No creation flags
-        nullptr,                  // Use parent's environment block
-        nullptr,                  // Use parent's starting directory
-        &si,                      // Pointer to STARTUPINFO structure
-        &pi                       // Pointer to PROCESS_INFORMATION structure
-    )) {
-        // Wait for the process to finish
-        WaitForSingleObject(pi.hProcess, INFINITE);
-
-        // Close process and thread handles
-        CloseHandle(pi.hProcess);
-        CloseHandle(pi.hThread);
-
-        return 0; // Success
+    if (!process.waitForStarted()) {
+        qDebug() << "Failed to start process:" << process.errorString() << '\n' << command;
+        return -1;
     }
-    else {
-        // Handle error
-        std::cerr << "Failed to execute command. Error: " << GetLastError() << std::endl;
-        return -1; // Failure
+
+    if (!process.waitForFinished()) {
+        qDebug() << "Process failed:" << process.errorString() << '\n' << command;
+        return -2;
     }
+
+    // Optional: Capture output
+    qDebug() << "Output:" << process.readAll() << '\n' << command;
+
+    return process.exitCode();
 }
+
+int Qexecute_command(const QString& program, const QStringList& arguments) {
+    QProcess process;
+    process.setProcessChannelMode(QProcess::MergedChannels);
+
+    qDebug() << "Executing:" << program << arguments.join(" ");
+
+    process.start(program, arguments);
+
+    if (!process.waitForStarted()) {
+        qDebug() << "Failed to start process:" << process.errorString();
+        return -1;
+    }
+
+    if (!process.waitForFinished()) {
+        qDebug() << "Process failed:" << process.errorString();
+        return -2;
+    }
+
+    qDebug() << "Output:" << process.readAll();
+    return process.exitCode();
+}
+
 
 
 std::pair<std::string, std::string> fileUtils::splitext(const std::string& path) {

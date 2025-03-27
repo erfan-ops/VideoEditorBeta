@@ -6,9 +6,12 @@
 #include <QSpinBox>
 #include <QMessageBox>
 #include <QProgressBar>
+#include <QThread>
+
+#include <QDebug>
 
 #include "filedialog.h"
-#include "videoEditor.cuh"
+#include "videoOutlines.h"
 
 int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
@@ -24,12 +27,19 @@ int main(int argc, char* argv[]) {
     QLabel label("No file selected yet");
 
     // Number input widgets
-    QSpinBox intInput;
-    QLabel intLabel("Threshold:");
+    QSpinBox shiftXInput;
+    QSpinBox shiftYInput;
+    QLabel shiftXLabel("Shift X:");
+    QLabel shiftYLabel("Shift Y:");
 
     // Configure number inputs
-    intInput.setMinimum(1);
-    intInput.setValue(1);               // Default value
+    shiftXInput.setMinimum(1);
+    shiftXInput.setMaximum(100);
+    shiftXInput.setValue(1);
+
+    shiftYInput.setMinimum(1);
+    shiftYInput.setMaximum(100);
+    shiftYInput.setValue(1);
 
     // Create layout
     QVBoxLayout layout(&window);
@@ -38,18 +48,19 @@ int main(int argc, char* argv[]) {
     layout.addWidget(&label);
 
     // Add number inputs with labels
-    layout.addWidget(&intLabel);
-    layout.addWidget(&intInput);
+    layout.addWidget(&shiftXLabel);
+    layout.addWidget(&shiftXInput);
+    layout.addWidget(&shiftYLabel);
+    layout.addWidget(&shiftYInput);
 
     QProgressBar progressBar;
-    progressBar.setRange(0, 100);  // 0-100%
-    progressBar.setValue(0);       // Start at 0%
-    progressBar.setTextVisible(true);  // Show percentage text
+    progressBar.setRange(0, 100);
+    progressBar.setValue(0);
+    progressBar.setTextVisible(true);
     layout.addWidget(&progressBar);
 
     // Variables to store values
     std::wstring selectedFilePath;
-    int Thresh{ 0 };
 
     // Connect signals
     QObject::connect(&btnSelect, &QPushButton::clicked, [&]() {
@@ -65,18 +76,49 @@ int main(int argc, char* argv[]) {
             return;
         }
 
-        // Get current values from spin boxes
-        Thresh = intInput.value();
+        std::wstring savePath = FileDialog::SaveFileDialog(L"Video Files", L"video_outlines.mp4");
+        if (savePath.empty()) return;
 
-        qDebug() << "Processing with Thresh:" << Thresh;
+        // Disable button during processing
+        btnOutlines.setEnabled(false);
 
-        std::wstring savePath = FileDialog::SaveFileDialog(L"Video Files", L"video.mp4");
-        if (!savePath.empty()) {
-            videoOutlines(selectedFilePath, savePath, Thresh, Thresh);
-            QMessageBox::information(&window, "Success",
-                QString("Processed with Thresh %1")
-                .arg(Thresh));
-        }
+        // Get current values
+        int shiftX = shiftXInput.value();
+        int shiftY = shiftYInput.value();
+
+        // Create worker and thread
+        QThread* workerThread = new QThread();
+        OutlineWorker* worker = new OutlineWorker(shiftX, shiftY);
+
+        // Set file paths
+        worker->setInputPath(selectedFilePath);
+        worker->setOutputPath(savePath);
+        worker->moveToThread(workerThread);
+
+        // Connect signals
+        QObject::connect(workerThread, &QThread::started, worker, &OutlineWorker::process);
+        QObject::connect(worker, &OutlineWorker::progressChanged, &progressBar, &QProgressBar::setValue, Qt::QueuedConnection);
+
+
+        QObject::connect(worker, &OutlineWorker::finished, workerThread, &QThread::quit);
+        QObject::connect(worker, &OutlineWorker::errorOccurred, workerThread, &QThread::quit);
+
+        // And update the UI separately if needed:
+        QObject::connect(worker, &OutlineWorker::finished, &window, [&]() {
+            btnOutlines.setEnabled(true);
+            });
+        QObject::connect(worker, &OutlineWorker::errorOccurred, &window, [&](const QString& error) {
+            btnOutlines.setEnabled(true);
+            });
+
+
+        // Make sure workerThread is deleted properly
+        QObject::connect(workerThread, &QThread::finished, worker, &OutlineWorker::deleteLater);
+        QObject::connect(workerThread, &QThread::finished, workerThread, &QThread::deleteLater);
+
+
+        // Start processing
+        workerThread->start();
         });
 
     window.show();

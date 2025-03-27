@@ -39,17 +39,26 @@ std::wstring FileDialog::OpenFileDialog(const std::wstring& selectedFilter) {
         filters,                   // Use the class-static filters
         &selected                  // Preselect a filter
     );
-    return toStdWString(file);
+    file.remove('"');
+    return file.toStdWString();
 }
 
-std::wstring FileDialog::SaveFileDialog(const std::wstring& selectedFilter, const std::wstring& defaultName) {
+std::wstring FileDialog::SaveFileDialog(const std::wstring& selectedFilter,
+    const std::wstring& defaultName) {
     QString selected = toQString(selectedFilter);
-    QString file = QFileDialog::getSaveFileName(
-        nullptr,                   // Parent widget
-        "Save File",               // Dialog title
-        toQString(defaultName),    // Default filename
-        filters,                   // Use the class-static filters
-        &selected                  // Preselect a filter
-    );
-    return toStdWString(file);
+
+    // Get native dialog without quotes
+    QFileDialog dialog;
+    dialog.setAcceptMode(QFileDialog::AcceptSave);
+    dialog.setNameFilter(filters);
+    dialog.selectFile(toQString(defaultName));
+
+    if (!dialog.exec()) {
+        return L"";  // User cancelled
+    }
+
+    QString file = dialog.selectedFiles().first();
+    file.remove('"');
+
+    return QDir::toNativeSeparators(file).toStdWString();
 }

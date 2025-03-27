@@ -4,10 +4,14 @@
 #include "Timer.h"
 
 #include <string>
+#include <QString>
 
 
 void videoShowProgress(const Video& video, const Timer& timer, int batch_size = 1);
+
 int execute_command(const std::wstring& command);
+int Qexecute_command(const QString& program, const QStringList& arguments);
+
 std::string wideStringToUtf8(const std::wstring& wstr);
 
 namespace fileUtils {

@@ -7,6 +7,12 @@
     <Filter Include="Header Files">
       <UniqueIdentifier>{6eb9f520-81ca-4504-9b55-06d6c2f75ea3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Effects">
+      <UniqueIdentifier>{ec5cf9d9-b913-4941-884f-f01c07ef745e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Outlines">
+      <UniqueIdentifier>{d5dbf997-457d-422d-9e07-1d33237a7947}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -24,6 +30,12 @@
     <ClCompile Include="image.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="videoOutlines.cpp">
+      <Filter>Effects\Outlines</Filter>
+    </ClCompile>
+    <ClCompile Include="fileDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="effects.cu">
@@ -34,6 +46,9 @@
     </CudaCompile>
     <CudaCompile Include="imageEditor.cu">
       <Filter>Source Files</Filter>
+    </CudaCompile>
+    <CudaCompile Include="kernel_launcher.cu">
+      <Filter>Effects\Outlines</Filter>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
@@ -58,8 +73,32 @@
     <ClInclude Include="image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="kernel_launcher.cuh">
+      <Filter>Effects\Outlines</Filter>
+    </ClInclude>
+    <ClInclude Include="fileDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="VideoEditorBeta.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="icon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtRcc Include="Resource.qrc" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="videoEffectBase.h">
+      <Filter>Effects</Filter>
+    </QtMoc>
+    <QtMoc Include="videoOutlines.h">
+      <Filter>Effects\Outlines</Filter>
+    </QtMoc>
   </ItemGroup>
 </Project>

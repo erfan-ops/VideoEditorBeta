@@ -6,6 +6,7 @@
 class Video {
 public:
     Video(const std::wstring& video_file_path, const std::wstring& video_output_path, int fourcc = -1);
+    ~Video();
     void nextFrame();
 
     // Write the frame to the output video

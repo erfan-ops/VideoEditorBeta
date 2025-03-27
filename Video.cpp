@@ -67,6 +67,11 @@ Video::Video(const std::wstring& video_file_path, const std::wstring& video_outp
     type = image.type();
 }
 
+Video::~Video() {
+    this->release();
+    image.release();
+}
+
 void Video::nextFrame() {
     success = video_capture.read(image);
     if (success) {
@@ -79,9 +84,8 @@ void Video::write(const cv::Mat& img) {
 }
 
 void Video::release() {
-    video_capture.release();
-    video_write.release();
-    image.release();
+    if (video_capture.isOpened()) video_capture.release();
+    if (video_write.isOpened()) video_write.release();
 }
 
 int Video::get_frame_count() const noexcept { return frame_count; }
