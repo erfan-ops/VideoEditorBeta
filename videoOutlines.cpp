@@ -105,7 +105,7 @@ void VOutlineWorker::process() {
             cudaMemcpyAsync(frameBuffer.data, d_img, video.getSize(), cudaMemcpyDeviceToHost, stream);
 
             timer.update();
-            emit progressChanged(static_cast<int>(video.get_frame_count() * 100.0f) / video.get_total_frames());
+            emit progressChanged(video, timer);
             video.nextFrame();
 
             cudaStreamSynchronize(stream);

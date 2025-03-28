@@ -73,6 +73,21 @@
     <Filter Include="Effects\Censor\Image">
       <UniqueIdentifier>{edaf781d-cb34-4a1c-8be2-680a44b1ba0a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Effects\Censor\Video">
+      <UniqueIdentifier>{e0482813-6d52-4adb-978e-28dbde0f0e4e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Inverse Colors">
+      <UniqueIdentifier>{603d539d-540c-4b9d-8242-31fd0d92bd10}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Inverse Colors\Launcher">
+      <UniqueIdentifier>{c03847a3-4046-4c61-ba81-d19f75f0ab6e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Inverse Colors\Image">
+      <UniqueIdentifier>{b42bdc06-79db-4077-9b65-9a03a40329d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Inverse Colors\Video">
+      <UniqueIdentifier>{6f162d6c-170e-4ef5-b684-c0aed1c5044d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -120,6 +135,15 @@
     <ClCompile Include="imageCensor.cpp">
       <Filter>Effects\Censor\Image</Filter>
     </ClCompile>
+    <ClCompile Include="videoCensor.cpp">
+      <Filter>Effects\Censor\Video</Filter>
+    </ClCompile>
+    <ClCompile Include="imageInverseColors.cpp">
+      <Filter>Effects\Inverse Colors\Image</Filter>
+    </ClCompile>
+    <ClCompile Include="videoInverseColors.cpp">
+      <Filter>Effects\Inverse Colors\Video</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="videoEditor.cu">
@@ -142,6 +166,9 @@
     </CudaCompile>
     <CudaCompile Include="censor_launcher.cu">
       <Filter>Effects\Censor\Launcher</Filter>
+    </CudaCompile>
+    <CudaCompile Include="inverseColors_launcher.cu">
+      <Filter>Effects\Inverse Colors\Launcher</Filter>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
@@ -187,6 +214,12 @@
     <ClInclude Include="censor_launcher.cuh">
       <Filter>Effects\Censor\Launcher</Filter>
     </ClInclude>
+    <ClInclude Include="videoHeaders.h">
+      <Filter>Effects\include</Filter>
+    </ClInclude>
+    <ClInclude Include="inverseColors_launcher.cuh">
+      <Filter>Effects\Inverse Colors\Launcher</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -227,6 +260,15 @@
     </QtMoc>
     <QtMoc Include="imageCensor.h">
       <Filter>Effects\Censor\Image</Filter>
+    </QtMoc>
+    <QtMoc Include="videoCensor.h">
+      <Filter>Effects\Censor\Video</Filter>
+    </QtMoc>
+    <QtMoc Include="imageInverseColors.h">
+      <Filter>Effects\Inverse Colors\Image</Filter>
+    </QtMoc>
+    <QtMoc Include="videoInverseColors.h">
+      <Filter>Effects\Inverse Colors\Video</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

@@ -16,7 +16,7 @@ constinit static const int ESTIMATE_FROM_LAST_FRAMES = 30;
 
 
 // Helper to convert seconds to MM:SS format
-static std::wstring secondsToTimeW(float seconds) {
+std::wstring secondsToTimeW(float seconds) {
     int minutes = static_cast<int>(seconds) / 60;
     float remaining_seconds = seconds - minutes * 60;
 
@@ -27,7 +27,7 @@ static std::wstring secondsToTimeW(float seconds) {
 }
 
 // Display progress bar
-void videoShowProgress(const Video& video, const Timer& timer, int batch_size) {
+static void videoShowProgress(const Video& video, const Timer& timer, int batch_size) {
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
 

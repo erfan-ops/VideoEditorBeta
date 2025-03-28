@@ -1,6 +1,8 @@
 #pragma once
 
 #include <QObject>
+#include "timer.h"
+#include "Video.h"
 
 class EffectBase : public QObject {
     Q_OBJECT
@@ -14,7 +16,7 @@ public:
     void setOutputPath(const std::wstring& path) { m_outputPath = path; }
 
 signals:
-    void progressChanged(int percent);
+    void progressChanged(const Video& video, const Timer& timer);
     void finished();
     void errorOccurred(const QString& message);
 

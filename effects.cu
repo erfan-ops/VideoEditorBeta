@@ -545,15 +545,9 @@ __global__ void preciseBlur_kernel(unsigned char* __restrict__ img, const unsign
     }
 }
 
-__global__ void inverseColors_kernel(unsigned char* __restrict__ img, const int nPixels) {
-    int pIdx = blockIdx.x * blockDim.x + threadIdx.x;
-
-    if (pIdx >= nPixels) return;
-
-    int idx = pIdx * 3;
-
-    img[idx++] = 255ui8 - img[idx];
-    img[idx++] = 255ui8 - img[idx];
+__global__ void inverseColors_kernel(unsigned char* __restrict__ img, const int size) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= size) return;
     img[idx] = 255ui8 - img[idx];
 }
 

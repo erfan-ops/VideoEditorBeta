@@ -6,5 +6,7 @@
         <file>samples/outline.jpg</file>
         <file>samples/pixelate.jpg</file>
         <file>samples/blur.jpg</file>
+        <file>samples/censor.jpg</file>
+        <file>samples/inverseColors.jpg</file>
     </qresource>
 </RCC>

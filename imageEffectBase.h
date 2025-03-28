@@ -1,7 +1,7 @@
 #pragma once
 
-#include <effectBase.h>
 #include <QObject>
+#include "effectBase.h"
 
 
 class ImageEffect : public EffectBase {

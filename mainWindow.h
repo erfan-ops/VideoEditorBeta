@@ -3,7 +3,11 @@
 #include <QMainWindow>
 #include <QPushButton>
 #include <functional>
+
 #include "effectBase.h" 
+#include "timer.h"
+#include "video.h"
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -24,5 +28,6 @@ private:
 
     void processEffect(QPushButton* button, EffectBase* worker);
     void replaceButtonWithEffectButton(QPushButton*& button, const QString& imagePath);
+    void updateProgress(const Video& video, const Timer& timer);
 };
 

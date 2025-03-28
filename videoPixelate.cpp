@@ -1,16 +1,6 @@
 #include "videoPixelate.h"
 #include "pixelate_launcher.cuh"
-#include "Video.h"
-#include "timer.h"
-#include "utils.h"
-
-#include <Windows.h>
-#include <QString>
-#include <QProcess>
-
-#include <QDebug>
-
-#include <cuda_runtime.h>
+#include "videoHeaders.h"
 
 
 VPixelateWorker::VPixelateWorker(int pixelWidht, int pixelHeight, QObject* parent)
@@ -111,7 +101,7 @@ void VPixelateWorker::process() {
             queueCV.notify_one();
 
             timer.update();
-            emit progressChanged(video.get_frame_count() * 100 / video.get_total_frames());
+            emit progressChanged(video, timer);
             video.nextFrame();
         }
 

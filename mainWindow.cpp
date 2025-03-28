@@ -41,7 +41,8 @@ MainWindow::MainWindow(QWidget* parent)
     replaceButtonWithEffectButton(ui->btnBlur, ":/samples/samples/blur.jpg");
     replaceButtonWithEffectButton(ui->btnOutlines, ":/samples/samples/outline.jpg");
     replaceButtonWithEffectButton(ui->btnPixelate, ":/samples/samples/pixelate.jpg");
-    replaceButtonWithEffectButton(ui->btnCensor, ":/samples/samples/pixelate.jpg");
+    replaceButtonWithEffectButton(ui->btnCensor, ":/samples/samples/censor.jpg");
+    replaceButtonWithEffectButton(ui->btnInverseColors, ":/samples/samples/inverseColors.jpg");
 
     QObject::connect(ui->btnBlur, &QPushButton::clicked, this, [&]() {
         // Get effect parameters
@@ -51,7 +52,7 @@ MainWindow::MainWindow(QWidget* parent)
         EffectBase* worker = nullptr;
         if (videoExtentions.find(fileUtils::splitextw(selectedFilePath).second) != videoExtentions.end()) {
             worker = new VBlurWorker(blurRadius);
-            QObject::connect(worker, &EffectBase::progressChanged, ui->progressBar, &QProgressBar::setValue, Qt::QueuedConnection);
+            QObject::connect(worker, &EffectBase::progressChanged, this, &MainWindow::updateProgress, Qt::QueuedConnection);
         }
         else {
             worker = new IBlurWorker(blurRadius);
@@ -70,14 +71,14 @@ MainWindow::MainWindow(QWidget* parent)
         EffectBase* worker = nullptr;
         if (videoExtentions.find(fileUtils::splitextw(selectedFilePath).second) != videoExtentions.end()) {
             worker = new VOutlineWorker(thicknessX, thicknessY);
-            QObject::connect(worker, &EffectBase::progressChanged, ui->progressBar, &QProgressBar::setValue, Qt::QueuedConnection);
+            QObject::connect(worker, &EffectBase::progressChanged, this, &MainWindow::updateProgress, Qt::QueuedConnection);
         }
         else {
             worker = new IOutlinesWorker(thicknessX, thicknessY);
         }
 
         // Start processing
-        processEffect(ui->btnBlur, worker);
+        processEffect(ui->btnOutlines, worker);
         });
 
     QObject::connect(ui->btnPixelate, &QPushButton::clicked, this, [&]() {
@@ -89,14 +90,46 @@ MainWindow::MainWindow(QWidget* parent)
         EffectBase* worker = nullptr;
         if (videoExtentions.find(fileUtils::splitextw(selectedFilePath).second) != videoExtentions.end()) {
             worker = new VPixelateWorker(pixelWidth, pixelHeight);
-            QObject::connect(worker, &EffectBase::progressChanged, ui->progressBar, &QProgressBar::setValue, Qt::QueuedConnection);
+            QObject::connect(worker, &EffectBase::progressChanged, this, &MainWindow::updateProgress, Qt::QueuedConnection);
         }
         else {
             worker = new IPixelateWorker(pixelWidth, pixelHeight);
         }
 
         // Start processing
-        processEffect(ui->btnBlur, worker);
+        processEffect(ui->btnPixelate, worker);
+        });
+
+    QObject::connect(ui->btnCensor, &QPushButton::clicked, this, [&]() {
+        // Get effect parameters
+        const int pixelWidth = ui->censorWidth->value();
+        const int pixelHeight = ui->censorHeight->value();
+
+        // Create the appropriate worker
+        EffectBase* worker = nullptr;
+        if (videoExtentions.find(fileUtils::splitextw(selectedFilePath).second) != videoExtentions.end()) {
+            worker = new VCensorWorker(pixelWidth, pixelHeight);
+            QObject::connect(worker, &EffectBase::progressChanged, this, &MainWindow::updateProgress, Qt::QueuedConnection);
+        }
+        else {
+            worker = new ICensorWorker(pixelWidth, pixelHeight);
+        }
+
+        // Start processing
+        processEffect(ui->btnCensor, worker);
+        });
+
+    QObject::connect(ui->btnInverseColors, &QPushButton::clicked, this, [&]() {
+        EffectBase* worker = nullptr;
+        if (videoExtentions.find(fileUtils::splitextw(selectedFilePath).second) != videoExtentions.end()) {
+            worker = new VInverseColorsWorker();
+            QObject::connect(worker, &EffectBase::progressChanged, this, &MainWindow::updateProgress, Qt::QueuedConnection);
+        }
+        else {
+            worker = new IInverseColorsWorker();
+        }
+
+        processEffect(ui->btnInverseColors, worker);
         });
 }
 
@@ -112,11 +145,15 @@ void  MainWindow::processEffect(QPushButton* button, EffectBase* worker) {
         return;
     }
 
+    QString fileType;
+
     if (videoExtentions.find(fileUtils::splitextw(selectedFilePath).second) != videoExtentions.end()) {
         saveFilePath = FileDialog::SaveFileDialog(L"Video Files", L"output.mp4");
+        fileType = "Video";
     }
     else {
         saveFilePath = FileDialog::SaveFileDialog(L"Image Files", L"output.png");
+        fileType = "Image";
     }
     if (saveFilePath.empty()) return;
 
@@ -131,9 +168,9 @@ void  MainWindow::processEffect(QPushButton* button, EffectBase* worker) {
     QObject::connect(worker, &EffectBase::finished, workerThread, &QThread::quit);
     QObject::connect(worker, &EffectBase::errorOccurred, workerThread, &QThread::quit);
 
-    QObject::connect(worker, &EffectBase::finished, this, [this, btn = QPointer<QPushButton>(button)]() {
+    QObject::connect(worker, &EffectBase::finished, this, [this, btn = QPointer<QPushButton>(button), fileType]() {
         btn->setEnabled(true);
-        QMessageBox::information(this, "Success", "Image saved at \"" + QString::fromStdWString(saveFilePath) + '"');
+        QMessageBox::information(this, "Success", fileType + " saved at \"" + QString::fromStdWString(saveFilePath) + '"');
         });
 
     QObject::connect(workerThread, &QThread::finished, worker, &EffectBase::deleteLater);
@@ -147,10 +184,37 @@ void MainWindow::replaceButtonWithEffectButton(QPushButton*& button, const QStri
 {
     if (!button) return; // Safety check
 
-    EffectButton* effectBtn = new EffectButton(imagePath, this);
-    effectBtn->setGeometry(button->geometry());
+    QWidget* parentWidget = button->parentWidget(); // Get the parent widget (important for QScrollArea)
+    if (!parentWidget) return;
+
+    // Create and set up the new EffectButton
+    EffectButton* effectBtn = new EffectButton(imagePath, parentWidget);
+    effectBtn->setCursor(Qt::PointingHandCursor);
+    effectBtn->setStyleSheet("border: none; background: none;");
+
+    // Set position relative to the parent widget
+    effectBtn->setFixedSize(button->size());
+    effectBtn->move(button->pos()); // Use move() instead of setGeometry()
+
     effectBtn->show();
 
     delete button;  // Remove the original button
     button = effectBtn; // Update pointer to the new button
+}
+
+
+void MainWindow::updateProgress(const Video& video, const Timer& timer) {
+    ui->progressBar->setValue(video.get_frame_count() * 100 / video.get_total_frames());
+    ui->elapsedTime->setText(QString::fromStdWString(secondsToTimeW(timer.getTimeElapsed())));
+
+    float avg_time_per_frame = std::accumulate(timer.getPreviousTimes().begin(), timer.getPreviousTimes().end(), 0.0f) / timer.getPreviousTimes().size();
+    float estimate_time = (video.get_total_frames() - video.get_frame_count()) * avg_time_per_frame;
+
+    std::wstring details = std::to_wstring(
+        video.get_frame_count()) +
+        L"/" + std::to_wstring(video.get_total_frames()) +
+        L" [" + secondsToTimeW(static_cast<float>(video.get_frame_count()) / video.get_fps()) +
+        L"/" + secondsToTimeW(video.get_total_video_duration()) + L"] estimated time: " + secondsToTimeW(estimate_time);
+
+    ui->progressDetails->setText(QString::fromStdWString(details));
 }

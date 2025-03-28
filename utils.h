@@ -9,7 +9,7 @@
 #include <cuda_runtime.h>
 
 
-void videoShowProgress(const Video& video, const Timer& timer, int batch_size = 1);
+std::wstring secondsToTimeW(float seconds);
 
 int execute_command(const std::wstring& command);
 int Qexecute_command(const QString& program, const QStringList& arguments);

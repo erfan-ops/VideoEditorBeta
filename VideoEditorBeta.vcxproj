@@ -135,6 +135,7 @@
     <ClCompile Include="image.cpp" />
     <ClCompile Include="imageBlur.cpp" />
     <ClCompile Include="imageCensor.cpp" />
+    <ClCompile Include="imageInverseColors.cpp" />
     <ClCompile Include="imageOutlines.cpp" />
     <ClCompile Include="imagePixelate.cpp" />
     <ClCompile Include="main.cpp">
@@ -144,12 +145,15 @@
     <ClCompile Include="timer.cpp" />
     <ClCompile Include="utils.cpp" />
     <ClCompile Include="Video.cpp" />
+    <ClCompile Include="videoCensor.cpp" />
+    <ClCompile Include="videoInverseColors.cpp" />
     <ClCompile Include="videoPixelate.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="blur_launcher.cu" />
     <CudaCompile Include="censor_launcher.cu" />
     <CudaCompile Include="imageEditor.cu" />
+    <CudaCompile Include="inverseColors_launcher.cu" />
     <CudaCompile Include="outline_launcher.cu" />
     <CudaCompile Include="pixelate_launcher.cu" />
     <CudaCompile Include="videoEditor.cu">
@@ -163,6 +167,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="blur_launcher.cuh" />
+    <QtMoc Include="videoInverseColors.h" />
+    <QtMoc Include="imageInverseColors.h" />
+    <ClInclude Include="inverseColors_launcher.cuh" />
+    <ClInclude Include="videoHeaders.h" />
     <QtMoc Include="videoPixelate.h" />
     <QtMoc Include="effectBase.h" />
     <QtMoc Include="EffectButton.h" />
@@ -184,6 +192,7 @@
     <ClInclude Include="utils.h" />
     <ClInclude Include="Video.h" />
     <QtMoc Include="videoBlur.h" />
+    <QtMoc Include="videoCensor.h" />
     <ClInclude Include="videoEditor.cuh" />
     <ClInclude Include="effects.cuh" />
     <QtMoc Include="videoEffectBase.h" />
