@@ -3,6 +3,10 @@
 #include <QFileDialog>
 #include <QWidget>
 
+#include <unordered_set>
+
+extern std::unordered_set<std::wstring> videoExtentions;
+
 class FileDialog {
 private:
     static const QString filters;

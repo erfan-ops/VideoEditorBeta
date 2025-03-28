@@ -6,6 +6,8 @@
 #include <string>
 #include <QString>
 
+#include <cuda_runtime.h>
+
 
 void videoShowProgress(const Video& video, const Timer& timer, int batch_size = 1);
 
@@ -23,4 +25,11 @@ namespace fileUtils {
 namespace stringUtils {
     std::string to_utf8(const std::wstring& wstr);
     std::wstring string_to_wstring(const std::string& str);
+}
+
+namespace videoUtils {
+    constexpr int nBuffers = 4;
+    void checkCudaError(cudaError_t err, const char* msg);
+    void extractAudio(const std::wstring& inputVideo, const std::wstring& outputAudio);
+    void mergeAudio(const std::wstring& inputVideo, const std::wstring& inputAudio, const std::wstring& outputVideo);
 }

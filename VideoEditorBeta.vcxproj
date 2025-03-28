@@ -94,7 +94,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;WIN64;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Qt\6.8.2\msvc2022_64\include\QtCore;GeneratedFiles\$(ConfigurationName);GeneratedFiles;C:\Qt\6.8.2\msvc2022_64\include;C:\Qt\6.8.2\msvc2022_64\include\QtWidgets;$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Qt\6.8.2\msvc2022_64\include\QtGui;C:\Qt\6.8.2\msvc2022_64\include\QtCore;GeneratedFiles\$(ConfigurationName);GeneratedFiles;C:\Qt\6.8.2\msvc2022_64\include;C:\Qt\6.8.2\msvc2022_64\include\QtWidgets;$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -106,13 +106,13 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>cudart_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;opencv_core4100.lib;opencv_video4100.lib;opencv_videoio4100.lib;opencv_videostab4100.lib;opencv_quality4100.lib;opencv_cudaarithm4100.lib;opencv_cudabgsegm4100.lib;opencv_cudacodec4100.lib;opencv_cudafeatures2d4100.lib;opencv_cudafilters4100.lib;opencv_cudaimgproc4100.lib;opencv_cudalegacy4100.lib;opencv_cudaobjdetect4100.lib;opencv_cudaoptflow4100.lib;opencv_cudastereo4100.lib;opencv_cudawarping4100.lib;opencv_cudev4100.lib;opencv_imgcodecs4100.lib;opencv_imgproc4100.lib;opencv_highgui4100.lib;opencv_xfeatures2d4100.lib;opencv_ximgproc4100.lib;Qt6Core.lib;Qt6Gui.lib;Qt6Widgets.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Qt\6.8.2\msvc2022_64\lib;$(ProjectDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
-      <Include>$(ProjectDir)include;C:\Qt\6.8.2\msvc2022_64\include;C:\Qt\6.8.2\msvc2022_64\include\QtWidgets;%(Include)</Include>
+      <Include>$(ProjectDir)include;C:\Qt\6.8.2\msvc2022_64\include;C:\Qt\6.8.2\msvc2022_64\include\QtWidgets;C:\Qt\6.8.2\msvc2022_64\include\QtGui;%(Include)</Include>
       <AdditionalCompilerOptions>--std=c++20</AdditionalCompilerOptions>
       <AdditionalOptions>
  %(AdditionalOptions)</AdditionalOptions>
@@ -125,35 +125,65 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="EffectButton.cpp">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
+      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).moc</QtMocFileName>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
+      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).moc</QtMocFileName>
+    </ClCompile>
     <ClCompile Include="fileDialog.cpp" />
     <ClCompile Include="image.cpp" />
+    <ClCompile Include="imageBlur.cpp" />
+    <ClCompile Include="imageCensor.cpp" />
+    <ClCompile Include="imageOutlines.cpp" />
+    <ClCompile Include="imagePixelate.cpp" />
     <ClCompile Include="main.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
+    <ClCompile Include="mainWindow.cpp" />
     <ClCompile Include="timer.cpp" />
     <ClCompile Include="utils.cpp" />
     <ClCompile Include="Video.cpp" />
+    <ClCompile Include="videoPixelate.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="blur_launcher.cu" />
+    <CudaCompile Include="censor_launcher.cu" />
     <CudaCompile Include="imageEditor.cu" />
-    <CudaCompile Include="kernel_launcher.cu" />
+    <CudaCompile Include="outline_launcher.cu" />
+    <CudaCompile Include="pixelate_launcher.cu" />
     <CudaCompile Include="videoEditor.cu">
       <FileType>Document</FileType>
     </CudaCompile>
     <CudaCompile Include="effects.cu" />
+    <ClCompile Include="videoBlur.cpp" />
     <ClCompile Include="videoOutlines.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="blur_launcher.cuh" />
+    <QtMoc Include="videoPixelate.h" />
+    <QtMoc Include="effectBase.h" />
+    <QtMoc Include="EffectButton.h" />
+    <ClInclude Include="censor_launcher.cuh" />
+    <ClInclude Include="effects.h" />
     <ClInclude Include="fileDialog.h" />
     <ClInclude Include="image.h" />
+    <QtMoc Include="imageBlur.h" />
+    <QtMoc Include="imageCensor.h" />
     <ClInclude Include="imageEditor.cuh" />
-    <ClInclude Include="kernel_launcher.cuh" />
+    <QtMoc Include="imageEffectBase.h" />
+    <QtMoc Include="ImageOutlines.h" />
+    <QtMoc Include="imagePixelate.h" />
+    <ClInclude Include="outline_launcher.cuh" />
+    <QtMoc Include="mainWindow.h" />
+    <ClInclude Include="pixelate_launcher.cuh" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="timer.h" />
     <ClInclude Include="utils.h" />
     <ClInclude Include="Video.h" />
+    <QtMoc Include="videoBlur.h" />
     <ClInclude Include="videoEditor.cuh" />
     <ClInclude Include="effects.cuh" />
     <QtMoc Include="videoEffectBase.h" />
@@ -170,6 +200,9 @@
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="Resource.qrc" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="MainWindow.ui" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="$(QtMsBuild)\qt.targets" Condition="Exists('$(QtMsBuild)\qt.targets')" />

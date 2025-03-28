@@ -367,12 +367,14 @@ __global__ void fastBlur_kernel(unsigned char* __restrict__ img, const unsigned 
     int sumR = 0, sumG = 0, sumB = 0;
     int count = 0;
 
+    const int blur_radius_sqr = blur_radius * blur_radius;
+
     // Iterate over the rounded neighborhood
     for (int i = -blur_radius; i <= blur_radius; ++i) {
         for (int j = -blur_radius; j <= blur_radius; ++j) {
             // Calculate the distance from the center pixel
-            float distance = sqrtf(i * i + j * j);
-            if (distance <= blur_radius) {
+            float distance_sqr = i * i + j * j;
+            if (distance_sqr <= blur_radius_sqr) {
                 int sampleX = x + i;
                 int sampleY = y + j;
 

@@ -166,3 +166,39 @@ std::wstring stringUtils::string_to_wstring(const std::string& str) {
 
     return wstr;
 }
+
+
+void videoUtils::checkCudaError(cudaError_t err, const char* msg) {
+    if (err != cudaSuccess) {
+        std::cerr << msg << ": " << cudaGetErrorString(err) << std::endl;
+        exit(EXIT_FAILURE);
+    }
+}
+
+void videoUtils::extractAudio(const std::wstring& inputVideo, const std::wstring& outputAudio) {
+    QProcess process;
+    process.start("ffmpeg", {
+        "-loglevel", "quiet",
+        "-i", QString::fromStdWString(inputVideo),
+        "-vn", "-acodec", "copy",
+        QString::fromStdWString(outputAudio)
+        });
+    process.waitForFinished();
+}
+
+void videoUtils::mergeAudio(const std::wstring& inputVideo, const std::wstring& inputAudio, const std::wstring& outputVideo) {
+    QProcess process;
+    process.start(
+        "ffmpeg", {
+            "-loglevel", "quiet",
+            "-i", QString::fromStdWString(inputVideo),
+            "-i", QString::fromStdWString(inputAudio),
+            "-c:v", "copy",
+            "-c:a", "copy",
+            "-map", "0:v:0",
+            "-map", "1:a:0",
+            QString::fromStdWString(outputVideo),
+            "-y"
+        });
+    process.waitForFinished();
+}

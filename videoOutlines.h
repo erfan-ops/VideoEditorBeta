@@ -3,10 +3,10 @@
 #include "videoEffectBase.h"
 
 
-class OutlineWorker : public VideoEffect {
+class VOutlineWorker : public VideoEffect {
     Q_OBJECT
 public:
-    OutlineWorker(int shiftX, int shiftY, QObject* parent = nullptr);
+    VOutlineWorker(int shiftX, int shiftY, QObject* parent = nullptr);
     void process() override;
 private:
     int m_shiftX, m_shiftY;

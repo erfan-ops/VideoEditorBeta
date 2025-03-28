@@ -19,6 +19,8 @@ const QString FileDialog::filters =
 "Sun Raster (*.sr *.ras);;"
 "All Files (*.*)";
 
+std::unordered_set<std::wstring> videoExtentions = { L".mp4", L".avi", L".mkv", L".mov" };
+
 // Helper functions (local to .cpp file)
 namespace {
     QString toQString(const std::wstring& wstr) {
@@ -51,6 +53,7 @@ std::wstring FileDialog::SaveFileDialog(const std::wstring& selectedFilter,
     QFileDialog dialog;
     dialog.setAcceptMode(QFileDialog::AcceptSave);
     dialog.setNameFilter(filters);
+    dialog.selectNameFilter(selected);
     dialog.selectFile(toQString(defaultName));
 
     if (!dialog.exec()) {

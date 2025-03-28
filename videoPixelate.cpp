@@ -1,5 +1,5 @@
-#include "videoOutlines.h"
-#include "outline_launcher.cuh"
+#include "videoPixelate.h"
+#include "pixelate_launcher.cuh"
 #include "Video.h"
 #include "timer.h"
 #include "utils.h"
@@ -13,14 +13,16 @@
 #include <cuda_runtime.h>
 
 
-VOutlineWorker::VOutlineWorker(int shiftX, int shiftY, QObject* parent)
-	: VideoEffect(parent), m_shiftX(shiftX), m_shiftY(shiftY)
-{}
+VPixelateWorker::VPixelateWorker(int pixelWidht, int pixelHeight, QObject* parent)
+    : VideoEffect(parent), m_pixelWidth(pixelWidht), m_pixelHeight(pixelHeight)
+{
+}
 
-void VOutlineWorker::process() {
+void VPixelateWorker::process() {
     try {
         // Generate temporary file names
         std::wstring current_time = std::to_wstring(std::time(nullptr));
+
         std::wstring video_root = fileUtils::splitextw(m_inputPath).first;
         std::wstring output_ext = fileUtils::splitextw(m_outputPath).second;
 
@@ -34,11 +36,9 @@ void VOutlineWorker::process() {
         Timer timer;
 
         unsigned char* d_img;
-        unsigned char* d_img_copy;
 
         // Allocate device memory
         videoUtils::checkCudaError(cudaMalloc(&d_img, video.getSize()), "Failed to allocate device memory for image");
-        videoUtils::checkCudaError(cudaMalloc(&d_img_copy, video.getSize()), "Failed to allocate device memory for image copy");
 
         // Frame buffer pool (preallocated)
         std::queue<cv::Mat> bufferPool;
@@ -98,16 +98,10 @@ void VOutlineWorker::process() {
             bufferLock.unlock();
 
             cudaMemcpyAsync(d_img, video.getData(), video.getSize(), cudaMemcpyHostToDevice, stream);
-            cudaMemcpyAsync(d_img_copy, d_img, video.getSize(), cudaMemcpyDeviceToDevice, stream);
 
-            outlines(gridDim, blockDim, stream, d_img, d_img_copy, video.getWidth(), video.getHeight(), m_shiftX, m_shiftY);
+            pixelate(gridDim, blockDim, stream, d_img, video.getWidth(), video.getHeight(), m_pixelWidth, m_pixelHeight);
 
             cudaMemcpyAsync(frameBuffer.data, d_img, video.getSize(), cudaMemcpyDeviceToHost, stream);
-
-            timer.update();
-            emit progressChanged(static_cast<int>(video.get_frame_count() * 100.0f) / video.get_total_frames());
-            video.nextFrame();
-
             cudaStreamSynchronize(stream);
 
             {
@@ -115,6 +109,10 @@ void VOutlineWorker::process() {
                 frameQueue.push(frameBuffer);
             }
             queueCV.notify_one();
+
+            timer.update();
+            emit progressChanged(video.get_frame_count() * 100 / video.get_total_frames());
+            video.nextFrame();
         }
 
         isProcessing = false;
@@ -124,7 +122,6 @@ void VOutlineWorker::process() {
         // clean up
         video.release();
         cudaFree(d_img);
-        cudaFree(d_img_copy);
         cudaStreamDestroy(stream);
 
         videoUtils::mergeAudio(temp_video_name, temp_audio_name, m_outputPath);

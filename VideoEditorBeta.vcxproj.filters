@@ -13,6 +13,66 @@
     <Filter Include="Effects\Outlines">
       <UniqueIdentifier>{d5dbf997-457d-422d-9e07-1d33237a7947}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Ui">
+      <UniqueIdentifier>{6b5c5ebb-c170-4667-801e-3d1414205884}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Blur">
+      <UniqueIdentifier>{49a6ee6e-98fb-4ad3-beed-72df7a58f81e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{b09586dc-1b2f-4ea9-9891-a5126ec5565e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Ui\EffectButton">
+      <UniqueIdentifier>{172656e5-b142-47e8-8df0-47898068c371}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Outlines\Image">
+      <UniqueIdentifier>{c7acc063-7f1e-4deb-9a7e-6585b41abbb0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Outlines\Video">
+      <UniqueIdentifier>{1df8df5d-eecd-44ce-b468-a398222dae3e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Blur\Image">
+      <UniqueIdentifier>{c367c4b9-6dc7-4d40-b457-5859fbf83411}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Blur\Video">
+      <UniqueIdentifier>{edfc2dd4-68f1-4a29-b322-9f0b2dac421a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\include">
+      <UniqueIdentifier>{ba1b101b-e3b1-426f-ab26-0c3f2b445d8a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\BaseClasses">
+      <UniqueIdentifier>{3b4d529e-ad38-4007-8559-4dfbd3b18196}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Kernels">
+      <UniqueIdentifier>{41474406-d42b-469c-8057-7c82f369384b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Pixelate">
+      <UniqueIdentifier>{bca25e9f-8d4f-4507-83a2-3f2f39d44bc5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Pixelate\Launcher">
+      <UniqueIdentifier>{2b6bedab-2ab4-4865-987f-a72ebfadc10c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Blur\Launcher">
+      <UniqueIdentifier>{f87dcb01-a1ca-43c4-9b1d-f2406795fb16}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Outlines\Launcher">
+      <UniqueIdentifier>{a47a379a-8700-46f6-886e-cdd968259015}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Pixelate\Image">
+      <UniqueIdentifier>{20d10308-0eeb-48f0-9696-65e27073feda}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Pixelate\Video">
+      <UniqueIdentifier>{6384dcb0-623d-4511-8e78-7b0d278292ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Censor">
+      <UniqueIdentifier>{aa0cbfb8-1c31-410b-a8ff-46d133a934be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Censor\Launcher">
+      <UniqueIdentifier>{a05d4505-17ff-431a-b10f-878b974556f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Censor\Image">
+      <UniqueIdentifier>{edaf781d-cb34-4a1c-8be2-680a44b1ba0a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -30,31 +90,61 @@
     <ClCompile Include="image.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="videoOutlines.cpp">
-      <Filter>Effects\Outlines</Filter>
-    </ClCompile>
     <ClCompile Include="fileDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mainWindow.cpp">
+      <Filter>Ui</Filter>
+    </ClCompile>
+    <ClCompile Include="EffectButton.cpp">
+      <Filter>Ui\EffectButton</Filter>
+    </ClCompile>
+    <ClCompile Include="imageOutlines.cpp">
+      <Filter>Effects\Outlines\Image</Filter>
+    </ClCompile>
+    <ClCompile Include="videoOutlines.cpp">
+      <Filter>Effects\Outlines\Video</Filter>
+    </ClCompile>
+    <ClCompile Include="imageBlur.cpp">
+      <Filter>Effects\Blur\Image</Filter>
+    </ClCompile>
+    <ClCompile Include="videoBlur.cpp">
+      <Filter>Effects\Blur\Video</Filter>
+    </ClCompile>
+    <ClCompile Include="imagePixelate.cpp">
+      <Filter>Effects\Pixelate\Image</Filter>
+    </ClCompile>
+    <ClCompile Include="videoPixelate.cpp">
+      <Filter>Effects\Pixelate\Video</Filter>
+    </ClCompile>
+    <ClCompile Include="imageCensor.cpp">
+      <Filter>Effects\Censor\Image</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="effects.cu">
-      <Filter>Source Files</Filter>
-    </CudaCompile>
     <CudaCompile Include="videoEditor.cu">
       <Filter>Source Files</Filter>
     </CudaCompile>
     <CudaCompile Include="imageEditor.cu">
       <Filter>Source Files</Filter>
     </CudaCompile>
-    <CudaCompile Include="kernel_launcher.cu">
-      <Filter>Effects\Outlines</Filter>
+    <CudaCompile Include="outline_launcher.cu">
+      <Filter>Effects\Outlines\Launcher</Filter>
+    </CudaCompile>
+    <CudaCompile Include="blur_launcher.cu">
+      <Filter>Effects\Blur\Launcher</Filter>
+    </CudaCompile>
+    <CudaCompile Include="effects.cu">
+      <Filter>Effects\Kernels</Filter>
+    </CudaCompile>
+    <CudaCompile Include="pixelate_launcher.cu">
+      <Filter>Effects\Pixelate\Launcher</Filter>
+    </CudaCompile>
+    <CudaCompile Include="censor_launcher.cu">
+      <Filter>Effects\Censor\Launcher</Filter>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="effects.cuh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -73,32 +163,90 @@
     <ClInclude Include="image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h" />
-    <ClInclude Include="kernel_launcher.cuh">
-      <Filter>Effects\Outlines</Filter>
-    </ClInclude>
     <ClInclude Include="fileDialog.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="outline_launcher.cuh">
+      <Filter>Effects\Outlines\Launcher</Filter>
+    </ClInclude>
+    <ClInclude Include="blur_launcher.cuh">
+      <Filter>Effects\Blur\Launcher</Filter>
+    </ClInclude>
+    <ClInclude Include="effects.h">
+      <Filter>Effects\include</Filter>
+    </ClInclude>
+    <ClInclude Include="effects.cuh">
+      <Filter>Effects\Kernels</Filter>
+    </ClInclude>
+    <ClInclude Include="pixelate_launcher.cuh">
+      <Filter>Effects\Pixelate\Launcher</Filter>
+    </ClInclude>
+    <ClInclude Include="censor_launcher.cuh">
+      <Filter>Effects\Censor\Launcher</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="VideoEditorBeta.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="icon.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <QtRcc Include="Resource.qrc" />
-  </ItemGroup>
-  <ItemGroup>
-    <QtMoc Include="videoEffectBase.h">
-      <Filter>Effects</Filter>
+    <QtMoc Include="mainWindow.h">
+      <Filter>Ui</Filter>
+    </QtMoc>
+    <QtMoc Include="EffectButton.h">
+      <Filter>Ui\EffectButton</Filter>
+    </QtMoc>
+    <QtMoc Include="ImageOutlines.h">
+      <Filter>Effects\Outlines\Image</Filter>
     </QtMoc>
     <QtMoc Include="videoOutlines.h">
-      <Filter>Effects\Outlines</Filter>
+      <Filter>Effects\Outlines\Video</Filter>
     </QtMoc>
+    <QtMoc Include="imageBlur.h">
+      <Filter>Effects\Blur\Image</Filter>
+    </QtMoc>
+    <QtMoc Include="videoBlur.h">
+      <Filter>Effects\Blur\Video</Filter>
+    </QtMoc>
+    <QtMoc Include="videoEffectBase.h">
+      <Filter>Effects\BaseClasses</Filter>
+    </QtMoc>
+    <QtMoc Include="imageEffectBase.h">
+      <Filter>Effects\BaseClasses</Filter>
+    </QtMoc>
+    <QtMoc Include="effectBase.h">
+      <Filter>Effects\BaseClasses</Filter>
+    </QtMoc>
+    <QtMoc Include="imagePixelate.h">
+      <Filter>Effects\Pixelate\Image</Filter>
+    </QtMoc>
+    <QtMoc Include="videoPixelate.h">
+      <Filter>Effects\Pixelate\Video</Filter>
+    </QtMoc>
+    <QtMoc Include="imageCensor.h">
+      <Filter>Effects\Censor\Image</Filter>
+    </QtMoc>
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="MainWindow.ui">
+      <Filter>Ui</Filter>
+    </QtUic>
+  </ItemGroup>
+  <ItemGroup>
+    <QtRcc Include="Resource.qrc">
+      <Filter>Resource Files</Filter>
+    </QtRcc>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="icon.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="VideoEditorBeta.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>
