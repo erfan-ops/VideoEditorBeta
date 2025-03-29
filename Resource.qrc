@@ -8,5 +8,8 @@
         <file>samples/blur.jpg</file>
         <file>samples/censor.jpg</file>
         <file>samples/inverseColors.jpg</file>
+        <file>samples/inverseContrast.jpg</file>
+        <file>samples/hueShift.jpg</file>
+        <file>samples/radialBlur.jpg</file>
     </qresource>
 </RCC>

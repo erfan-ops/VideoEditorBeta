@@ -1,16 +1,15 @@
-#include "videoBlur.h"
-#include "blur_launcher.cuh"
+#include "videoHueShift.h"
+#include "hueShift_launcher.cuh"
 #include "videoHeaders.h"
 
 
-VBlurWorker::VBlurWorker(int blurRadius, QObject* parent)
-    : VideoEffect(parent), m_blurRadius(blurRadius)
+VHueShiftWorker::VHueShiftWorker(float shift, QObject* parent)
+    : VideoEffect(parent), m_shift(shift * 2.0f)
 {
 }
 
-void VBlurWorker::process() {
+void VHueShiftWorker::process() {
     try {
-        // Generate temporary file names
         std::wstring current_time = std::to_wstring(std::time(nullptr));
         
         std::wstring video_root = fileUtils::splitextw(m_inputPath).first;
@@ -26,11 +25,9 @@ void VBlurWorker::process() {
         Timer timer;
         
         unsigned char* d_img;
-        unsigned char* d_img_copy;
         
         // Allocate device memory
         videoUtils::checkCudaError(cudaMalloc(&d_img, video.getSize()), "Failed to allocate device memory for image");
-        videoUtils::checkCudaError(cudaMalloc(&d_img_copy, video.getSize()), "Failed to allocate device memory for image copy");
         
         // Frame buffer pool (preallocated)
         std::queue<cv::Mat> bufferPool;
@@ -63,7 +60,6 @@ void VBlurWorker::process() {
         
                 video.write(frame);
         
-                // Recycle buffer
                 {
                     std::lock_guard<std::mutex> bufferLock(bufferMutex);
                     bufferPool.push(frame);
@@ -75,8 +71,8 @@ void VBlurWorker::process() {
         cudaStream_t stream;
         videoUtils::checkCudaError(cudaStreamCreate(&stream), "Failed to create stream");
         
-        dim3 blockDim(32, 32);
-        dim3 gridDim((video.getWidth() + blockDim.x - 1) / blockDim.x, (video.getHeight() + blockDim.y - 1) / blockDim.y);
+        int blockSize = 1024;
+        int gridSize = (video.getNumPixels() + blockSize - 1) / blockSize;
         
         std::thread writer(writerThread);
         
@@ -90,9 +86,8 @@ void VBlurWorker::process() {
             bufferLock.unlock();
         
             cudaMemcpyAsync(d_img, video.getData(), video.getSize(), cudaMemcpyHostToDevice, stream);
-            cudaMemcpyAsync(d_img_copy, d_img, video.getSize(), cudaMemcpyDeviceToDevice, stream);
         
-            blur(gridDim, blockDim, stream, d_img, d_img_copy, video.getWidth(), video.getHeight(), m_blurRadius);
+            hueShift(gridSize, blockSize, stream, d_img, video.getNumPixels(), m_shift);
         
             cudaMemcpyAsync(frameBuffer.data, d_img, video.getSize(), cudaMemcpyDeviceToHost, stream);
             cudaStreamSynchronize(stream);
@@ -108,7 +103,6 @@ void VBlurWorker::process() {
             video.nextFrame();
         }
         
-        
         isProcessing = false;
         queueCV.notify_one();
         writer.join();
@@ -116,7 +110,6 @@ void VBlurWorker::process() {
         // clean up
         video.release();
         cudaFree(d_img);
-        cudaFree(d_img_copy);
         cudaStreamDestroy(stream);
         
         videoUtils::mergeAudio(temp_video_name, temp_audio_name, m_outputPath);

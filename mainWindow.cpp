@@ -43,6 +43,9 @@ MainWindow::MainWindow(QWidget* parent)
     replaceButtonWithEffectButton(ui->btnPixelate, ":/samples/samples/pixelate.jpg");
     replaceButtonWithEffectButton(ui->btnCensor, ":/samples/samples/censor.jpg");
     replaceButtonWithEffectButton(ui->btnInverseColors, ":/samples/samples/inverseColors.jpg");
+    replaceButtonWithEffectButton(ui->btnInverseContrast, ":/samples/samples/inverseContrast.jpg");
+    replaceButtonWithEffectButton(ui->btnHueShift, ":/samples/samples/hueShift.jpg");
+    replaceButtonWithEffectButton(ui->btnRadialBlur, ":/samples/samples/radialBlur.jpg");
 
     QObject::connect(ui->btnBlur, &QPushButton::clicked, this, [&]() {
         // Get effect parameters
@@ -130,6 +133,39 @@ MainWindow::MainWindow(QWidget* parent)
         }
 
         processEffect(ui->btnInverseColors, worker);
+        });
+
+    QObject::connect(ui->btnHueShift, &QPushButton::clicked, this, [&]() {
+        float shift = ui->HueShift->value();
+
+        EffectBase* worker = nullptr;
+        if (videoExtentions.find(fileUtils::splitextw(selectedFilePath).second) != videoExtentions.end()) {
+            worker = new VHueShiftWorker(shift);
+            QObject::connect(worker, &EffectBase::progressChanged, this, &MainWindow::updateProgress, Qt::QueuedConnection);
+        }
+        else {
+            worker = new IHueShiftWorker(shift);
+        }
+
+        processEffect(ui->btnHueShift, worker);
+        });
+
+    QObject::connect(ui->btnRadialBlur, &QPushButton::clicked, this, [&]() {
+        int blurRadius = ui->radialBlurRadius->value();
+        float intensity = static_cast<float>(ui->Intensity->value());
+        float centerX = static_cast<float>(ui->centerX->value());
+        float centerY = static_cast<float>(ui->centerY->value());
+
+        EffectBase* worker = nullptr;
+        if (videoExtentions.find(fileUtils::splitextw(selectedFilePath).second) != videoExtentions.end()) {
+            worker = new VRadialBlurWorker(blurRadius, intensity, centerX, centerY);
+            QObject::connect(worker, &EffectBase::progressChanged, this, &MainWindow::updateProgress, Qt::QueuedConnection);
+        }
+        else {
+            worker = new IRadialBlurWorker(blurRadius, intensity, centerX, centerY);
+        }
+
+        processEffect(ui->btnRadialBlur, worker);
         });
 }
 

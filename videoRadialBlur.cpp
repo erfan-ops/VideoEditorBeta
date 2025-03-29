@@ -1,16 +1,15 @@
-#include "videoBlur.h"
-#include "blur_launcher.cuh"
+#include "videoRadialBlur.h"
+#include "radialBlur_launcher.cuh"
 #include "videoHeaders.h"
 
 
-VBlurWorker::VBlurWorker(int blurRadius, QObject* parent)
-    : VideoEffect(parent), m_blurRadius(blurRadius)
+VRadialBlurWorker::VRadialBlurWorker(int blurRadius, float intensity, float centerX, float centerY, QObject* parent)
+    : VideoEffect(parent), m_blurRadius(blurRadius), m_intensity(intensity), m_centerX(centerX), m_centerY(centerY)
 {
 }
 
-void VBlurWorker::process() {
+void VRadialBlurWorker::process() {
     try {
-        // Generate temporary file names
         std::wstring current_time = std::to_wstring(std::time(nullptr));
         
         std::wstring video_root = fileUtils::splitextw(m_inputPath).first;
@@ -25,12 +24,13 @@ void VBlurWorker::process() {
         Video video(m_inputPath, temp_video_name);
         Timer timer;
         
+        if (m_centerX < 0.0f || m_centerX >= video.getWidth()) m_centerX = video.getWidth() * 0.5f;
+        if (m_centerY < 0.0f || m_centerY >= video.getHeight()) m_centerY = video.getHeight() * 0.5f;
+        
         unsigned char* d_img;
-        unsigned char* d_img_copy;
         
         // Allocate device memory
         videoUtils::checkCudaError(cudaMalloc(&d_img, video.getSize()), "Failed to allocate device memory for image");
-        videoUtils::checkCudaError(cudaMalloc(&d_img_copy, video.getSize()), "Failed to allocate device memory for image copy");
         
         // Frame buffer pool (preallocated)
         std::queue<cv::Mat> bufferPool;
@@ -90,9 +90,8 @@ void VBlurWorker::process() {
             bufferLock.unlock();
         
             cudaMemcpyAsync(d_img, video.getData(), video.getSize(), cudaMemcpyHostToDevice, stream);
-            cudaMemcpyAsync(d_img_copy, d_img, video.getSize(), cudaMemcpyDeviceToDevice, stream);
         
-            blur(gridDim, blockDim, stream, d_img, d_img_copy, video.getWidth(), video.getHeight(), m_blurRadius);
+            radialBlur(gridDim, blockDim, stream, d_img, video.getWidth(), video.getHeight(), m_centerX, m_centerY, m_blurRadius, m_intensity);
         
             cudaMemcpyAsync(frameBuffer.data, d_img, video.getSize(), cudaMemcpyDeviceToHost, stream);
             cudaStreamSynchronize(stream);
@@ -108,15 +107,12 @@ void VBlurWorker::process() {
             video.nextFrame();
         }
         
-        
         isProcessing = false;
         queueCV.notify_one();
         writer.join();
         
-        // clean up
         video.release();
         cudaFree(d_img);
-        cudaFree(d_img_copy);
         cudaStreamDestroy(stream);
         
         videoUtils::mergeAudio(temp_video_name, temp_audio_name, m_outputPath);
