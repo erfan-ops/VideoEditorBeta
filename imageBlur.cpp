@@ -1,15 +1,6 @@
 #include "imageBlur.h"
 #include "blur_launcher.cuh"
 #include "image.h"
-#include "utils.h"
-
-#include <Windows.h>
-#include <QString>
-#include <QProcess>
-
-#include <QDebug>
-
-#include <cuda_runtime.h>
 
 
 IBlurWorker::IBlurWorker(int blurRadius, QObject* parent)

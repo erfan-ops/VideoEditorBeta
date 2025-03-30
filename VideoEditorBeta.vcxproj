@@ -85,7 +85,7 @@
       <AdditionalLibraryDirectories>$(ProjectDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </CudaLink>
     <PostBuildEvent>
-      <Command>"C:\Qt\6.8.2\msvc2022_64\bin\windeployqt.exe" "$(TargetPath)"</Command>
+      <Command>"C:\Qt\6.8.2\msvc2022_64\bin\windeployqt.exe" --$(ConfigurationName.ToLower()) "$(TargetPath)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -123,7 +123,7 @@
       <AdditionalLibraryDirectories>$(ProjectDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </CudaLink>
     <PostBuildEvent>
-      <Command>"C:\Qt\6.8.2\msvc2022_64\bin\windeployqt.exe" "$(TargetPath)"</Command>
+      <Command>"C:\Qt\6.8.2\msvc2022_64\bin\windeployqt.exe" --$(ConfigurationName.ToLower()) "$(TargetPath)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

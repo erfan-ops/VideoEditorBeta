@@ -8,25 +8,52 @@ EffectButton::EffectButton(const QString& imagePath, QWidget* parent)
 
     // Set up zoom animation
     zoomAnimation = new QPropertyAnimation(this, "zoomFactor", this);
-    zoomAnimation->setDuration(150); // milliseconds
-    zoomAnimation->setEasingCurve(QEasingCurve::OutQuad); // Smooth easing
+    zoomAnimation->setDuration(150);
+    zoomAnimation->setEasingCurve(QEasingCurve::OutQuad);
 
     // Set up shadow effect
     shadowEffect = new QGraphicsDropShadowEffect(this);
-    shadowEffect->setBlurRadius(12);
+    shadowEffect->setBlurRadius(10);
     shadowEffect->setColor(Qt::black);
-    shadowEffect->setOffset(3, 3);
+    shadowEffect->setOffset(0, 2);
     this->setGraphicsEffect(shadowEffect);
 
     updateIcon();
+    updateButtonState();  // Initialize state
 }
 
-EffectButton::~EffectButton() {
+EffectButton::~EffectButton()
+{
     delete zoomAnimation;
     delete shadowEffect;
 }
 
-void EffectButton::setShadow(qreal blurRadius, const QColor& color, qreal xOffset, qreal yOffset) {
+void EffectButton::updateButtonState()
+{
+    if (!isEnabled()) {
+        // Reset to normal state when disabled
+        zoomAnimation->stop();
+        setZoomFactor(1.0);
+        shadowEffect->setEnabled(false);
+        setCursor(Qt::ArrowCursor);
+    }
+    else {
+        shadowEffect->setEnabled(true);
+        setCursor(Qt::PointingHandCursor);
+    }
+}
+
+void EffectButton::changeEvent(QEvent* event)
+{
+    QPushButton::changeEvent(event);
+    if (event->type() == QEvent::EnabledChange) {
+        updateButtonState();
+    }
+}
+
+void EffectButton::setShadow(qreal blurRadius, const QColor& color,
+    qreal xOffset, qreal yOffset)
+{
     shadowEffect->setBlurRadius(blurRadius);
     shadowEffect->setColor(color);
     shadowEffect->setOffset(xOffset, yOffset);
@@ -37,7 +64,8 @@ qreal EffectButton::zoomFactor() const
     return m_zoomFactor;
 }
 
-void EffectButton::setZoomFactor(qreal factor) {
+void EffectButton::setZoomFactor(qreal factor)
+{
     if (qFuzzyCompare(m_zoomFactor, factor))
         return;
 
@@ -54,12 +82,14 @@ void EffectButton::resizeEvent(QResizeEvent* event)
 void EffectButton::enterEvent(QEnterEvent* event)
 {
     QPushButton::enterEvent(event);
+    if (!isEnabled()) return;
+
     zoomAnimation->stop();
     zoomAnimation->setStartValue(m_zoomFactor);
     zoomAnimation->setEndValue(HOVER_ZOOM);
     zoomAnimation->start();
 
-    // Optional: Enhance shadow on hover
+    // Shadow animation
     QPropertyAnimation* shadowAnim = new QPropertyAnimation(shadowEffect, "blurRadius", this);
     shadowAnim->setDuration(150);
     shadowAnim->setStartValue(shadowEffect->blurRadius());
@@ -70,12 +100,14 @@ void EffectButton::enterEvent(QEnterEvent* event)
 void EffectButton::leaveEvent(QEvent* event)
 {
     QPushButton::leaveEvent(event);
+    if (!isEnabled()) return;
+
     zoomAnimation->stop();
     zoomAnimation->setStartValue(m_zoomFactor);
     zoomAnimation->setEndValue(1.0);
     zoomAnimation->start();
 
-    // Optional: Return shadow to normal
+    // Shadow animation
     QPropertyAnimation* shadowAnim = new QPropertyAnimation(shadowEffect, "blurRadius", this);
     shadowAnim->setDuration(150);
     shadowAnim->setStartValue(shadowEffect->blurRadius());
@@ -101,7 +133,6 @@ void EffectButton::updateIcon()
 
     painter.setClipPath(path);
 
-    // Apply zoom factor
     QSize scaledSize = btnSize * m_zoomFactor;
     QPoint offset((btnSize.width() - scaledSize.width()) / 2,
         (btnSize.height() - scaledSize.height()) / 2);

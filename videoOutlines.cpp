@@ -1,16 +1,6 @@
 #include "videoOutlines.h"
 #include "outline_launcher.cuh"
-#include "Video.h"
-#include "timer.h"
-#include "utils.h"
-
-#include <Windows.h>
-#include <QString>
-#include <QProcess>
-
-#include <QDebug>
-
-#include <cuda_runtime.h>
+#include "videoHeaders.h"
 
 
 VOutlineWorker::VOutlineWorker(int shiftX, int shiftY, QObject* parent)

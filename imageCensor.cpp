@@ -2,13 +2,6 @@
 #include "image.h"
 #include "censor_launcher.cuh"
 
-#include <QObject>
-
-
-ICensorWorker::ICensorWorker(int pixelHeight, int pixelWidth, QObject* parent)
-    : ImageEffect(parent), m_pixelWidth(pixelWidth), m_pixelHeight(pixelHeight)
-{
-}
 
 void ICensorWorker::process() {
     try {

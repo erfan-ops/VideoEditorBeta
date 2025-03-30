@@ -6,7 +6,6 @@
 #include <filesystem>
 
 #include <QProcess>
-#include <QDebug>
 
 
 constinit static const wchar_t PROGRESS_STATES[8] = {L'▏', L'▎', L'▍', L'▌', L'▋', L'▊', L'▉', L'█'};
@@ -70,17 +69,12 @@ int execute_command(const std::wstring& command) {
     process.start(QString::fromStdWString(command));
 
     if (!process.waitForStarted()) {
-        qDebug() << "Failed to start process:" << process.errorString() << '\n' << command;
         return -1;
     }
 
     if (!process.waitForFinished()) {
-        qDebug() << "Process failed:" << process.errorString() << '\n' << command;
         return -2;
     }
-
-    // Optional: Capture output
-    qDebug() << "Output:" << process.readAll() << '\n' << command;
 
     return process.exitCode();
 }
@@ -89,24 +83,17 @@ int Qexecute_command(const QString& program, const QStringList& arguments) {
     QProcess process;
     process.setProcessChannelMode(QProcess::MergedChannels);
 
-    qDebug() << "Executing:" << program << arguments.join(" ");
-
     process.start(program, arguments);
 
     if (!process.waitForStarted()) {
-        qDebug() << "Failed to start process:" << process.errorString();
         return -1;
     }
 
     if (!process.waitForFinished()) {
-        qDebug() << "Process failed:" << process.errorString();
         return -2;
     }
-
-    qDebug() << "Output:" << process.readAll();
     return process.exitCode();
 }
-
 
 
 std::pair<std::string, std::string> fileUtils::splitext(const std::string& path) {

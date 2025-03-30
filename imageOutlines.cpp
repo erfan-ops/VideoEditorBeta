@@ -1,16 +1,6 @@
 #include "imageOutlines.h"
 #include "outline_launcher.cuh"
 #include "image.h"
-#include "utils.h"
-
-#include <Windows.h>
-#include <QString>
-#include <QProcess>
-
-#include <QDebug>
-
-#include <cuda_runtime.h>
-
 
 IOutlinesWorker::IOutlinesWorker(int thicknessX, int thicknessY, QObject* parent)
     : ImageEffect(parent), m_thicknessX(thicknessX), m_thicknessY(thicknessY)

@@ -3,11 +3,6 @@
 #include "videoHeaders.h"
 
 
-VCensorWorker::VCensorWorker(int pixelWidht, int pixelHeight, QObject* parent)
-    : VideoEffect(parent), m_pixelWidth(pixelWidht), m_pixelHeight(pixelHeight)
-{
-}
-
 void VCensorWorker::process() {
     try {
         // Generate temporary file names

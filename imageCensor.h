@@ -5,7 +5,7 @@
 class ICensorWorker : public ImageEffect {
     Q_OBJECT
 public:
-    ICensorWorker(int pixelWidht, int pixelHeight, QObject* parent = nullptr);
+    ICensorWorker(int pixelWidth, int pixelHeight, QObject* parent = nullptr) : ImageEffect(parent), m_pixelWidth(pixelWidth), m_pixelHeight(pixelHeight) {};
     void process() override;
 private:
     int m_pixelWidth;

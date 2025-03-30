@@ -8,6 +8,7 @@
 #include <QString>
 #include <QPropertyAnimation>
 #include <QGraphicsDropShadowEffect>
+#include <QEvent>
 
 class EffectButton : public QPushButton
 {
@@ -28,13 +29,15 @@ protected:
     void resizeEvent(QResizeEvent* event) override;
     void enterEvent(QEnterEvent* event) override;
     void leaveEvent(QEvent* event) override;
+    void changeEvent(QEvent* event) override;  // Added for enabled state changes
 
 private:
     QPixmap pixmap;
     QPropertyAnimation* zoomAnimation;
     QGraphicsDropShadowEffect* shadowEffect;
     qreal m_zoomFactor = 1.0;
-    const qreal HOVER_ZOOM = 1.2; // 20% zoom on hover
+    const qreal HOVER_ZOOM = 1.2;
 
     void updateIcon();
+    void updateButtonState();  // New helper method
 };

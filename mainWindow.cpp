@@ -15,8 +15,6 @@
 #include <QPainterPath>
 #include <QPointer>
 
-#include <QDebug>
-
 #include "filedialog.h"
 #include "effects.h"
 #include "utils.h"
