@@ -69,24 +69,16 @@ __global__ void pixelate_kernel(unsigned char* __restrict__ img, int rows, int c
     }
 }
 
-__global__ void roundColors_kernel(unsigned char* __restrict__ img, const int nPixels, const int thresh) {
-    int pIdx = blockIdx.x * blockDim.x + threadIdx.x;
+__global__ void roundColors_kernel(unsigned char* __restrict__ img, const int size, const int thresh) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if (pIdx >= nPixels) return;
+    if (idx >= size) return;
 
     int halfThresh = thresh / 2;
 
-    int idx = pIdx * 3;
-
-    int colorValue;
-    int result_value;
-
-    for (int c = 0; c < 3; ++c) {
-        int cidx = idx + c;
-        colorValue = img[cidx] + halfThresh;
-        result_value = colorValue - (colorValue % thresh);
-        img[cidx] = (result_value < 255) ? result_value : 255;
-    }
+    int colorValue = img[idx] + halfThresh;
+    int result_value = colorValue - (colorValue % thresh);
+    img[idx] = (result_value < 255) ? result_value : 255;
 }
 
 __global__ void horizontalLine_kernel(unsigned char* __restrict__ img, int rows, int cols, int lineWidth, int thresh) {

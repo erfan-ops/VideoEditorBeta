@@ -5,7 +5,7 @@
 
 __global__ void pixelate_kernel(unsigned char* __restrict__ img, int rows, int cols, int pixelWidth, int pixelHeight);
 __global__ void censor_kernel(unsigned char* __restrict__ img, int rows, int cols, int pixelWidth, int pixelHeight);
-__global__ void roundColors_kernel(unsigned char* __restrict__ img, const int nPixels, const int thresh);
+__global__ void roundColors_kernel(unsigned char* __restrict__ img, const int size, const int thresh);
 __global__ void horizontalLine_kernel(unsigned char* __restrict__ img, int rows, int cols, int lineWidth, int thresh);
 __global__ void dynamicColor_kernel(unsigned char* __restrict__ img, const int nPixels, const unsigned char* colors_BGR, const int num_colors);
 __global__ void nearestColor_kernel(unsigned char* __restrict__ img, const int nPixels, const unsigned char* colors_BGR, const int num_colors);

@@ -11,5 +11,9 @@
         <file>samples/inverseContrast.jpg</file>
         <file>samples/hueShift.jpg</file>
         <file>samples/radialBlur.jpg</file>
+        <file>samples/monoChrome.jpg</file>
+        <file>samples/blackAndWhite.jpg</file>
+        <file>samples/posterize.jpg</file>
+        <file>samples/outline2.jpg</file>
     </qresource>
 </RCC>

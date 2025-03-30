@@ -124,6 +124,54 @@
     <Filter Include="Effects\Radial Blur\Video">
       <UniqueIdentifier>{0772d6b8-3554-40cb-944b-109f1cd15508}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Effects\MonoChrome">
+      <UniqueIdentifier>{956dd86d-6e1f-498a-8745-492c89fb59ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\MonoChrome\Launcher">
+      <UniqueIdentifier>{734c9699-b534-41a0-a0c8-449ab978c420}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\MonoChrome\Image">
+      <UniqueIdentifier>{0fd21689-5233-4e92-b5fa-22c8f5acc547}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\MonoChrome\Video">
+      <UniqueIdentifier>{59c76eb8-7ee3-479d-a1ab-2708fc2ec3ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\BlackAndWhite">
+      <UniqueIdentifier>{791e236d-8045-4b65-84a8-34307b998550}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\BlackAndWhite\Launcher">
+      <UniqueIdentifier>{00fad6bb-838b-4a26-bfd0-455077161e1d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\BlackAndWhite\Image">
+      <UniqueIdentifier>{eecb982f-091f-4276-84e9-024ea407337c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\BlackAndWhite\Video">
+      <UniqueIdentifier>{e1281eb1-4d1d-42de-9a0a-c7053545091b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Posterize">
+      <UniqueIdentifier>{9a694fd7-22b0-491d-8427-8b84557aaf4e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Posterize\Launcher">
+      <UniqueIdentifier>{8f133bc6-b61d-47ac-bddd-fff915d235a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Posterize\Image">
+      <UniqueIdentifier>{2a429857-41d0-4186-b787-f9942d863977}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Posterize\Video">
+      <UniqueIdentifier>{a0614b0e-6748-4beb-9dc5-d2d3062646da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\True Outlines">
+      <UniqueIdentifier>{ec5d5956-6f84-4199-b80d-97eb6467b4a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\True Outlines\Launcher">
+      <UniqueIdentifier>{01761a36-8a97-40e8-bc4b-94f56d2f068c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\True Outlines\Image">
+      <UniqueIdentifier>{b803cbbb-5642-4990-8595-ccfd51cf4011}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\True Outlines\Video">
+      <UniqueIdentifier>{93e612a4-63d1-4247-abfa-1661e2b03d32}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -198,6 +246,30 @@
     <ClCompile Include="videoRadialBlur.cpp">
       <Filter>Effects\Radial Blur\Video</Filter>
     </ClCompile>
+    <ClCompile Include="imageMonoChrome.cpp">
+      <Filter>Effects\MonoChrome\Image</Filter>
+    </ClCompile>
+    <ClCompile Include="videoMonoChrome.cpp">
+      <Filter>Effects\MonoChrome\Video</Filter>
+    </ClCompile>
+    <ClCompile Include="imageBlackAndWhite.cpp">
+      <Filter>Effects\BlackAndWhite\Image</Filter>
+    </ClCompile>
+    <ClCompile Include="videoBlackAndWhite.cpp">
+      <Filter>Effects\BlackAndWhite\Video</Filter>
+    </ClCompile>
+    <ClCompile Include="imagePosterize.cpp">
+      <Filter>Effects\Posterize\Image</Filter>
+    </ClCompile>
+    <ClCompile Include="videoPosterize.cpp">
+      <Filter>Effects\Posterize\Video</Filter>
+    </ClCompile>
+    <ClCompile Include="imageTrueOutlines.cpp">
+      <Filter>Effects\True Outlines\Image</Filter>
+    </ClCompile>
+    <ClCompile Include="videoTrueOutlines.cpp">
+      <Filter>Effects\True Outlines\Video</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="videoEditor.cu">
@@ -232,6 +304,18 @@
     </CudaCompile>
     <CudaCompile Include="radialBlur_launcher.cu">
       <Filter>Effects\Radial Blur\Launcher</Filter>
+    </CudaCompile>
+    <CudaCompile Include="monoChrome_launcher.cu">
+      <Filter>Effects\MonoChrome\Launcher</Filter>
+    </CudaCompile>
+    <CudaCompile Include="blackAndWhite_launcher.cu">
+      <Filter>Effects\BlackAndWhite\Launcher</Filter>
+    </CudaCompile>
+    <CudaCompile Include="posterize_launcher.cu">
+      <Filter>Effects\Posterize\Launcher</Filter>
+    </CudaCompile>
+    <CudaCompile Include="trueOutlines_launcher.cu">
+      <Filter>Effects\True Outlines\Launcher</Filter>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
@@ -291,6 +375,18 @@
     </ClInclude>
     <ClInclude Include="radialBlur_launcher.cuh">
       <Filter>Effects\Radial Blur\Launcher</Filter>
+    </ClInclude>
+    <ClInclude Include="monoChrome_launcher.cuh">
+      <Filter>Effects\MonoChrome\Launcher</Filter>
+    </ClInclude>
+    <ClInclude Include="blackAndWhite_launcher.cuh">
+      <Filter>Effects\BlackAndWhite\Launcher</Filter>
+    </ClInclude>
+    <ClInclude Include="posterize_launcher.cuh">
+      <Filter>Effects\Posterize\Launcher</Filter>
+    </ClInclude>
+    <ClInclude Include="trueOutlines_launcher.cuh">
+      <Filter>Effects\True Outlines\Launcher</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -359,6 +455,30 @@
     </QtMoc>
     <QtMoc Include="videoRadialBlur.h">
       <Filter>Effects\Radial Blur\Video</Filter>
+    </QtMoc>
+    <QtMoc Include="imageMonoChrome.h">
+      <Filter>Effects\MonoChrome\Image</Filter>
+    </QtMoc>
+    <QtMoc Include="videoMonoChrome.h">
+      <Filter>Effects\MonoChrome\Video</Filter>
+    </QtMoc>
+    <QtMoc Include="imageBlackAndWhite.h">
+      <Filter>Effects\BlackAndWhite\Image</Filter>
+    </QtMoc>
+    <QtMoc Include="videoBlackAndWhite.h">
+      <Filter>Effects\BlackAndWhite\Video</Filter>
+    </QtMoc>
+    <QtMoc Include="imagePosterize.h">
+      <Filter>Effects\Posterize\Image</Filter>
+    </QtMoc>
+    <QtMoc Include="videoPosterize.h">
+      <Filter>Effects\Posterize\Video</Filter>
+    </QtMoc>
+    <QtMoc Include="imageTrueOutlines.h">
+      <Filter>Effects\True Outlines\Image</Filter>
+    </QtMoc>
+    <QtMoc Include="videoTrueOutlines.h">
+      <Filter>Effects\True Outlines\Video</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

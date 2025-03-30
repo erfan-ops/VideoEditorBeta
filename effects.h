@@ -8,6 +8,10 @@
 #include "videoInverseContrast.h"
 #include "videoHueShift.h"
 #include "videoRadialBlur.h"
+#include "videoMonoChrome.h"
+#include "videoBlackAndWhite.h"
+#include "videoPosterize.h"
+#include "videoTrueOutlines.h"
 
 #include "ImageOutlines.h"
 #include "imageBlur.h"
@@ -17,3 +21,7 @@
 #include "imageInverseContrast.h"
 #include "imageHueShift.h"
 #include "imageRadialBlur.h"
+#include "imageMonoChrome.h"
+#include "imageBlackAndWhite.h"
+#include "imagePosterize.h"
+#include "imageTrueOutlines.h"

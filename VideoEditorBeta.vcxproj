@@ -135,14 +135,18 @@
     </ClCompile>
     <ClCompile Include="fileDialog.cpp" />
     <ClCompile Include="image.cpp" />
+    <ClCompile Include="imageBlackAndWhite.cpp" />
     <ClCompile Include="imageBlur.cpp" />
     <ClCompile Include="imageCensor.cpp" />
     <ClCompile Include="imageHueShift.cpp" />
     <ClCompile Include="imageInverseColors.cpp" />
     <ClCompile Include="imageInverseContrast.cpp" />
+    <ClCompile Include="imageMonoChrome.cpp" />
     <ClCompile Include="imageOutlines.cpp" />
     <ClCompile Include="imagePixelate.cpp" />
+    <ClCompile Include="imagePosterize.cpp" />
     <ClCompile Include="imageRadialBlur.cpp" />
+    <ClCompile Include="imageTrueOutlines.cpp" />
     <ClCompile Include="main.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -150,6 +154,7 @@
     <ClCompile Include="timer.cpp" />
     <ClCompile Include="utils.cpp" />
     <ClCompile Include="Video.cpp" />
+    <ClCompile Include="videoBlackAndWhite.cpp" />
     <ClCompile Include="videoCensor.cpp" />
     <ClCompile Include="videoHueShift.cpp">
       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
@@ -159,19 +164,26 @@
     </ClCompile>
     <ClCompile Include="videoInverseColors.cpp" />
     <ClCompile Include="videoInverseContrast.cpp" />
+    <ClCompile Include="videoMonoChrome.cpp" />
     <ClCompile Include="videoPixelate.cpp" />
+    <ClCompile Include="videoPosterize.cpp" />
     <ClCompile Include="videoRadialBlur.cpp" />
+    <ClCompile Include="videoTrueOutlines.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="blackAndWhite_launcher.cu" />
     <CudaCompile Include="blur_launcher.cu" />
     <CudaCompile Include="censor_launcher.cu" />
     <CudaCompile Include="hueShift_launcher.cu" />
     <CudaCompile Include="imageEditor.cu" />
     <CudaCompile Include="inverseColors_launcher.cu" />
     <CudaCompile Include="inverseContrast_launcher.cu" />
+    <CudaCompile Include="monoChrome_launcher.cu" />
     <CudaCompile Include="outline_launcher.cu" />
     <CudaCompile Include="pixelate_launcher.cu" />
+    <CudaCompile Include="posterize_launcher.cu" />
     <CudaCompile Include="radialBlur_launcher.cu" />
+    <CudaCompile Include="trueOutlines_launcher.cu" />
     <CudaCompile Include="videoEditor.cu">
       <FileType>Document</FileType>
     </CudaCompile>
@@ -182,7 +194,11 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="blackAndWhite_launcher.cuh" />
     <ClInclude Include="blur_launcher.cuh" />
+    <QtMoc Include="videoTrueOutlines.h" />
+    <QtMoc Include="videoPosterize.h" />
+    <QtMoc Include="videoMonoChrome.h" />
     <QtMoc Include="videoRadialBlur.h" />
     <QtMoc Include="videoHueShift.h" />
     <QtMoc Include="videoInverseContrast.h" />
@@ -192,9 +208,17 @@
     <ClInclude Include="hueShift_launcher.cuh" />
     <QtMoc Include="imageHueShift.h" />
     <QtMoc Include="imageRadialBlur.h" />
+    <QtMoc Include="imageMonoChrome.h" />
+    <QtMoc Include="imageBlackAndWhite.h" />
+    <QtMoc Include="imagePosterize.h" />
+    <QtMoc Include="imageTrueOutlines.h" />
     <ClInclude Include="inverseColors_launcher.cuh" />
     <ClInclude Include="inverseContrast_launcher.cuh" />
+    <ClInclude Include="monoChrome_launcher.cuh" />
+    <ClInclude Include="posterize_launcher.cuh" />
     <ClInclude Include="radialBlur_launcher.cuh" />
+    <QtMoc Include="videoBlackAndWhite.h" />
+    <ClInclude Include="trueOutlines_launcher.cuh" />
     <ClInclude Include="videoHeaders.h" />
     <QtMoc Include="videoPixelate.h" />
     <QtMoc Include="effectBase.h" />

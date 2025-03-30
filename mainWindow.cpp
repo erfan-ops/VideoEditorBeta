@@ -46,6 +46,10 @@ MainWindow::MainWindow(QWidget* parent)
     replaceButtonWithEffectButton(ui->btnInverseContrast, ":/samples/samples/inverseContrast.jpg");
     replaceButtonWithEffectButton(ui->btnHueShift, ":/samples/samples/hueShift.jpg");
     replaceButtonWithEffectButton(ui->btnRadialBlur, ":/samples/samples/radialBlur.jpg");
+    replaceButtonWithEffectButton(ui->btnMonoChrome, ":/samples/samples/monoChrome.jpg");
+    replaceButtonWithEffectButton(ui->btnBinary, ":/samples/samples/blackAndWhite.jpg");
+    replaceButtonWithEffectButton(ui->btnPosterize, ":/samples/samples/posterize.jpg");
+    replaceButtonWithEffectButton(ui->btnTrueOutlines, ":/samples/samples/outline2.jpg");
 
     QObject::connect(ui->btnBlur, &QPushButton::clicked, this, [&]() {
         // Get effect parameters
@@ -167,6 +171,64 @@ MainWindow::MainWindow(QWidget* parent)
 
         processEffect(ui->btnRadialBlur, worker);
         });
+
+    QObject::connect(ui->btnMonoChrome, &QPushButton::clicked, this, [&]() {
+        EffectBase* worker = nullptr;
+        if (videoExtentions.find(fileUtils::splitextw(selectedFilePath).second) != videoExtentions.end()) {
+            worker = new VMonoChromeWorker();
+            QObject::connect(worker, &EffectBase::progressChanged, this, &MainWindow::updateProgress, Qt::QueuedConnection);
+        }
+        else {
+            worker = new IMonoChromeWorker();
+        }
+
+        processEffect(ui->btnMonoChrome, worker);
+        });
+
+    QObject::connect(ui->btnBinary, &QPushButton::clicked, this, [&]() {
+        float middle = ui->middle->value();
+
+        EffectBase* worker = nullptr;
+        if (videoExtentions.find(fileUtils::splitextw(selectedFilePath).second) != videoExtentions.end()) {
+            worker = new VBlackAndWhiteWorker(middle);
+            QObject::connect(worker, &EffectBase::progressChanged, this, &MainWindow::updateProgress, Qt::QueuedConnection);
+        }
+        else {
+            worker = new IBlackAndWhiteWorker(middle);
+        }
+
+        processEffect(ui->btnBinary, worker);
+        });
+
+    QObject::connect(ui->btnPosterize, &QPushButton::clicked, this, [&]() {
+        int thresh = ui->posterizeThresh->value();
+
+        EffectBase* worker = nullptr;
+        if (videoExtentions.find(fileUtils::splitextw(selectedFilePath).second) != videoExtentions.end()) {
+            worker = new VPosterizeWorker(thresh);
+            QObject::connect(worker, &EffectBase::progressChanged, this, &MainWindow::updateProgress, Qt::QueuedConnection);
+        }
+        else {
+            worker = new IPosterizeWorker(thresh);
+        }
+
+        processEffect(ui->btnPosterize, worker);
+        });
+
+    QObject::connect(ui->btnTrueOutlines, &QPushButton::clicked, this, [&]() {
+        int thresh = ui->trueOutlinesThresh->value();
+
+        EffectBase* worker = nullptr;
+        if (videoExtentions.find(fileUtils::splitextw(selectedFilePath).second) != videoExtentions.end()) {
+            worker = new VTrueOutlinesWorker(thresh);
+            QObject::connect(worker, &EffectBase::progressChanged, this, &MainWindow::updateProgress, Qt::QueuedConnection);
+        }
+        else {
+            worker = new ITrueOutlinesWorker(thresh);
+        }
+
+        processEffect(ui->btnTrueOutlines, worker);
+        });
 }
 
 MainWindow::~MainWindow()
@@ -175,7 +237,7 @@ MainWindow::~MainWindow()
 }
 
 
-void  MainWindow::processEffect(QPushButton* button, EffectBase* worker) {
+void MainWindow::processEffect(QPushButton* button, EffectBase* worker) {
     if (selectedFilePath.empty()) {
         QMessageBox::warning(this, "Error", "Please select a file first!");
         return;
