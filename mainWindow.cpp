@@ -139,6 +139,19 @@ MainWindow::MainWindow(QWidget* parent)
         processEffect(ui->btnInverseColors, worker);
         });
 
+    QObject::connect(ui->btnInverseContrast, &QPushButton::clicked, this, [&]() {
+        EffectBase* worker = nullptr;
+        if (videoExtentions.find(fileUtils::splitextw(selectedFilePath).second) != videoExtentions.end()) {
+            worker = new VInverseContrastWorker();
+            QObject::connect(worker, &EffectBase::progressChanged, this, &MainWindow::updateProgress, Qt::QueuedConnection);
+        }
+        else {
+            worker = new IInverseContrastWorker();
+        }
+
+        processEffect(ui->btnInverseContrast, worker);
+        });
+
     QObject::connect(ui->btnHueShift, &QPushButton::clicked, this, [&]() {
         float shift = ui->HueShift->value();
 

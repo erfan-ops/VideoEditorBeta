@@ -180,23 +180,20 @@ __global__ void radial_blur_kernel(unsigned char* __restrict__ img, int rows, in
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
 
-    // Ensure the thread is within the image bounds
     if (x >= cols || y >= rows) {
         return;
     }
 
-    // Calculate the direction vector from the center to the current pixel
     float dirX = x - centerX;
     float dirY = y - centerY;
 
-    // Normalize the direction vector
-    float length = sqrtf(dirX * dirX + dirY * dirY);
+    float length = dirX * dirX + dirY * dirY;
     if (length > 0) {
+        length = sqrtf(length);
         dirX /= length;
         dirY /= length;
     }
 
-    // Accumulate color values along the radial direction
     float sumR = 0, sumG = 0, sumB = 0;
     int count = 0;
 
@@ -204,11 +201,9 @@ __global__ void radial_blur_kernel(unsigned char* __restrict__ img, int rows, in
         int sampleX = x + static_cast<int>(dirX * i * intensity);
         int sampleY = y + static_cast<int>(dirY * i * intensity);
 
-        // Clamp the sample coordinates to the image bounds
         sampleX = max(0, min(sampleX, cols - 1));
         sampleY = max(0, min(sampleY, rows - 1));
 
-        // Get the color at the sampled pixel
         int idx = (sampleY * cols + sampleX) * 3;
         sumR += img[idx];
         sumG += img[idx + 1];
@@ -216,12 +211,10 @@ __global__ void radial_blur_kernel(unsigned char* __restrict__ img, int rows, in
         count++;
     }
 
-    // Calculate the average color
     unsigned char avgR = static_cast<unsigned char>(sumR / count);
     unsigned char avgG = static_cast<unsigned char>(sumG / count);
     unsigned char avgB = static_cast<unsigned char>(sumB / count);
 
-    // Write the averaged color back to the image
     int idx = (y * cols + x) * 3;
     img[idx] = avgR;
     img[idx + 1] = avgG;
@@ -277,13 +270,13 @@ __global__ void reverse_contrast(unsigned char* __restrict__ img, const int nPix
     img[idx + 2] = static_cast<unsigned char>(fminf(fmaxf(new_b * 255.0f, 0.0f), 255.0f));
 }
 
-__device__ static inline void rgb_to_yiq(float r, float g, float b, float& y, float& i, float& q) {
+__device__ static __inline__ void rgb_to_yiq(float r, float g, float b, float& y, float& i, float& q) {
     y = 0.299f * r + 0.587f * g + 0.114f * b;
     i = 0.596f * r - 0.274f * g - 0.322f * b;
     q = 0.211f * r - 0.523f * g + 0.312f * b;
 }
 
-__device__ static inline void yiq_to_rgb(float y, float i, float q, float& r, float& g, float& b) {
+__device__ static __inline__ void yiq_to_rgb(float y, float i, float q, float& r, float& g, float& b) {
     r = y + 0.956f * i + 0.621f * q;
     g = y - 0.272f * i - 0.647f * q;
     b = y - 1.106f * i + 1.703f * q;
@@ -469,7 +462,7 @@ __global__ void passColors_kernel(unsigned char* __restrict__ img, const int nPi
     img[idx] = passThreshValues[2] * img[idx + 2];
 }
 
-__device__ static inline float calculatePixelWeight(const float x, const float y, const float cx, const float cy, const float r, const float precision) {
+__device__ static __inline__ float calculatePixelWeight(const float x, const float y, const float cx, const float cy, const float r, const float precision) {
     // Define the pixel boundaries
     float x0 = x - 0.5f; // Left edge of the pixel
     float x1 = x + 0.5f; // Right edge of the pixel
