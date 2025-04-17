@@ -8,5 +8,5 @@ public:
     ITrueOutlinesWorker(int thresh, QObject* parent = nullptr) : m_thresh(thresh) {};
     void process() override;
 private:
-    float m_thresh;
+    int m_thresh;
 };

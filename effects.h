@@ -12,6 +12,8 @@
 #include "videoBlackAndWhite.h"
 #include "videoPosterize.h"
 #include "videoTrueOutlines.h"
+#include "videoMagicEye.h"
+#include "videoVintage8bit.h"
 
 #include "ImageOutlines.h"
 #include "imageBlur.h"
@@ -25,3 +27,4 @@
 #include "imageBlackAndWhite.h"
 #include "imagePosterize.h"
 #include "imageTrueOutlines.h"
+#include "imageVintage8bit.h"

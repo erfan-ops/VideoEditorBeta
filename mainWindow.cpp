@@ -48,6 +48,8 @@ MainWindow::MainWindow(QWidget* parent)
     replaceButtonWithEffectButton(ui->btnBinary, ":/samples/samples/blackAndWhite.jpg");
     replaceButtonWithEffectButton(ui->btnPosterize, ":/samples/samples/posterize.jpg");
     replaceButtonWithEffectButton(ui->btnTrueOutlines, ":/samples/samples/outline2.jpg");
+    replaceButtonWithEffectButton(ui->btnMagicEye, ":/samples/samples/noise.jpg");
+    replaceButtonWithEffectButton(ui->btnVintage8bit, ":/samples/samples/vintage8bit.jpg");
 
     QObject::connect(ui->btnBlur, &QPushButton::clicked, this, [&]() {
         // Get effect parameters
@@ -240,6 +242,36 @@ MainWindow::MainWindow(QWidget* parent)
 
         processEffect(ui->btnTrueOutlines, worker);
         });
+
+    QObject::connect(ui->btnMagicEye, &QPushButton::clicked, this, [&]() {
+        float middle = ui->magicEyeMiddle->value();
+
+        if (!(videoExtentions.find(fileUtils::splitextw(selectedFilePath).second) != videoExtentions.end())) {
+            QMessageBox::warning(this, "Video Only Effect", "This effect is for videos only and cannot be applied to images!");
+            return;
+        }
+
+        VMagicEyeWorker* worker = new VMagicEyeWorker(middle);
+        QObject::connect(worker, &VMagicEyeWorker::progressChanged, this, &MainWindow::updateProgress, Qt::QueuedConnection);
+        processEffect(ui->btnMagicEye, worker);
+        });
+
+    QObject::connect(ui->btnVintage8bit, &QPushButton::clicked, this, [&]() {
+        int pixelWidth = ui->vintagePixelWidth->value();
+        int pixelHeight = ui->vintagePixelHeight->value();
+        int thresh = ui->vintagePosterizeThresh->value();
+
+        EffectBase* worker = nullptr;
+        if (videoExtentions.find(fileUtils::splitextw(selectedFilePath).second) != videoExtentions.end()) {
+            worker = new VVintage8bitWorker(pixelWidth, pixelHeight, thresh);
+            QObject::connect(worker, &EffectBase::progressChanged, this, &MainWindow::updateProgress, Qt::QueuedConnection);
+        }
+        else {
+            worker = new IVintage8bitWorker(pixelWidth, pixelHeight, thresh);
+        }
+
+        processEffect(ui->btnVintage8bit, worker);
+        });
 }
 
 MainWindow::~MainWindow()
@@ -313,7 +345,7 @@ void MainWindow::replaceButtonWithEffectButton(QPushButton*& button, const QStri
 
 
 void MainWindow::updateProgress(const Video& video, const Timer& timer) {
-    ui->progressBar->setValue(video.get_frame_count() * 100 / video.get_total_frames());
+    ui->progressBar->setValue(video.get_frame_count() * 1131 / video.get_total_frames());
     ui->elapsedTime->setText(QString::fromStdWString(secondsToTimeW(timer.getTimeElapsed())));
 
     float avg_time_per_frame = std::accumulate(timer.getPreviousTimes().begin(), timer.getPreviousTimes().end(), 0.0f) / timer.getPreviousTimes().size();

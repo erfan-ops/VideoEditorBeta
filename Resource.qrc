@@ -15,5 +15,7 @@
         <file>samples/blackAndWhite.jpg</file>
         <file>samples/posterize.jpg</file>
         <file>samples/outline2.jpg</file>
+        <file>samples/noise.jpg</file>
+        <file>samples/vintage8bit.jpg</file>
     </qresource>
 </RCC>

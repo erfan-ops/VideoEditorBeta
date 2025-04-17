@@ -59,7 +59,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;WIN64;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Qt\6.8.2\msvc2022_64\include\QtCore;GeneratedFiles\$(ConfigurationName);GeneratedFiles;C:\Qt\6.8.2\msvc2022_64\include;C:\Qt\6.8.2\msvc2022_64\include\QtWidgets;$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Qt\6.8.2\msvc2022_64\include\QtGui;C:\Qt\6.8.2\msvc2022_64\include\QtCore;GeneratedFiles\$(ConfigurationName);GeneratedFiles;C:\Qt\6.8.2\msvc2022_64\include;C:\Qt\6.8.2\msvc2022_64\include\QtWidgets;$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -71,7 +71,7 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>cudart_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;opencv_core4100.lib;opencv_video4100.lib;opencv_videoio4100.lib;opencv_videostab4100.lib;opencv_quality4100.lib;opencv_cudaarithm4100.lib;opencv_cudabgsegm4100.lib;opencv_cudacodec4100.lib;opencv_cudafeatures2d4100.lib;opencv_cudafilters4100.lib;opencv_cudaimgproc4100.lib;opencv_cudalegacy4100.lib;opencv_cudaobjdetect4100.lib;opencv_cudaoptflow4100.lib;opencv_cudastereo4100.lib;opencv_cudawarping4100.lib;opencv_cudev4100.lib;opencv_imgcodecs4100.lib;opencv_imgproc4100.lib;opencv_highgui4100.lib;opencv_xfeatures2d4100.lib;opencv_ximgproc4100.lib;Qt6Core.lib;Qt6Gui.lib;Qt6Widgets.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>cudart_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;Qt6Core.lib;Qt6Gui.lib;Qt6Widgets.lib;opencv_world4100d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Qt\6.8.2\msvc2022_64\lib;$(ProjectDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <CudaCompile>
@@ -109,7 +109,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>cudart_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;opencv_core4100.lib;opencv_video4100.lib;opencv_videoio4100.lib;opencv_videostab4100.lib;opencv_quality4100.lib;opencv_cudaarithm4100.lib;opencv_cudabgsegm4100.lib;opencv_cudacodec4100.lib;opencv_cudafeatures2d4100.lib;opencv_cudafilters4100.lib;opencv_cudaimgproc4100.lib;opencv_cudalegacy4100.lib;opencv_cudaobjdetect4100.lib;opencv_cudaoptflow4100.lib;opencv_cudastereo4100.lib;opencv_cudawarping4100.lib;opencv_cudev4100.lib;opencv_imgcodecs4100.lib;opencv_imgproc4100.lib;opencv_highgui4100.lib;opencv_xfeatures2d4100.lib;opencv_ximgproc4100.lib;Qt6Core.lib;Qt6Gui.lib;Qt6Widgets.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>cudart_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;Qt6Core.lib;Qt6Gui.lib;Qt6Widgets.lib;opencv_world4100.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Qt\6.8.2\msvc2022_64\lib;$(ProjectDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <CudaCompile>
@@ -147,6 +147,7 @@
     <ClCompile Include="imagePosterize.cpp" />
     <ClCompile Include="imageRadialBlur.cpp" />
     <ClCompile Include="imageTrueOutlines.cpp" />
+    <ClCompile Include="imageVintage8bit.cpp" />
     <ClCompile Include="main.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -164,11 +165,13 @@
     </ClCompile>
     <ClCompile Include="videoInverseColors.cpp" />
     <ClCompile Include="videoInverseContrast.cpp" />
+    <ClCompile Include="videoMagicEye.cpp" />
     <ClCompile Include="videoMonoChrome.cpp" />
     <ClCompile Include="videoPixelate.cpp" />
     <ClCompile Include="videoPosterize.cpp" />
     <ClCompile Include="videoRadialBlur.cpp" />
     <ClCompile Include="videoTrueOutlines.cpp" />
+    <ClCompile Include="videoVintage8bit.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="blackAndWhite_launcher.cu" />
@@ -178,6 +181,7 @@
     <CudaCompile Include="imageEditor.cu" />
     <CudaCompile Include="inverseColors_launcher.cu" />
     <CudaCompile Include="inverseContrast_launcher.cu" />
+    <CudaCompile Include="magicEye_launcher.cu" />
     <CudaCompile Include="monoChrome_launcher.cu" />
     <CudaCompile Include="outline_launcher.cu" />
     <CudaCompile Include="pixelate_launcher.cu" />
@@ -192,10 +196,15 @@
     <ClCompile Include="videoOutlines.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
+    <CudaCompile Include="vintage8bit_launcher.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="blackAndWhite_launcher.cuh" />
     <ClInclude Include="blur_launcher.cuh" />
+    <QtMoc Include="imageVintage8bit.h" />
+    <QtMoc Include="videoVintage8bit.h" />
+    <ClInclude Include="vintage8bit_launcher.cuh" />
+    <QtMoc Include="videoMagicEye.h" />
     <QtMoc Include="videoTrueOutlines.h" />
     <QtMoc Include="videoPosterize.h" />
     <QtMoc Include="videoMonoChrome.h" />
@@ -214,6 +223,7 @@
     <QtMoc Include="imageTrueOutlines.h" />
     <ClInclude Include="inverseColors_launcher.cuh" />
     <ClInclude Include="inverseContrast_launcher.cuh" />
+    <ClInclude Include="magicEye_launcher.cuh" />
     <ClInclude Include="monoChrome_launcher.cuh" />
     <ClInclude Include="posterize_launcher.cuh" />
     <ClInclude Include="radialBlur_launcher.cuh" />
@@ -248,6 +258,12 @@
     <QtMoc Include="videoOutlines.h" />
   </ItemGroup>
   <ItemGroup>
+    <CopyFileToFolders Include="bin\opencv_world4100.dll">
+      <FileType>Document</FileType>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="bin\opencv_world4100d.dll">
+      <FileType>Document</FileType>
+    </CopyFileToFolders>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

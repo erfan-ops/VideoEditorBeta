@@ -172,6 +172,30 @@
     <Filter Include="Effects\True Outlines\Video">
       <UniqueIdentifier>{93e612a4-63d1-4247-abfa-1661e2b03d32}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Effects\Magic Eye">
+      <UniqueIdentifier>{4fa5426b-42a9-4087-b3f9-6a119e7ddd68}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Magic Eye\Launcher">
+      <UniqueIdentifier>{20deed91-543d-4e22-9a1d-d2d80f2cb756}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Magic Eye\Video">
+      <UniqueIdentifier>{adb41d3e-f93a-4592-a867-0273aa57c435}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="bin">
+      <UniqueIdentifier>{fce9d2c1-ec9a-461e-8e46-67ce69126dd6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Vintage8bit">
+      <UniqueIdentifier>{90ea185b-fd08-4e97-b33e-4d1ad35e303e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Vintage8bit\Launcher">
+      <UniqueIdentifier>{f3a8e934-3ff4-4694-957b-2369c0403f46}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Vintage8bit\Image">
+      <UniqueIdentifier>{da78fc72-b2c3-45f8-8e65-f58165bc67ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Vintage8bit\Video">
+      <UniqueIdentifier>{9c137c05-c111-4a83-a419-3000478fbd62}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -270,6 +294,15 @@
     <ClCompile Include="videoTrueOutlines.cpp">
       <Filter>Effects\True Outlines\Video</Filter>
     </ClCompile>
+    <ClCompile Include="videoMagicEye.cpp">
+      <Filter>Effects\Magic Eye\Video</Filter>
+    </ClCompile>
+    <ClCompile Include="imageVintage8bit.cpp">
+      <Filter>Effects\Vintage8bit\Image</Filter>
+    </ClCompile>
+    <ClCompile Include="videoVintage8bit.cpp">
+      <Filter>Effects\Vintage8bit\Video</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="videoEditor.cu">
@@ -316,6 +349,12 @@
     </CudaCompile>
     <CudaCompile Include="trueOutlines_launcher.cu">
       <Filter>Effects\True Outlines\Launcher</Filter>
+    </CudaCompile>
+    <CudaCompile Include="magicEye_launcher.cu">
+      <Filter>Effects\Magic Eye\Launcher</Filter>
+    </CudaCompile>
+    <CudaCompile Include="vintage8bit_launcher.cu">
+      <Filter>Effects\Vintage8bit\Launcher</Filter>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
@@ -387,6 +426,12 @@
     </ClInclude>
     <ClInclude Include="trueOutlines_launcher.cuh">
       <Filter>Effects\True Outlines\Launcher</Filter>
+    </ClInclude>
+    <ClInclude Include="magicEye_launcher.cuh">
+      <Filter>Effects\Magic Eye\Launcher</Filter>
+    </ClInclude>
+    <ClInclude Include="vintage8bit_launcher.cuh">
+      <Filter>Effects\Vintage8bit\Launcher</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -480,6 +525,15 @@
     <QtMoc Include="videoTrueOutlines.h">
       <Filter>Effects\True Outlines\Video</Filter>
     </QtMoc>
+    <QtMoc Include="videoMagicEye.h">
+      <Filter>Effects\Magic Eye\Video</Filter>
+    </QtMoc>
+    <QtMoc Include="imageVintage8bit.h">
+      <Filter>Effects\Vintage8bit\Image</Filter>
+    </QtMoc>
+    <QtMoc Include="videoVintage8bit.h">
+      <Filter>Effects\Vintage8bit\Video</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="MainWindow.ui">
@@ -500,5 +554,13 @@
     <ResourceCompile Include="VideoEditorBeta.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CopyFileToFolders Include="bin\opencv_world4100.dll">
+      <Filter>bin</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="bin\opencv_world4100d.dll">
+      <Filter>bin</Filter>
+    </CopyFileToFolders>
   </ItemGroup>
 </Project>

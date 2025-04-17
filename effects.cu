@@ -8,9 +8,7 @@ __global__ void censor_kernel(unsigned char* __restrict__ img, const int rows, c
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (x >= cols || y >= rows) {
-        return;
-    }
+    if (x >= cols || y >= rows) return;
 
     int block_y = (y / pixelHeight) * pixelHeight;
     int block_x = (x / pixelWidth) * pixelWidth;
