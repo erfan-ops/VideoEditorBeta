@@ -17,5 +17,6 @@
         <file>samples/outline2.jpg</file>
         <file>samples/noise.jpg</file>
         <file>samples/vintage8bit.jpg</file>
+        <file>samples/lensFilter.jpg</file>
     </qresource>
 </RCC>

@@ -141,6 +141,7 @@
     <ClCompile Include="imageHueShift.cpp" />
     <ClCompile Include="imageInverseColors.cpp" />
     <ClCompile Include="imageInverseContrast.cpp" />
+    <ClCompile Include="imageLensFilter.cpp" />
     <ClCompile Include="imageMonoChrome.cpp" />
     <ClCompile Include="imageOutlines.cpp" />
     <ClCompile Include="imagePixelate.cpp" />
@@ -165,6 +166,7 @@
     </ClCompile>
     <ClCompile Include="videoInverseColors.cpp" />
     <ClCompile Include="videoInverseContrast.cpp" />
+    <ClCompile Include="videoLensFilter.cpp" />
     <ClCompile Include="videoMagicEye.cpp" />
     <ClCompile Include="videoMonoChrome.cpp" />
     <ClCompile Include="videoPixelate.cpp" />
@@ -181,6 +183,7 @@
     <CudaCompile Include="imageEditor.cu" />
     <CudaCompile Include="inverseColors_launcher.cu" />
     <CudaCompile Include="inverseContrast_launcher.cu" />
+    <CudaCompile Include="lensFilter_launcher.cu" />
     <CudaCompile Include="magicEye_launcher.cu" />
     <CudaCompile Include="monoChrome_launcher.cu" />
     <CudaCompile Include="outline_launcher.cu" />
@@ -203,6 +206,9 @@
     <ClInclude Include="blur_launcher.cuh" />
     <QtMoc Include="imageVintage8bit.h" />
     <QtMoc Include="videoVintage8bit.h" />
+    <QtMoc Include="imageLensFilter.h" />
+    <ClInclude Include="lensFilter_launcher.cuh" />
+    <QtMoc Include="videoLensFilter.h" />
     <ClInclude Include="vintage8bit_launcher.cuh" />
     <QtMoc Include="videoMagicEye.h" />
     <QtMoc Include="videoTrueOutlines.h" />

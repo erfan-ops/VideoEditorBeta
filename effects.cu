@@ -448,16 +448,12 @@ __global__ void monoChrome_kernel(unsigned char* __restrict__ img, const int nPi
     img[idx] = m;
 }
 
-__global__ void passColors_kernel(unsigned char* __restrict__ img, const int nPixels, const float* __restrict__ passThreshValues) {
-    int pIdx = blockIdx.x * blockDim.x + threadIdx.x;
+__global__ void passColors_kernel(unsigned char* __restrict__ img, const int size, const float* __restrict__ passThreshValues) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if (pIdx >= nPixels) return;
+    if (idx >= size) return;
 
-    int idx = pIdx * 3;
-
-    img[idx] = passThreshValues[0] * img[idx];
-    img[idx] = passThreshValues[1] * img[idx + 1];
-    img[idx] = passThreshValues[2] * img[idx + 2];
+    img[idx] = passThreshValues[idx % 3] * img[idx];
 }
 
 __device__ static __inline__ float calculatePixelWeight(const float x, const float y, const float cx, const float cy, const float r, const float precision) {

@@ -25,6 +25,7 @@ private:
     Ui::MainWindow* ui;
     std::wstring selectedFilePath;
     std::wstring saveFilePath;
+    QColor filterColor = QColor(255, 255, 255);
 
     void processEffect(QPushButton* button, EffectBase* worker);
     void replaceButtonWithEffectButton(QPushButton*& button, const QString& imagePath);

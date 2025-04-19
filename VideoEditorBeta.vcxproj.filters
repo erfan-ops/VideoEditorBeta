@@ -196,6 +196,18 @@
     <Filter Include="Effects\Vintage8bit\Video">
       <UniqueIdentifier>{9c137c05-c111-4a83-a419-3000478fbd62}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Effects\Lens Filter">
+      <UniqueIdentifier>{05e95fec-ed8d-4575-8f5f-6c426a8ba133}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Lens Filter\Launcher">
+      <UniqueIdentifier>{dbc8c3c8-42d9-4f26-bb01-fdd27d808a0d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Lens Filter\Image">
+      <UniqueIdentifier>{ce5e28fb-9756-41b3-a25f-ea2a51324fb9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Lens Filter\Video">
+      <UniqueIdentifier>{9ddafec3-a877-4dfc-a177-303d34024fde}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -303,6 +315,12 @@
     <ClCompile Include="videoVintage8bit.cpp">
       <Filter>Effects\Vintage8bit\Video</Filter>
     </ClCompile>
+    <ClCompile Include="imageLensFilter.cpp">
+      <Filter>Effects\Lens Filter\Image</Filter>
+    </ClCompile>
+    <ClCompile Include="videoLensFilter.cpp">
+      <Filter>Effects\Lens Filter\Video</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="videoEditor.cu">
@@ -355,6 +373,9 @@
     </CudaCompile>
     <CudaCompile Include="vintage8bit_launcher.cu">
       <Filter>Effects\Vintage8bit\Launcher</Filter>
+    </CudaCompile>
+    <CudaCompile Include="lensFilter_launcher.cu">
+      <Filter>Effects\Lens Filter\Launcher</Filter>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
@@ -432,6 +453,9 @@
     </ClInclude>
     <ClInclude Include="vintage8bit_launcher.cuh">
       <Filter>Effects\Vintage8bit\Launcher</Filter>
+    </ClInclude>
+    <ClInclude Include="lensFilter_launcher.cuh">
+      <Filter>Effects\Lens Filter\Launcher</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -533,6 +557,12 @@
     </QtMoc>
     <QtMoc Include="videoVintage8bit.h">
       <Filter>Effects\Vintage8bit\Video</Filter>
+    </QtMoc>
+    <QtMoc Include="imageLensFilter.h">
+      <Filter>Effects\Lens Filter\Image</Filter>
+    </QtMoc>
+    <QtMoc Include="videoLensFilter.h">
+      <Filter>Effects\Lens Filter\Video</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

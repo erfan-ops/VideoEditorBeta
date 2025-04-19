@@ -14,6 +14,7 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <QPointer>
+#include <QColorDialog>
 
 #include "filedialog.h"
 #include "effects.h"
@@ -50,6 +51,7 @@ MainWindow::MainWindow(QWidget* parent)
     replaceButtonWithEffectButton(ui->btnTrueOutlines, ":/samples/samples/outline2.jpg");
     replaceButtonWithEffectButton(ui->btnMagicEye, ":/samples/samples/noise.jpg");
     replaceButtonWithEffectButton(ui->btnVintage8bit, ":/samples/samples/vintage8bit.jpg");
+    replaceButtonWithEffectButton(ui->btnFilter, ":/samples/samples/lensFilter.jpg");
 
     QObject::connect(ui->btnBlur, &QPushButton::clicked, this, [&]() {
         // Get effect parameters
@@ -271,6 +273,49 @@ MainWindow::MainWindow(QWidget* parent)
         }
 
         processEffect(ui->btnVintage8bit, worker);
+        });
+    
+    QObject::connect(ui->filterSelectColor, &QPushButton::clicked, this, [&]() {
+        QColor color = QColorDialog::getColor(filterColor, this, "Select a Color");
+        if (color.isValid()) {
+            filterColor = color;
+            QColor hoverColor = color.darker(120); // 120 = 20% darker
+            QString style = QString(
+                "QPushButton { background-color: %1; border: none; border-radius: 6px; }"
+                "QPushButton:hover { background-color: %2; }"
+            ).arg(color.name(), hoverColor.name());
+
+            ui->filterColorDisplay->setStyleSheet(style);
+        }
+        });
+
+    QObject::connect(ui->filterColorDisplay, &QPushButton::clicked, this, [&]() {
+        QColor color = QColorDialog::getColor(filterColor, this, "Select a Color");
+        if (color.isValid()) {
+            filterColor = color;
+            QColor hoverColor = color.darker(120); // 120 = 20% darker
+            QString style = QString(
+                "QPushButton { background-color: %1; border: none; border-radius: 6px; }"
+                "QPushButton:hover { background-color: %2; }"
+            ).arg(color.name(), hoverColor.name());
+
+            ui->filterColorDisplay->setStyleSheet(style);
+        }
+        });
+
+    QObject::connect(ui->btnFilter, &QPushButton::clicked, this, [&]() {
+        float passThreshValues[] = { filterColor.blueF(), filterColor.greenF(), filterColor.redF() };
+
+        EffectBase* worker = nullptr;
+        if (videoExtentions.find(fileUtils::splitextw(selectedFilePath).second) != videoExtentions.end()) {
+            worker = new VLensFilterWorker(passThreshValues);
+            QObject::connect(worker, &EffectBase::progressChanged, this, &MainWindow::updateProgress, Qt::QueuedConnection);
+        }
+        else {
+            worker = new ILensFilterWorker(passThreshValues);
+        }
+
+        processEffect(ui->btnFilter, worker);
         });
 }
 

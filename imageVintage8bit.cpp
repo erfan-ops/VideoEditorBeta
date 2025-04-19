@@ -10,7 +10,19 @@ void IVintage8bitWorker::process() {
         unsigned char* d_img;
         unsigned char* d_colorsBGR;
 
-        unsigned char colorsBGR[] = {55, 4, 45, 72, 127, 182, 162, 230, 255};
+        unsigned char colorsBGR[] = {
+            64, 9, 67,
+            61, 70, 133,
+            59, 131, 197,
+            58, 124, 127,
+            61, 64, 61,
+            122, 188, 191,
+            122, 194, 255,
+            121, 246, 255,
+            187, 251, 254,
+            125, 134, 197,
+        };
+
 
 
         dim3 blockDim(32, 32);
@@ -24,14 +36,14 @@ void IVintage8bitWorker::process() {
         cudaStreamCreate(&stream);
 
         cudaMallocAsync(&d_img, img.getSize(), stream);
-        cudaMallocAsync(&d_colorsBGR, 9 * sizeof(char), stream);
+        cudaMallocAsync(&d_colorsBGR, 30 * sizeof(char), stream);
 
         cudaMemcpyAsync(d_img, img.getData(), img.getSize(), cudaMemcpyHostToDevice, stream);
-        cudaMemcpyAsync(d_colorsBGR, colorsBGR, 9 * sizeof(char), cudaMemcpyHostToDevice, stream);
+        cudaMemcpyAsync(d_colorsBGR, colorsBGR, 30 * sizeof(char), cudaMemcpyHostToDevice, stream);
 
         vintage8bit(
             gridDim, blockDim, gridSize, blockSize, roundGridSize, stream, d_img,
-            m_pixelWidth, m_pixelHeight, m_thresh, d_colorsBGR, 3,
+            m_pixelWidth, m_pixelHeight, m_thresh, d_colorsBGR, 10,
             img.getWidth(), img.getHeight(), img.getNumPixels(), img.getSize()
         );
 

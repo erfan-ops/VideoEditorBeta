@@ -1,9 +1,9 @@
-#include "videoVintage8bit.h"
-#include "vintage8bit_launcher.cuh"
+#include "videoLensFilter.h"
+#include "lensFilter_launcher.cuh"
 #include "videoHeaders.h"
 
 
-void VVintage8bitWorker::process() {
+void VLensFilterWorker::process() {
     try {
         std::wstring current_time = std::to_wstring(std::time(nullptr));
 
@@ -19,23 +19,10 @@ void VVintage8bitWorker::process() {
         Timer timer;
 
         unsigned char* d_img;
-        unsigned char* d_colorsBGR;
-        unsigned char colorsBGR[] = {
-            64, 9, 67,
-            61, 70, 133,
-            59, 131, 197,
-            58, 124, 127,
-            61, 64, 61,
-            122, 188, 191,
-            122, 194, 255,
-            121, 246, 255,
-            187, 251, 254,
-            125, 134, 197,
-        };
-
+        float* d_passThreshValues;
 
         videoUtils::checkCudaError(cudaMalloc(&d_img, video.getSize()), "Failed to allocate device memory for image");
-        videoUtils::checkCudaError(cudaMalloc(&d_colorsBGR, 30 * sizeof(char)), "Failed to allocate device memory for image");
+        videoUtils::checkCudaError(cudaMalloc(&d_passThreshValues, 3 * sizeof(float)), "Failed to allocate device memory for image");
 
         std::queue<cv::Mat> bufferPool;
         for (int i = 0; i < videoUtils::nBuffers; i++) {
@@ -78,14 +65,10 @@ void VVintage8bitWorker::process() {
         cudaStream_t stream;
         videoUtils::checkCudaError(cudaStreamCreate(&stream), "Failed to create stream");
 
-        cudaMemcpyAsync(d_colorsBGR, colorsBGR, 30 * sizeof(char), cudaMemcpyHostToDevice, stream);
-
-        dim3 blockDim(32, 32);
-        dim3 gridDim((video.getWidth() + blockDim.x - 1) / blockDim.x, (video.getHeight() + blockDim.y - 1) / blockDim.y);
+        cudaMemcpyAsync(d_passThreshValues, m_passThreshValues, 3 * sizeof(float), cudaMemcpyHostToDevice, stream);
 
         int blockSize = 1024;
-        int gridSize = (video.getNumPixels() + blockSize - 1) / blockSize;
-        int roundGridSize = (video.getSize() + blockSize - 1) / blockSize;
+        int gridSize = (video.getSize() + blockSize - 1) / blockSize;
 
         std::thread writer(writerThread);
 
@@ -100,11 +83,7 @@ void VVintage8bitWorker::process() {
 
             cudaMemcpyAsync(d_img, video.getData(), video.getSize(), cudaMemcpyHostToDevice, stream);
 
-            vintage8bit(
-                gridDim, blockDim, gridSize, blockSize, roundGridSize, stream,
-                d_img, m_pixelWidth, m_pixelHeight, m_thresh, d_colorsBGR, 10,
-                video.getWidth(), video.getHeight(), video.getNumPixels(), video.getSize()
-            );
+            lensFilter(gridSize, blockSize, stream, d_img, video.getSize(), d_passThreshValues);
 
             cudaMemcpyAsync(frameBuffer.data, d_img, video.getSize(), cudaMemcpyDeviceToHost, stream);
             cudaStreamSynchronize(stream);
@@ -126,7 +105,7 @@ void VVintage8bitWorker::process() {
 
         video.release();
         cudaFree(d_img);
-        cudaFree(d_colorsBGR);
+        cudaFree(d_passThreshValues);
         cudaStreamDestroy(stream);
 
         videoUtils::mergeAudio(temp_video_name, temp_audio_name, m_outputPath);
