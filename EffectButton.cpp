@@ -1,7 +1,7 @@
 #include "EffectButton.h"
 
 EffectButton::EffectButton(const QString& imagePath, QWidget* parent)
-    : QPushButton(parent), pixmap(imagePath)
+    : QPushButton(parent), pixmap(imagePath), originalPixmap(imagePath)
 {
     setStyleSheet("border: none; background: none;");
     setCursor(Qt::PointingHandCursor);
@@ -141,4 +141,15 @@ void EffectButton::updateIcon()
 
     setIcon(QIcon(roundedPixmap));
     setIconSize(btnSize);
+}
+
+void EffectButton::setProcessedPixmap(const QPixmap& processedPix) {
+    pixmap = processedPix;
+    updateIcon();
+}
+
+void EffectButton::setThumbnail(const QPixmap& Pixmap) {
+    originalPixmap = Pixmap;
+    pixmap = Pixmap;
+    updateIcon();
 }

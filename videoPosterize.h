@@ -5,8 +5,8 @@
 class VPosterizeWorker : public VideoEffect {
     Q_OBJECT
 public:
-    VPosterizeWorker(int threshold, QObject* parent = nullptr) : m_threshold(threshold) {};
+    VPosterizeWorker(float threshold, QObject* parent = nullptr) : m_threshold(255.0f / threshold) {};
     void process() override;
 private:
-    int m_threshold;
+    float m_threshold;
 };

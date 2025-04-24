@@ -23,8 +23,6 @@ void IVintage8bitWorker::process() {
             125, 134, 197,
         };
 
-
-
         dim3 blockDim(32, 32);
         dim3 gridDim((img.getWidth() + blockDim.x - 1) / blockDim.x, (img.getHeight() + blockDim.y - 1) / blockDim.y);
 

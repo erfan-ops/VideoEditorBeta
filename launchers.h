@@ -1,0 +1,16 @@
+#pragma once
+
+#include "lensFilter_launcher.cuh"
+#include "hueShift_launcher.cuh"
+#include "blackAndWhite_launcher.cuh"
+#include "inverseColors_launcher.cuh"
+#include "inverseContrast_launcher.cuh"
+#include "monoChrome_launcher.cuh"
+#include "blur_launcher.cuh"
+#include "outline_launcher.cuh"
+#include "trueOutlines_launcher.cuh"
+#include "posterize_launcher.cuh"
+#include "radialBlur_launcher.cuh"
+#include "censor_launcher.cuh"
+#include "pixelate_launcher.cuh"
+#include "vintage8bit_launcher.cuh"

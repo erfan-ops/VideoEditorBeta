@@ -3,11 +3,6 @@
 #include "posterize_launcher.cuh"
 
 
-IPosterizeWorker::IPosterizeWorker(int threshold, QObject* parent)
-    : ImageEffect(parent), m_threshold(threshold)
-{
-}
-
 void IPosterizeWorker::process() {
     try {
         Image img(m_inputPath);

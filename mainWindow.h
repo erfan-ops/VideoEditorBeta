@@ -4,6 +4,8 @@
 #include <QPushButton>
 #include <functional>
 
+#include <cuda_runtime.h>
+
 #include "effectBase.h" 
 #include "timer.h"
 #include "video.h"
@@ -27,8 +29,41 @@ private:
     std::wstring saveFilePath;
     QColor filterColor = QColor(255, 255, 255);
 
+    // effect specifics
+    cudaStream_t streamHueShift;
+    cudaStream_t streamFilter;
+    cudaStream_t streamBinary;
+    cudaStream_t streamInverseColors;
+    cudaStream_t streamInverseContrast;
+    cudaStream_t streamMonoChrome;
+    cudaStream_t streamBlur;
+    cudaStream_t streamOutLine;
+    cudaStream_t streamTrueOutLine;
+    cudaStream_t streamPosterize;
+    cudaStream_t streamRadialBlur;
+    cudaStream_t streamCensor;
+    cudaStream_t streamPixelate;
+    cudaStream_t streamVintage8bit;
+
     void processEffect(QPushButton* button, EffectBase* worker);
     void replaceButtonWithEffectButton(QPushButton*& button, const QString& imagePath);
     void updateProgress(const Video& video, const Timer& timer);
-};
+    void newThumbnails();
+    void updateThumbnails();
 
+    // effects
+    void updateHueShiftThumbnail();
+    void updateFilterThumbnail();
+    void updateBinaryThumbnail();
+    void updateInverseColorsThumbnail();
+    void updateInverseContrastThumbnail();
+    void updateMonoChromeThumbnail();
+    void updateBlurThumbnail();
+    void updateOutLineThumbnail();
+    void updateTrueOutLineThumbnail();
+    void updatePosterizeThumbnail();
+    void updateRadialBlurThumbnail();
+    void updateCensorThumbnail();
+    void updatePixelateThumbnail();
+    void updateVintage8bitThumbnail();
+};

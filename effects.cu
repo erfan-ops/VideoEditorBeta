@@ -21,6 +21,23 @@ __global__ void censor_kernel(unsigned char* __restrict__ img, const int rows, c
     }
 }
 
+__global__ void censorRGBA_kernel(unsigned char* __restrict__ img, const int rows, const int cols, const int pixelWidth, const int pixelHeight) {
+    int x = blockIdx.x * blockDim.x + threadIdx.x;
+    int y = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if (x >= cols || y >= rows) return;
+
+    int block_y = (y / pixelHeight) * pixelHeight;
+    int block_x = (x / pixelWidth) * pixelWidth;
+
+    int blockCenterIdx = ((block_y + pixelHeight / 2) * cols + (block_x + pixelWidth / 2)) * 4; // Top-left pixel index in the block
+    int idx = (y * cols + x) * 4;
+
+    for (int c = 0; c < 4; ++c) {
+        img[idx + c] = img[blockCenterIdx + c]; // Copy the color from the top-left pixel
+    }
+}
+
 __global__ void pixelate_kernel(unsigned char* __restrict__ img, int rows, int cols, int pixelWidth, int pixelHeight) {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -67,16 +84,74 @@ __global__ void pixelate_kernel(unsigned char* __restrict__ img, int rows, int c
     }
 }
 
-__global__ void roundColors_kernel(unsigned char* __restrict__ img, const int size, const int thresh) {
+__global__ void pixelateRGBA_kernel(unsigned char* __restrict__ img, int rows, int cols, int pixelWidth, int pixelHeight) {
+    int x = blockIdx.x * blockDim.x + threadIdx.x;
+    int y = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if (x >= cols || y >= rows) {
+        return;
+    }
+
+    int blockY = (y / pixelHeight) * pixelHeight;
+    int blockX = (x / pixelWidth) * pixelWidth;
+
+    // Calculate the block's end position
+    int blockEndX = min(blockX + pixelWidth, cols);
+    int blockEndY = min(blockY + pixelHeight, rows);
+
+    // Accumulate the sum of colors in the block
+    size_t sum_colors[4] = { 0, 0, 0, 0 };
+    int pixelCount = 0;
+
+    for (int y = blockY; y < blockEndY; ++y) {
+        for (int x = blockX; x < blockEndX; ++x) {
+            int idx = (y * cols + x) * 4;
+            for (int c = 0; c < 4; ++c) {
+                sum_colors[c] += img[idx + c];
+            }
+            pixelCount++;
+        }
+    }
+
+    // Calculate the average color
+    unsigned char avg_colors[4];
+    for (int c = 0; c < 4; ++c) {
+        avg_colors[c] = static_cast<unsigned char>(sum_colors[c] / pixelCount);
+    }
+
+    // Apply the average color to the entire block
+    for (int y = blockY; y < blockEndY; ++y) {
+        for (int x = blockX; x < blockEndX; ++x) {
+            int idx = (y * cols + x) * 4;
+            for (int c = 0; c < 4; ++c) {
+                img[idx + c] = avg_colors[c];
+            }
+        }
+    }
+}
+
+__global__ void roundColors_kernel(unsigned char* __restrict__ img, const int size, const float thresh) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (idx >= size) return;
 
-    int halfThresh = thresh / 2;
+    float halfThresh = thresh / 2.0f;
+    float colorValue = static_cast<float>(img[idx]) + halfThresh;
+    float result_value = colorValue - fmodf(colorValue, thresh);
 
-    int colorValue = img[idx] + halfThresh;
-    int result_value = colorValue - (colorValue % thresh);
-    img[idx] = (result_value < 255) ? result_value : 255;
+    img[idx] = static_cast<unsigned char>(fminf(result_value, 255.0f));
+}
+
+__global__ void roundColorsRGBA_kernel(unsigned char* __restrict__ img, const int size, const float thresh) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (idx % 4 == 3 || idx >= size) return;
+
+    float halfThresh = thresh / 2.0f;
+    float colorValue = static_cast<float>(img[idx]) + halfThresh;
+    float result_value = colorValue - fmodf(colorValue, thresh);
+
+    img[idx] = static_cast<unsigned char>(fminf(result_value, 255.0f));
 }
 
 __global__ void horizontalLine_kernel(unsigned char* __restrict__ img, int rows, int cols, int lineWidth, int thresh) {
@@ -174,6 +249,51 @@ __global__ void nearestColor_kernel(unsigned char* __restrict__ img, const int n
     img[idx + 2] = colors_BGR[palette_idx + 2]; // Red
 }
 
+__global__ void nearestColorRGBA_kernel(unsigned char* __restrict__ img, const int nPixels, const unsigned char* colors_RGB, const int num_colors) {
+    int pIdx = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (pIdx >= nPixels) return;
+
+    int idx = pIdx * 4;
+
+    // Get the current pixel's color
+    unsigned char r = img[idx];
+    unsigned char g = img[idx + 1];
+    unsigned char b = img[idx + 2];
+
+    // Initialize variables to find the nearest color
+    int min_distance = INT_MAX;
+    int nearest_color_idx = 0;
+
+    // Iterate through the palette to find the nearest color
+    for (int i = 0; i < num_colors; ++i) {
+        int palette_idx = i * 3;
+
+        // Get the palette color
+        unsigned char pr = colors_RGB[palette_idx];
+        unsigned char pg = colors_RGB[palette_idx + 1];
+        unsigned char pb = colors_RGB[palette_idx + 2];
+
+        // Calculate the squared Euclidean distance between the colors
+        int dr = r - pr;
+        int dg = g - pg;
+        int db = b - pb;
+        int distance = dr * dr + dg * dg + db * db;
+
+        // Update the nearest color if this one is closer
+        if (distance < min_distance) {
+            min_distance = distance;
+            nearest_color_idx = i;
+        }
+    }
+
+    // Set the pixel to the nearest color
+    int palette_idx = nearest_color_idx * 3;
+    img[idx]     = colors_RGB[palette_idx];     // Blue
+    img[idx + 1] = colors_RGB[palette_idx + 1]; // Green
+    img[idx + 2] = colors_RGB[palette_idx + 2]; // Red
+}
+
 __global__ void radial_blur_kernel(unsigned char* __restrict__ img, int rows, int cols, float centerX, float centerY, int blurRadius, float intensity) {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -219,6 +339,51 @@ __global__ void radial_blur_kernel(unsigned char* __restrict__ img, int rows, in
     img[idx + 2] = avgB;
 }
 
+__global__ void radialBlurRGBA_kernel(unsigned char* __restrict__ img, int rows, int cols, float centerX, float centerY, int blurRadius, float intensity) {
+    int x = blockIdx.x * blockDim.x + threadIdx.x;
+    int y = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if (x >= cols || y >= rows) {
+        return;
+    }
+
+    float dirX = x - centerX;
+    float dirY = y - centerY;
+
+    float length = dirX * dirX + dirY * dirY;
+    if (length > 0) {
+        length = sqrtf(length);
+        dirX /= length;
+        dirY /= length;
+    }
+
+    float sumR = 0, sumG = 0, sumB = 0;
+    int count = 0;
+
+    for (int i = -blurRadius; i <= blurRadius; ++i) {
+        int sampleX = x + static_cast<int>(dirX * i * intensity);
+        int sampleY = y + static_cast<int>(dirY * i * intensity);
+
+        sampleX = max(0, min(sampleX, cols - 1));
+        sampleY = max(0, min(sampleY, rows - 1));
+
+        int idx = (sampleY * cols + sampleX) * 4;
+        sumR += img[idx++];
+        sumG += img[idx++];
+        sumB += img[idx];
+        count++;
+    }
+
+    unsigned char avgR = static_cast<unsigned char>(sumR / count);
+    unsigned char avgG = static_cast<unsigned char>(sumG / count);
+    unsigned char avgB = static_cast<unsigned char>(sumB / count);
+
+    int idx = (y * cols + x) * 4;
+    img[idx++] = avgR;
+    img[idx++] = avgG;
+    img[idx]   = avgB;
+}
+
 __global__ void reverse_contrast(unsigned char* __restrict__ img, const int nPixels) {
     int pIdx = blockIdx.x * blockDim.x + threadIdx.x;
     if (pIdx >= nPixels) return;
@@ -226,9 +391,9 @@ __global__ void reverse_contrast(unsigned char* __restrict__ img, const int nPix
     int idx = pIdx * 3;
 
     // Load RGB components and normalize to [0,1]
-    float r = img[idx] / 255.0f;
+    float b = img[idx] / 255.0f;
     float g = img[idx + 1] / 255.0f;
-    float b = img[idx + 2] / 255.0f;
+    float r = img[idx + 2] / 255.0f;
 
     // Compute max and min values
     float max_color = fmaxf(fmaxf(r, g), b);
@@ -263,9 +428,64 @@ __global__ void reverse_contrast(unsigned char* __restrict__ img, const int nPix
     float new_b = (b == max_color) ? new_max : new_min + (b - min_color) * (new_max - new_min) / delta;
 
     // Store back to image buffer
-    img[idx] = static_cast<unsigned char>(fminf(fmaxf(new_r * 255.0f, 0.0f), 255.0f));
+    img[idx] = static_cast<unsigned char>(fminf(fmaxf(new_b * 255.0f, 0.0f), 255.0f));
     img[idx + 1] = static_cast<unsigned char>(fminf(fmaxf(new_g * 255.0f, 0.0f), 255.0f));
-    img[idx + 2] = static_cast<unsigned char>(fminf(fmaxf(new_b * 255.0f, 0.0f), 255.0f));
+    img[idx + 2] = static_cast<unsigned char>(fminf(fmaxf(new_r * 255.0f, 0.0f), 255.0f));
+}
+
+__global__ void reverseContrastRGBA_kernel(unsigned char* __restrict__ img, const int nPixels) {
+    int pIdx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (pIdx >= nPixels) return;
+
+    int idx = pIdx * 4;
+
+    // Load RGB components and normalize to [0,1]
+    float b = img[idx] / 255.0f;
+    float g = img[idx + 1] / 255.0f;
+    float r = img[idx + 2] / 255.0f;
+
+    // Compute max and min values
+    float max_color = fmaxf(fmaxf(r, g), b);
+    float min_color = fminf(fminf(r, g), b);
+
+    // Compute original lightness (L)
+    float l = 0.5f * (max_color + min_color);
+
+    // Invert lightness
+    float inverted_l = 1.0f - l;
+
+    // Avoid division by zero
+    float delta = max_color - min_color;
+    if (delta < 1e-6f) {
+        // If the color is grayscale, simply invert it
+        img[idx] = static_cast<unsigned char>(inverted_l * 255.0f);
+        img[idx + 1] = static_cast<unsigned char>(inverted_l * 255.0f);
+        img[idx + 2] = static_cast<unsigned char>(inverted_l * 255.0f);
+        return;
+    }
+
+    // Compute saturation (S) to maintain color intensity
+    float denominator = fmaf(2.0f, l, -1.0f); // 2.0f * l - 1.0f
+    denominator = 1.0f - fabsf(denominator);
+    float s = delta / denominator;
+
+    // Compute new min/max values based on inverted lightness
+    float term = fmaf(2.0f, inverted_l, -1.0f); // 2.0f * inverted_l - 1.0f
+    term = 1.0f - fabsf(term);
+    term = fmaf(s, term, 0.0f) * 0.5f; // s * term * 0.5f
+    float new_max = inverted_l + term;
+    float new_min = inverted_l - term;
+
+    // Remap RGB values while preserving hue
+    float ratio = (new_max - new_min) / delta;
+    float new_r = (r == max_color) ? new_max : fmaf(r - min_color, ratio, new_min);
+    float new_g = (g == max_color) ? new_max : fmaf(g - min_color, ratio, new_min);
+    float new_b = (b == max_color) ? new_max : fmaf(b - min_color, ratio, new_min);
+
+    // Store back to image buffer
+    img[idx] = static_cast<unsigned char>(fminf(fmaxf(new_b * 255.0f, 0.0f), 255.0f));
+    img[idx + 1] = static_cast<unsigned char>(fminf(fmaxf(new_g * 255.0f, 0.0f), 255.0f));
+    img[idx + 2] = static_cast<unsigned char>(fminf(fmaxf(new_r * 255.0f, 0.0f), 255.0f));
 }
 
 __device__ static __inline__ void rgb_to_yiq(float r, float g, float b, float& y, float& i, float& q) {
@@ -286,6 +506,34 @@ __global__ void shift_hue_kernel(unsigned char* __restrict__ img, const int nPix
     if (pIdx >= nPixels) return;
 
     int idx = pIdx * 3;
+
+    float b = img[idx] / 255.0f;
+    float g = img[idx + 1] / 255.0f;
+    float r = img[idx + 2] / 255.0f;
+
+    float y, i, q;
+    rgb_to_yiq(r, g, b, y, i, q);
+
+    float cos_theta, sin_theta;
+    sincospif(rotationFactor, &sin_theta, &cos_theta);
+
+    // Rotate in the I-Q plane
+    float new_i = i * cos_theta - q * sin_theta;
+    float new_q = i * sin_theta + q * cos_theta;
+
+    yiq_to_rgb(y, new_i, new_q, r, g, b);
+
+    img[idx] = static_cast<unsigned char>(min(max(b, 0.0f), 1.0f) * 255);
+    img[idx + 1] = static_cast<unsigned char>(min(max(g, 0.0f), 1.0f) * 255);
+    img[idx + 2] = static_cast<unsigned char>(min(max(r, 0.0f), 1.0f) * 255);
+}
+
+__global__ void shiftHueRGBA_kernel(unsigned char* __restrict__ img, const int nPixels, const float rotationFactor) {
+    int pIdx = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (pIdx >= nPixels) return;
+
+    int idx = pIdx * 4;
 
     float r = img[idx] / 255.0f;
     float g = img[idx + 1] / 255.0f;
@@ -312,14 +560,45 @@ __global__ void outlines_kernel(unsigned char* __restrict__ img, const unsigned 
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (x >= cols - shiftX || y >= rows - shiftY) return;
+    if (x >= cols || y >= rows) return;
 
     int idx = (y * cols + x) * 3;
-    int shiftedIdx = idx + 3 * (shiftY * cols + shiftX);
 
-    for (int c = 0; c < 3; c++) {
-        int color_idx = idx + c;
-        img[color_idx] = static_cast<unsigned char>(abs(static_cast<short>(img_copy[color_idx]) - img_copy[shiftedIdx + c]));
+    if (x < cols - shiftX && y < rows - shiftY) {
+        int shiftedIdx = idx + 3 * (shiftY * cols + shiftX);
+
+        for (int c = 0; c < 3; c++) {
+            int color_idx = idx + c;
+            img[color_idx] = static_cast<unsigned char>(abs(static_cast<short>(img_copy[color_idx]) - img_copy[shiftedIdx + c]));
+        }
+    }
+    else {
+        img[idx++] = 0;
+        img[idx++] = 0;
+        img[idx] = 0;
+    }
+}
+
+__global__ void outlinesRGBA_kernel(unsigned char* __restrict__ img, const unsigned char* __restrict__ img_copy, const int rows, const int cols, const int shiftX, const int shiftY) {
+    int x = blockIdx.x * blockDim.x + threadIdx.x;
+    int y = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if (x >= cols || y >= rows) return;
+
+    int idx = (y * cols + x) * 4;
+
+    if (x < cols - shiftX && y < rows - shiftY) {
+        int shiftedIdx = idx + 4 * (shiftY * cols + shiftX);
+
+        for (int c = 0; c < 3; c++) {
+            int color_idx = idx + c;
+            img[color_idx] = static_cast<unsigned char>(abs(static_cast<short>(img_copy[color_idx]) - img_copy[shiftedIdx + c]));
+        }
+    }
+    else {
+        img[idx++] = 0;
+        img[idx++] = 0;
+        img[idx] = 0;
     }
 }
 
@@ -329,6 +608,20 @@ __global__ void subtract_kernel(unsigned char* __restrict__ img1, const unsigned
     if (pIdx >= nPixels) return;
 
     int idx = pIdx * 3;
+
+    for (int c = 0; c < 3; c++) {
+        int color_idx = idx + c;
+        short diff = static_cast<short>(img1[color_idx]) - static_cast<short>(img2[color_idx]);
+        img1[color_idx] = static_cast<unsigned char>(abs(diff));
+    }
+}
+
+__global__ void subtractRGBA_kernel(unsigned char* __restrict__ img1, const unsigned char* __restrict__ img2, const int nPixels) {
+    int pIdx = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (pIdx >= nPixels) return;
+
+    int idx = pIdx * 4;
 
     for (int c = 0; c < 3; c++) {
         int color_idx = idx + c;
@@ -364,6 +657,48 @@ __global__ void fastBlur_kernel(unsigned char* __restrict__ img, const unsigned 
                 // Check if the sampled pixel is within the image bounds
                 if (sampleX >= 0 && sampleX < cols && sampleY >= 0 && sampleY < rows) {
                     int sampleIdx = (sampleY * cols + sampleX) * 3;
+                    sumR += img_copy[sampleIdx];
+                    sumG += img_copy[sampleIdx + 1];
+                    sumB += img_copy[sampleIdx + 2];
+                    count++;
+                }
+            }
+        }
+    }
+
+    // Write the averaged color back to the original image
+    img[idx] = static_cast<unsigned char>(sumR / count);
+    img[idx + 1] = static_cast<unsigned char>(sumG / count);
+    img[idx + 2] = static_cast<unsigned char>(sumB / count);
+}
+
+__global__ void fastBlurRGBA_kernel(unsigned char* __restrict__ img, const unsigned char* __restrict__ img_copy, const int rows, const int cols, const int blur_radius) {
+    int x = blockIdx.x * blockDim.x + threadIdx.x;
+    int y = blockIdx.y * blockDim.y + threadIdx.y;
+
+    // Ensure the thread is within the image bounds
+    if (x >= cols || y >= rows) {
+        return;
+    }
+
+    int idx = (y * cols + x) * 4;
+    int sumR = 0, sumG = 0, sumB = 0;
+    int count = 0;
+
+    const int blur_radius_sqr = blur_radius * blur_radius;
+
+    // Iterate over the rounded neighborhood
+    for (int i = -blur_radius; i <= blur_radius; ++i) {
+        for (int j = -blur_radius; j <= blur_radius; ++j) {
+            // Calculate the distance from the center pixel
+            float distance_sqr = i * i + j * j;
+            if (distance_sqr <= blur_radius_sqr) {
+                int sampleX = x + i;
+                int sampleY = y + j;
+
+                // Check if the sampled pixel is within the image bounds
+                if (sampleX >= 0 && sampleX < cols && sampleY >= 0 && sampleY < rows) {
+                    int sampleIdx = (sampleY * cols + sampleX) * 4;
                     sumR += img_copy[sampleIdx];
                     sumG += img_copy[sampleIdx + 1];
                     sumB += img_copy[sampleIdx + 2];
@@ -448,12 +783,36 @@ __global__ void monoChrome_kernel(unsigned char* __restrict__ img, const int nPi
     img[idx] = m;
 }
 
+__global__ void monoChromeRGBA_kernel(unsigned char* __restrict__ img, const int nPixels) {
+    int pIdx = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (pIdx >= nPixels) return;
+
+    int idx = pIdx * 4;
+
+    unsigned char m = static_cast<unsigned char>(0.299f * static_cast<float>(img[idx]) +
+                                                 0.587f * static_cast<float>(img[idx + 1]) +
+                                                 0.114f * static_cast<float>(img[idx + 2]));
+
+    img[idx++] = m;
+    img[idx++] = m;
+    img[idx] = m;
+}
+
 __global__ void passColors_kernel(unsigned char* __restrict__ img, const int size, const float* __restrict__ passThreshValues) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (idx >= size) return;
 
     img[idx] = passThreshValues[idx % 3] * img[idx];
+}
+
+__global__ void passColorsRGBA_kernel(unsigned char* __restrict__ img, const int size, const float* __restrict__ passThreshValues) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (idx >= size) return;
+
+    img[idx] = passThreshValues[idx % 4] * img[idx];
 }
 
 __device__ static __inline__ float calculatePixelWeight(const float x, const float y, const float cx, const float cy, const float r, const float precision) {
@@ -530,6 +889,12 @@ __global__ void inverseColors_kernel(unsigned char* __restrict__ img, const int 
     img[idx] = 255ui8 - img[idx];
 }
 
+__global__ void inverseColorsRGBA_kernel(unsigned char* __restrict__ img, const int size) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx % 4 == 3 || idx >= size) return;
+    img[idx] = 255ui8 - img[idx];
+}
+
 __global__ void blackNwhite_kernel(unsigned char* __restrict__ img, const int nPixels, const float middle) {
     int pIdx = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -540,6 +905,24 @@ __global__ void blackNwhite_kernel(unsigned char* __restrict__ img, const int nP
     float m = 0.114f * static_cast<float>(img[idx]) +
               0.587f * static_cast<float>(img[idx + 1]) +
               0.299f * static_cast<float>(img[idx + 2]);
+
+    unsigned char c = m > middle ? 255 : 0;
+
+    img[idx++] = c;
+    img[idx++] = c;
+    img[idx] = c;
+}
+
+__global__ void blackNwhiteRGBA_kernel(unsigned char* __restrict__ img, const int nPixels, const float middle) {
+    int pIdx = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (pIdx >= nPixels) return;
+
+    int idx = pIdx * 4;
+
+    float m = (0.299f * static_cast<float>(img[idx]) +
+        0.587f * static_cast<float>(img[idx + 1]) +
+        0.114f * static_cast<float>(img[idx + 2])) * (static_cast<float>(img[idx + 3]) / 255.0f);
 
     unsigned char c = m > middle ? 255 : 0;
 

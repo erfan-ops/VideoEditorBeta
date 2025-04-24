@@ -5,8 +5,8 @@
 class IPosterizeWorker : public ImageEffect {
     Q_OBJECT
 public:
-    IPosterizeWorker(int threshold, QObject* parent = nullptr);
+    IPosterizeWorker(float threshold, QObject* parent = nullptr) : m_threshold(255.0f / threshold) {}
     void process() override;
 private:
-    int m_threshold;
+    float m_threshold;
 };

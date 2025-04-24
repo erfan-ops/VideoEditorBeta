@@ -207,6 +207,7 @@
     <QtMoc Include="imageVintage8bit.h" />
     <QtMoc Include="videoVintage8bit.h" />
     <QtMoc Include="imageLensFilter.h" />
+    <ClInclude Include="launchers.h" />
     <ClInclude Include="lensFilter_launcher.cuh" />
     <QtMoc Include="videoLensFilter.h" />
     <ClInclude Include="vintage8bit_launcher.cuh" />

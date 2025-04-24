@@ -6,3 +6,10 @@ void blackAndWhite(
 ) {
 	blackNwhite_kernel<<<gridSize, blockSize, 0, stream>>>(d_img, nPixels, middle);
 }
+
+void blackAndWhiteRGBA(
+	const int gridSize, const int blockSize, const cudaStream_t stream,
+	unsigned char* __restrict d_img, const int nPixels, const float middle
+) {
+	blackNwhiteRGBA_kernel<<<gridSize, blockSize, 0, stream>>>(d_img, nPixels, middle);
+}

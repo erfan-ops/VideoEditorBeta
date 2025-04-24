@@ -3,20 +3,7 @@
         <file>icon.ico</file>
     </qresource>
     <qresource prefix="/samples">
-        <file>samples/outline.jpg</file>
-        <file>samples/pixelate.jpg</file>
-        <file>samples/blur.jpg</file>
-        <file>samples/censor.jpg</file>
-        <file>samples/inverseColors.jpg</file>
-        <file>samples/inverseContrast.jpg</file>
-        <file>samples/hueShift.jpg</file>
-        <file>samples/radialBlur.jpg</file>
-        <file>samples/monoChrome.jpg</file>
-        <file>samples/blackAndWhite.jpg</file>
-        <file>samples/posterize.jpg</file>
-        <file>samples/outline2.jpg</file>
         <file>samples/noise.jpg</file>
-        <file>samples/vintage8bit.jpg</file>
-        <file>samples/lensFilter.jpg</file>
+        <file>samples/sample.jpg</file>
     </qresource>
 </RCC>

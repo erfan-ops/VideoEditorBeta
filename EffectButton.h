@@ -25,6 +25,10 @@ public:
     void setShadow(qreal blurRadius = 10.0, const QColor& color = Qt::black,
         qreal xOffset = 0.0, qreal yOffset = 2.0);
 
+    const QPixmap& getOriginalPixmap() const { return originalPixmap; }
+    void setProcessedPixmap(const QPixmap& processedPix);
+    void setThumbnail(const QPixmap& OrgPix);
+
 protected:
     void resizeEvent(QResizeEvent* event) override;
     void enterEvent(QEnterEvent* event) override;
@@ -33,6 +37,7 @@ protected:
 
 private:
     QPixmap pixmap;
+    QPixmap originalPixmap;
     QPropertyAnimation* zoomAnimation;
     QGraphicsDropShadowEffect* shadowEffect;
     qreal m_zoomFactor = 1.0;

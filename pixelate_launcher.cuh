@@ -7,3 +7,8 @@ __host__ void pixelate(dim3 gridDim, dim3 blockDim, cudaStream_t stream,
 	unsigned char* d_img,
 	int width, int height, int pixelWidth, int pixelHeight
 );
+
+__host__ void pixelateRGBA(dim3 gridDim, dim3 blockDim, cudaStream_t stream,
+	unsigned char* d_img,
+	int width, int height, int pixelWidth, int pixelHeight
+);

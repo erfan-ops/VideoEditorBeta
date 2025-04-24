@@ -457,6 +457,9 @@
     <ClInclude Include="lensFilter_launcher.cuh">
       <Filter>Effects\Lens Filter\Launcher</Filter>
     </ClInclude>
+    <ClInclude Include="launchers.h">
+      <Filter>Effects\include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
