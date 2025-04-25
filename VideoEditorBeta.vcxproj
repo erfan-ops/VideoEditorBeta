@@ -268,9 +268,9 @@
     <CopyFileToFolders Include="bin\opencv_world4100.dll">
       <FileType>Document</FileType>
     </CopyFileToFolders>
-    <CopyFileToFolders Include="bin\opencv_world4100d.dll">
+    <None Include="bin\opencv_world4100d.dll">
       <FileType>Document</FileType>
-    </CopyFileToFolders>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

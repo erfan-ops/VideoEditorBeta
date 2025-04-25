@@ -463,6 +463,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="bin\opencv_world4100d.dll">
+      <Filter>bin</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="mainWindow.h">
@@ -590,9 +593,6 @@
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="bin\opencv_world4100.dll">
-      <Filter>bin</Filter>
-    </CopyFileToFolders>
-    <CopyFileToFolders Include="bin\opencv_world4100d.dll">
       <Filter>bin</Filter>
     </CopyFileToFolders>
   </ItemGroup>

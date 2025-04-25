@@ -15,6 +15,7 @@
 #include <QPainterPath>
 #include <QPointer>
 #include <QColorDialog>
+#include <QImageReader>
 
 #include "filedialog.h"
 #include "effects.h"
@@ -1069,26 +1070,34 @@ void MainWindow::updateVintage8bitThumbnail() {
 }
 
 
-static void setThumbnail(QPushButton* button, QString filePath) {
+static void setThumbnail(QPushButton* button, QPixmap pixmap) {
     EffectButton* effectBtn = qobject_cast<EffectButton*>(button);
-    effectBtn->setThumbnail(QPixmap(filePath));
+    if (!effectBtn) return;
+
+    effectBtn->setThumbnail(pixmap);
 }
 
 void MainWindow::newThumbnails() {
-    setThumbnail(ui->btnHueShift, QString::fromStdWString(this->selectedFilePath));
-    setThumbnail(ui->btnFilter, QString::fromStdWString(this->selectedFilePath));
-    setThumbnail(ui->btnBinary, QString::fromStdWString(this->selectedFilePath));
-    setThumbnail(ui->btnInverseColors, QString::fromStdWString(this->selectedFilePath));
-    setThumbnail(ui->btnInverseContrast, QString::fromStdWString(this->selectedFilePath));
-    setThumbnail(ui->btnMonoChrome, QString::fromStdWString(this->selectedFilePath));
-    setThumbnail(ui->btnBlur, QString::fromStdWString(this->selectedFilePath));
-    setThumbnail(ui->btnOutlines, QString::fromStdWString(this->selectedFilePath));
-    setThumbnail(ui->btnTrueOutlines, QString::fromStdWString(this->selectedFilePath));
-    setThumbnail(ui->btnPosterize, QString::fromStdWString(this->selectedFilePath));
-    setThumbnail(ui->btnRadialBlur, QString::fromStdWString(this->selectedFilePath));
-    setThumbnail(ui->btnCensor, QString::fromStdWString(this->selectedFilePath));
-    setThumbnail(ui->btnPixelate, QString::fromStdWString(this->selectedFilePath));
-    setThumbnail(ui->btnVintage8bit, QString::fromStdWString(this->selectedFilePath));
+    QPixmap pixmap(QString::fromStdWString(this->selectedFilePath));
+    if (pixmap.isNull()) return;
+
+    // Scale down with smooth transformation
+    this->selectedPixmap = pixmap.scaled(500, 500, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+    setThumbnail(ui->btnHueShift, this->selectedPixmap);
+    setThumbnail(ui->btnFilter, this->selectedPixmap);
+    setThumbnail(ui->btnBinary, this->selectedPixmap);
+    setThumbnail(ui->btnInverseColors, this->selectedPixmap);
+    setThumbnail(ui->btnInverseContrast, this->selectedPixmap);
+    setThumbnail(ui->btnMonoChrome, this->selectedPixmap);
+    setThumbnail(ui->btnBlur, this->selectedPixmap);
+    setThumbnail(ui->btnOutlines, this->selectedPixmap);
+    setThumbnail(ui->btnTrueOutlines, this->selectedPixmap);
+    setThumbnail(ui->btnPosterize, this->selectedPixmap);
+    setThumbnail(ui->btnRadialBlur, this->selectedPixmap);
+    setThumbnail(ui->btnCensor, this->selectedPixmap);
+    setThumbnail(ui->btnPixelate, this->selectedPixmap);
+    setThumbnail(ui->btnVintage8bit, this->selectedPixmap);
 
     EffectButton* effectBtn = qobject_cast<EffectButton*>(ui->btnRadialBlur);
     QPixmap originalPixmap = effectBtn->getOriginalPixmap();
@@ -1105,11 +1114,11 @@ void MainWindow::newThumbnails() {
     ui->censorWidth->setMaximum(originalPixmap.width());
     ui->censorHeight->setMaximum(originalPixmap.height());
 
-    effectBtn = qobject_cast<EffectButton*>(ui->btnPixelate);
-    originalPixmap = effectBtn->getOriginalPixmap();
-
     ui->pixelWidth->setMaximum(originalPixmap.width());
     ui->pixelHeight->setMaximum(originalPixmap.height());
+
+    ui->vintagePixelWidth->setMaximum(originalPixmap.width());
+    ui->vintagePixelHeight->setMaximum(originalPixmap.height());
 
 
     this->updateThumbnails();

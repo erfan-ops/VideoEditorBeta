@@ -28,6 +28,7 @@ private:
     std::wstring selectedFilePath;
     std::wstring saveFilePath;
     QColor filterColor = QColor(255, 255, 255);
+    QPixmap selectedPixmap;
 
     // effect specifics
     cudaStream_t streamHueShift;
