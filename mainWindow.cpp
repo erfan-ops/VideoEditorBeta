@@ -52,7 +52,8 @@ MainWindow::MainWindow(QWidget* parent)
         if (!selectedFilePath.empty()) {
             ui->label->setText(QString::fromStdWString(L"Selected: " + selectedFilePath));
 
-            this->newThumbnails();
+            if (!(videoExtentions.find(fileUtils::splitextw(selectedFilePath).second) != videoExtentions.end()))
+                this->newThumbnails();
         }
         });
 
@@ -71,6 +72,8 @@ MainWindow::MainWindow(QWidget* parent)
     replaceButtonWithEffectButton(ui->btnMagicEye, ":/samples/samples/noise.jpg");
     replaceButtonWithEffectButton(ui->btnVintage8bit, ":/samples/samples/sample.jpg");
     replaceButtonWithEffectButton(ui->btnFilter, ":/samples/samples/sample.jpg");
+    replaceButtonWithEffectButton(ui->btnChangePalette, ":/samples/samples/sample.jpg");
+    replaceButtonWithEffectButton(ui->btnMonoMask, ":/samples/samples/sample.jpg");
 
     EffectButton* effectBtn = qobject_cast<EffectButton*>(ui->btnRadialBlur);
     QPixmap originalPixmap = effectBtn->getOriginalPixmap();
@@ -338,7 +341,6 @@ MainWindow::MainWindow(QWidget* parent)
             this->updateFilterThumbnail();
         }
         });
-
     QObject::connect(ui->filterColorDisplay, &QPushButton::clicked, this, [&]() {
         QColor color = QColorDialog::getColor(filterColor, this, "Select a Color");
         if (color.isValid()) {
@@ -354,7 +356,6 @@ MainWindow::MainWindow(QWidget* parent)
             this->updateFilterThumbnail();
         }
         });
-
     QObject::connect(ui->btnFilter, &QPushButton::clicked, this, [&]() {
         float passThreshValues[] = { filterColor.blueF(), filterColor.greenF(), filterColor.redF() };
 
@@ -368,6 +369,26 @@ MainWindow::MainWindow(QWidget* parent)
         }
 
         processEffect(ui->btnFilter, worker);
+        });
+
+    QObject::connect(ui->changePaletteAddColorBtn, &QPushButton::clicked, this, [&]() {
+        QColor color = QColorDialog::getColor(Qt::white, this, "Select a Color");
+        if (color.isValid()) {
+            this->changePaletteColors.push_back(color);
+            this->changePaletteColorsVector.push_back(color.blue());
+            this->changePaletteColorsVector.push_back(color.green());
+            this->changePaletteColorsVector.push_back(color.red());
+        }
+        });
+
+    QObject::connect(ui->monoMaskAddColorBtn, &QPushButton::clicked, this, [&]() {
+        QColor color = QColorDialog::getColor(Qt::white, this, "Select a Color");
+        if (color.isValid()) {
+            this->monoMaskColors.push_back(color);
+            this->monoMaskColorsVector.push_back(color.blue());
+            this->monoMaskColorsVector.push_back(color.green());
+            this->monoMaskColorsVector.push_back(color.red());
+        }
         });
 }
 
@@ -1082,7 +1103,7 @@ void MainWindow::newThumbnails() {
     if (pixmap.isNull()) return;
 
     // Scale down with smooth transformation
-    this->selectedPixmap = pixmap.scaled(500, 500, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    this->selectedPixmap = pixmap.scaled(960, 540, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
     setThumbnail(ui->btnHueShift, this->selectedPixmap);
     setThumbnail(ui->btnFilter, this->selectedPixmap);

@@ -2,7 +2,9 @@
 
 #include <QMainWindow>
 #include <QPushButton>
+#include <QVector>
 #include <functional>
+#include <vector>
 
 #include <cuda_runtime.h>
 
@@ -29,6 +31,12 @@ private:
     std::wstring saveFilePath;
     QColor filterColor = QColor(255, 255, 255);
     QPixmap selectedPixmap;
+
+    QVector<QColor> changePaletteColors;
+    std::vector<int> changePaletteColorsVector;
+    
+    QVector<QColor> monoMaskColors;
+    std::vector<int> monoMaskColorsVector;
 
     // effect specifics
     cudaStream_t streamHueShift;

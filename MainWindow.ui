@@ -102,7 +102,7 @@
        <x>0</x>
        <y>0</y>
        <width>1445</width>
-       <height>2200</height>
+       <height>2450</height>
       </rect>
      </property>
      <property name="sizePolicy">
@@ -114,7 +114,7 @@
      <property name="minimumSize">
       <size>
        <width>0</width>
-       <height>2200</height>
+       <height>2450</height>
       </size>
      </property>
      <widget class="QSpinBox" name="censorHeight">
@@ -1466,6 +1466,168 @@ border-radius: 6px;</string>
       <property name="text">
        <string/>
       </property>
+     </widget>
+     <widget class="QPushButton" name="btnChangePalette">
+      <property name="geometry">
+       <rect>
+        <x>630</x>
+        <y>1970</y>
+        <width>291</width>
+        <height>161</height>
+       </rect>
+      </property>
+      <property name="cursor">
+       <cursorShape>PointingHandCursor</cursorShape>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QScrollArea" name="changePaletteScrollArea">
+      <property name="geometry">
+       <rect>
+        <x>930</x>
+        <y>2010</y>
+        <width>181</width>
+        <height>121</height>
+       </rect>
+      </property>
+      <property name="widgetResizable">
+       <bool>true</bool>
+      </property>
+      <widget class="QWidget" name="scrollAreaWidgetContents_3">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>179</width>
+         <height>119</height>
+        </rect>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QPushButton" name="changePaletteAddColorBtn">
+      <property name="geometry">
+       <rect>
+        <x>930</x>
+        <y>1970</y>
+        <width>111</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Add Color</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_70">
+      <property name="geometry">
+       <rect>
+        <x>630</x>
+        <y>1920</y>
+        <width>241</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>28</pointsize>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+      <property name="text">
+       <string>Change Palete</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="btnMonoMask">
+      <property name="geometry">
+       <rect>
+        <x>50</x>
+        <y>2240</y>
+        <width>291</width>
+        <height>161</height>
+       </rect>
+      </property>
+      <property name="cursor">
+       <cursorShape>PointingHandCursor</cursorShape>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_106">
+      <property name="geometry">
+       <rect>
+        <x>50</x>
+        <y>2200</y>
+        <width>201</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>28</pointsize>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+      <property name="text">
+       <string>Mono Maks</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="monoMaskAddColorBtn">
+      <property name="geometry">
+       <rect>
+        <x>350</x>
+        <y>2240</y>
+        <width>111</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Add Color</string>
+      </property>
+     </widget>
+     <widget class="QScrollArea" name="monoMaskScrollArea">
+      <property name="geometry">
+       <rect>
+        <x>350</x>
+        <y>2280</y>
+        <width>181</width>
+        <height>121</height>
+       </rect>
+      </property>
+      <property name="widgetResizable">
+       <bool>true</bool>
+      </property>
+      <widget class="QWidget" name="scrollAreaWidgetContents_6">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>179</width>
+         <height>119</height>
+        </rect>
+       </property>
+      </widget>
      </widget>
     </widget>
    </widget>
