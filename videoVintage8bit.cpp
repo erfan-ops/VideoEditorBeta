@@ -31,11 +31,15 @@ void VVintage8bitWorker::process() {
             121, 246, 255,
             187, 251, 254,
             125, 134, 197,
+            56, 72, 118,
+            120, 202, 250,
+            47, 126, 205,
+            20, 44, 105
         };
 
 
         videoUtils::checkCudaError(cudaMalloc(&d_img, video.getSize()), "Failed to allocate device memory for image");
-        videoUtils::checkCudaError(cudaMalloc(&d_colorsBGR, 30 * sizeof(char)), "Failed to allocate device memory for image");
+        videoUtils::checkCudaError(cudaMalloc(&d_colorsBGR, sizeof(colorsBGR)), "Failed to allocate device memory for image");
 
         std::queue<cv::Mat> bufferPool;
         for (int i = 0; i < videoUtils::nBuffers; i++) {
@@ -78,7 +82,7 @@ void VVintage8bitWorker::process() {
         cudaStream_t stream;
         videoUtils::checkCudaError(cudaStreamCreate(&stream), "Failed to create stream");
 
-        cudaMemcpyAsync(d_colorsBGR, colorsBGR, 30 * sizeof(char), cudaMemcpyHostToDevice, stream);
+        cudaMemcpyAsync(d_colorsBGR, colorsBGR, sizeof(colorsBGR), cudaMemcpyHostToDevice, stream);
 
         dim3 blockDim(32, 32);
         dim3 gridDim((video.getWidth() + blockDim.x - 1) / blockDim.x, (video.getHeight() + blockDim.y - 1) / blockDim.y);
@@ -102,7 +106,7 @@ void VVintage8bitWorker::process() {
 
             vintage8bit(
                 gridDim, blockDim, gridSize, blockSize, roundGridSize, stream,
-                d_img, m_pixelWidth, m_pixelHeight, m_thresh, d_colorsBGR, 10,
+                d_img, m_pixelWidth, m_pixelHeight, m_thresh, d_colorsBGR, sizeof(colorsBGR) / 3ULL,
                 video.getWidth(), video.getHeight(), video.getNumPixels(), video.getSize()
             );
 

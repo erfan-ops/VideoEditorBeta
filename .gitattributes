@@ -70,3 +70,4 @@
 
 include/opencv2/** linguist-vendored
 lib/** linguist-vendored
+bin/** linguist-vendored
