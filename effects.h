@@ -15,6 +15,7 @@
 #include "videoMagicEye.h"
 #include "videoVintage8bit.h"
 #include "videoLensFilter.h"
+#include "videoChangePalette.h"
 
 #include "ImageOutlines.h"
 #include "imageBlur.h"
@@ -30,3 +31,4 @@
 #include "imageTrueOutlines.h"
 #include "imageVintage8bit.h"
 #include "imageLensFilter.h"
+#include "imageChangePalette.h"

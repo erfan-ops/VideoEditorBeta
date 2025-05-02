@@ -1491,19 +1491,22 @@ border-radius: 6px;</string>
        <rect>
         <x>930</x>
         <y>2010</y>
-        <width>181</width>
+        <width>191</width>
         <height>121</height>
        </rect>
+      </property>
+      <property name="horizontalScrollBarPolicy">
+       <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
       </property>
       <property name="widgetResizable">
        <bool>true</bool>
       </property>
-      <widget class="QWidget" name="scrollAreaWidgetContents_3">
+      <widget class="QWidget" name="changePaletteScrollAreaWidgetContents">
        <property name="geometry">
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>179</width>
+         <width>189</width>
          <height>119</height>
         </rect>
        </property>
@@ -1514,7 +1517,7 @@ border-radius: 6px;</string>
        <rect>
         <x>930</x>
         <y>1970</y>
-        <width>111</width>
+        <width>51</width>
         <height>31</height>
        </rect>
       </property>
@@ -1524,7 +1527,7 @@ border-radius: 6px;</string>
        </font>
       </property>
       <property name="text">
-       <string>Add Color</string>
+       <string>Add</string>
       </property>
      </widget>
      <widget class="QLabel" name="label_70">
@@ -1593,7 +1596,7 @@ border-radius: 6px;</string>
        <rect>
         <x>350</x>
         <y>2240</y>
-        <width>111</width>
+        <width>51</width>
         <height>31</height>
        </rect>
       </property>
@@ -1603,7 +1606,7 @@ border-radius: 6px;</string>
        </font>
       </property>
       <property name="text">
-       <string>Add Color</string>
+       <string>Add</string>
       </property>
      </widget>
      <widget class="QScrollArea" name="monoMaskScrollArea">
@@ -1611,23 +1614,98 @@ border-radius: 6px;</string>
        <rect>
         <x>350</x>
         <y>2280</y>
-        <width>181</width>
+        <width>191</width>
         <height>121</height>
        </rect>
+      </property>
+      <property name="horizontalScrollBarPolicy">
+       <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
       </property>
       <property name="widgetResizable">
        <bool>true</bool>
       </property>
-      <widget class="QWidget" name="scrollAreaWidgetContents_6">
+      <widget class="QWidget" name="monoMaskScrollAreaWidgetContents">
        <property name="geometry">
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>179</width>
+         <width>189</width>
          <height>119</height>
         </rect>
        </property>
       </widget>
+     </widget>
+     <widget class="QPushButton" name="changePaletteAddColorBtn_2">
+      <property name="geometry">
+       <rect>
+        <x>990</x>
+        <y>1970</y>
+        <width>51</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Edit</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="changePaletteAddColorBtn_3">
+      <property name="geometry">
+       <rect>
+        <x>1050</x>
+        <y>1970</y>
+        <width>71</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Remove</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="monoMaskAddColorBtn_2">
+      <property name="geometry">
+       <rect>
+        <x>410</x>
+        <y>2240</y>
+        <width>51</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Edit</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="monoMaskAddColorBtn_3">
+      <property name="geometry">
+       <rect>
+        <x>470</x>
+        <y>2240</y>
+        <width>71</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Remove</string>
+      </property>
      </widget>
     </widget>
    </widget>

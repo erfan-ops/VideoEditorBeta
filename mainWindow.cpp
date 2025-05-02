@@ -16,6 +16,7 @@
 #include <QPointer>
 #include <QColorDialog>
 #include <QImageReader>
+#include <QScrollbar>
 
 #include "filedialog.h"
 #include "effects.h"
@@ -371,23 +372,88 @@ MainWindow::MainWindow(QWidget* parent)
         processEffect(ui->btnFilter, worker);
         });
 
+    if (!ui->changePaletteScrollAreaWidgetContents->layout()) {
+        QVBoxLayout* layout = new QVBoxLayout(ui->changePaletteScrollAreaWidgetContents);
+        layout->setSizeConstraint(QLayout::SetMinAndMaxSize);
+        layout->setAlignment(Qt::AlignTop);
+        ui->changePaletteScrollAreaWidgetContents->setLayout(layout);
+    }
+
     QObject::connect(ui->changePaletteAddColorBtn, &QPushButton::clicked, this, [&]() {
         QColor color = QColorDialog::getColor(Qt::white, this, "Select a Color");
         if (color.isValid()) {
-            this->changePaletteColors.push_back(color);
             this->changePaletteColorsVector.push_back(color.blue());
             this->changePaletteColorsVector.push_back(color.green());
             this->changePaletteColorsVector.push_back(color.red());
+
+            // Create a styled label
+            QLabel* colorLabel = new QLabel();
+            colorLabel->setFixedSize(162, 20);
+            colorLabel->setStyleSheet(QString(
+                "background-color: %1; "
+                "border-radius: 4px;"
+            ).arg(color.name()));
+
+            // Add to the layout of the scroll area's contents widget
+            QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(ui->changePaletteScrollAreaWidgetContents->layout());
+            if (layout) {
+                layout->addWidget(colorLabel);
+
+                // Auto-scroll to bottom
+                ui->changePaletteScrollArea->verticalScrollBar()->setValue(
+                    ui->changePaletteScrollArea->verticalScrollBar()->maximum()
+                );
+            }
         }
         });
+    QObject::connect(ui->btnChangePalette, &QPushButton::clicked, this, [&]() {
+        unsigned char* colorsBGR = this->changePaletteColorsVector.data();
+        int numColors = this->changePaletteColorsVector.size() / 3;
+
+        EffectBase* worker = nullptr;
+        if (videoExtentions.find(fileUtils::splitextw(selectedFilePath).second) != videoExtentions.end()) {
+            worker = new VChangePaletteWorker(colorsBGR, numColors);
+            QObject::connect(worker, &EffectBase::progressChanged, this, &MainWindow::updateProgress, Qt::QueuedConnection);
+        }
+        else {
+            worker = new IChangePaletteWorker(colorsBGR, numColors);
+        }
+
+        processEffect(ui->btnFilter, worker);
+        });
+
+    if (!ui->monoMaskScrollAreaWidgetContents->layout()) {
+        QVBoxLayout* layout = new QVBoxLayout(ui->monoMaskScrollAreaWidgetContents);
+        layout->setSizeConstraint(QLayout::SetMinAndMaxSize);
+        layout->setAlignment(Qt::AlignTop);
+        ui->monoMaskScrollAreaWidgetContents->setLayout(layout);
+    }
 
     QObject::connect(ui->monoMaskAddColorBtn, &QPushButton::clicked, this, [&]() {
         QColor color = QColorDialog::getColor(Qt::white, this, "Select a Color");
         if (color.isValid()) {
-            this->monoMaskColors.push_back(color);
             this->monoMaskColorsVector.push_back(color.blue());
             this->monoMaskColorsVector.push_back(color.green());
             this->monoMaskColorsVector.push_back(color.red());
+
+            // Create a styled label
+            QLabel* colorLabel = new QLabel();
+            colorLabel->setFixedSize(162, 20);
+            colorLabel->setStyleSheet(QString(
+                "background-color: %1; "
+                "border-radius: 4px;"
+            ).arg(color.name()));
+
+            // Add to the layout of the scroll area's contents widget
+            QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(ui->monoMaskScrollAreaWidgetContents->layout());
+            if (layout) {
+                layout->addWidget(colorLabel);
+
+                // Auto-scroll to bottom
+                ui->monoMaskScrollArea->verticalScrollBar()->setValue(
+                    ui->monoMaskScrollArea->verticalScrollBar()->maximum()
+                );
+            }
         }
         });
 }

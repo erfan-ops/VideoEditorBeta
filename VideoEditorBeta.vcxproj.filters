@@ -208,6 +208,18 @@
     <Filter Include="Effects\Lens Filter\Video">
       <UniqueIdentifier>{9ddafec3-a877-4dfc-a177-303d34024fde}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Effects\Change Palette">
+      <UniqueIdentifier>{7112b400-03cb-4acb-aa63-b7a836c3ff68}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Change Palette\Image">
+      <UniqueIdentifier>{e477e6ed-260d-4bfd-94d1-5023781030b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Change Palette\Video">
+      <UniqueIdentifier>{e38158a4-5fc5-4d6b-ae29-b56d263d5f62}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Change Palette\Launcher">
+      <UniqueIdentifier>{fbb00d66-ef3c-4249-8c1d-6d085f6f4d9c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -321,6 +333,12 @@
     <ClCompile Include="videoLensFilter.cpp">
       <Filter>Effects\Lens Filter\Video</Filter>
     </ClCompile>
+    <ClCompile Include="imageChangePalette.cpp">
+      <Filter>Effects\Change Palette\Image</Filter>
+    </ClCompile>
+    <ClCompile Include="videoChangePalette.cpp">
+      <Filter>Effects\Change Palette\Video</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="videoEditor.cu">
@@ -376,6 +394,9 @@
     </CudaCompile>
     <CudaCompile Include="lensFilter_launcher.cu">
       <Filter>Effects\Lens Filter\Launcher</Filter>
+    </CudaCompile>
+    <CudaCompile Include="changePalette_launcher.cu">
+      <Filter>Effects\Change Palette\Launcher</Filter>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
@@ -459,6 +480,9 @@
     </ClInclude>
     <ClInclude Include="launchers.h">
       <Filter>Effects\include</Filter>
+    </ClInclude>
+    <ClInclude Include="changePalette_launcher.cuh">
+      <Filter>Effects\Change Palette\Launcher</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -569,6 +593,12 @@
     </QtMoc>
     <QtMoc Include="videoLensFilter.h">
       <Filter>Effects\Lens Filter\Video</Filter>
+    </QtMoc>
+    <QtMoc Include="imageChangePalette.h">
+      <Filter>Effects\Change Palette\Image</Filter>
+    </QtMoc>
+    <QtMoc Include="videoChangePalette.h">
+      <Filter>Effects\Change Palette\Video</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

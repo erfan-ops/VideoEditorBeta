@@ -32,11 +32,9 @@ private:
     QColor filterColor = QColor(255, 255, 255);
     QPixmap selectedPixmap;
 
-    QVector<QColor> changePaletteColors;
-    std::vector<int> changePaletteColorsVector;
+    std::vector<unsigned char> changePaletteColorsVector;
     
-    QVector<QColor> monoMaskColors;
-    std::vector<int> monoMaskColorsVector;
+    std::vector<unsigned char> monoMaskColorsVector;
 
     // effect specifics
     cudaStream_t streamHueShift;
