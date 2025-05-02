@@ -11,6 +11,7 @@ __global__ void roundColors_kernel(unsigned char* __restrict__ img, const int si
 __global__ void roundColorsRGBA_kernel(unsigned char* __restrict__ img, const int size, const float thresh);
 __global__ void horizontalLine_kernel(unsigned char* __restrict__ img, int rows, int cols, int lineWidth, int thresh);
 __global__ void dynamicColor_kernel(unsigned char* __restrict__ img, const int nPixels, const unsigned char* __restrict__ colors_BGR, const int num_colors);
+__global__ void dynamicColorRGBA_kernel(unsigned char* __restrict__ img, const int nPixels, const unsigned char* __restrict__ colors_RGB, const int num_colors);
 __global__ void nearestColor_kernel(unsigned char* __restrict__ img, const int nPixels, const unsigned char* __restrict__ colors_BGR, const int num_colors);
 __global__ void nearestColorRGBA_kernel(unsigned char* __restrict__ img, const int nPixels, const unsigned char* __restrict__ colors_RGB, const int num_colors);
 __global__ void radial_blur_kernel(unsigned char* __restrict__ img, int rows, int cols, float centerX, float centerY, int blurRadius, float intensity);

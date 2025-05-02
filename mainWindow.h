@@ -51,6 +51,8 @@ private:
     cudaStream_t streamCensor;
     cudaStream_t streamPixelate;
     cudaStream_t streamVintage8bit;
+    cudaStream_t streamChangePalette;
+    cudaStream_t streamMonoMask;
 
     void processEffect(QPushButton* button, EffectBase* worker);
     void replaceButtonWithEffectButton(QPushButton*& button, const QString& imagePath);
@@ -73,4 +75,6 @@ private:
     void updateCensorThumbnail();
     void updatePixelateThumbnail();
     void updateVintage8bitThumbnail();
+    void updateChangePaletteThumbnail();
+    void updateMonoMaskThumbnail();
 };

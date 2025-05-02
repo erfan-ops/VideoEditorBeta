@@ -200,7 +200,37 @@ __global__ void dynamicColor_kernel(unsigned char* __restrict__ img, const int n
         unsigned char color_end = colors_BGR[(segment_index + 1) * 3 + i];
         img[idx + i] = static_cast<unsigned char>(
             color_start + (color_end - color_start) * scale_factor
-            );
+        );
+    }
+}
+
+__global__ void dynamicColorRGBA_kernel(unsigned char* __restrict__ img, const int nPixels, const unsigned char* __restrict__ colors_RGB, const int num_colors) {
+    int pIdx = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (pIdx >= nPixels) return;
+
+    int idx = pIdx * 4; // Index for the RGB channels
+    float mediant = (0.114f * static_cast<float>(img[idx]) +
+        0.587f * static_cast<float>(img[idx + 1]) +
+        0.299f * static_cast<float>(img[idx + 2])) / 255.0f;
+
+    // Calculate the segment of the gradient based on the number of colors
+    float segment_size = 1.0f / (num_colors - 1);
+    int segment_index = static_cast<int>(mediant / segment_size);
+    segment_index = segment_index <= num_colors - 2 ? segment_index : num_colors - 2;
+
+    // Calculate the blending factor within the segment
+    float segment_start = segment_index * segment_size;
+    float segment_end = (segment_index + 1) * segment_size;
+    float scale_factor = (mediant - segment_start) / (segment_end - segment_start);
+
+    // Blend the colors
+    for (int i = 0; i < 3; ++i) {
+        unsigned char color_start = colors_RGB[segment_index * 3 + i];
+        unsigned char color_end = colors_RGB[(segment_index + 1) * 3 + i];
+        img[idx + i] = static_cast<unsigned char>(
+            color_start + (color_end - color_start) * scale_factor
+        );
     }
 }
 

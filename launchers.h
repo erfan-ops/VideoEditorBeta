@@ -14,3 +14,5 @@
 #include "censor_launcher.cuh"
 #include "pixelate_launcher.cuh"
 #include "vintage8bit_launcher.cuh"
+#include "changePalette_launcher.cuh"
+#include "monoMask_launcher.cuh"

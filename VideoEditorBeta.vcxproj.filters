@@ -359,12 +359,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="videoEditor.cu">
-      <Filter>Source Files</Filter>
-    </CudaCompile>
-    <CudaCompile Include="imageEditor.cu">
-      <Filter>Source Files</Filter>
-    </CudaCompile>
     <CudaCompile Include="outline_launcher.cu">
       <Filter>Effects\Outlines\Launcher</Filter>
     </CudaCompile>

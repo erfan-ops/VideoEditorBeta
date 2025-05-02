@@ -46,6 +46,8 @@ MainWindow::MainWindow(QWidget* parent)
     cudaStreamCreate(&this->streamCensor);
     cudaStreamCreate(&this->streamPixelate);
     cudaStreamCreate(&this->streamVintage8bit);
+    cudaStreamCreate(&this->streamChangePalette);
+    cudaStreamCreate(&this->streamMonoMask);
 
     // Connect signals
     QObject::connect(ui->btnSelect, &QPushButton::clicked, [&]() {
@@ -404,6 +406,8 @@ MainWindow::MainWindow(QWidget* parent)
                     ui->changePaletteScrollArea->verticalScrollBar()->maximum()
                 );
             }
+
+            this->updateChangePaletteThumbnail();
         }
         });
     QObject::connect(ui->btnChangePalette, &QPushButton::clicked, this, [&]() {
@@ -454,6 +458,8 @@ MainWindow::MainWindow(QWidget* parent)
                     ui->monoMaskScrollArea->verticalScrollBar()->maximum()
                 );
             }
+
+            this->updateMonoMaskThumbnail();
         }
         });
     QObject::connect(ui->btnMonoMask, &QPushButton::clicked, this, [&]() {
@@ -490,6 +496,8 @@ MainWindow::~MainWindow()
     cudaStreamDestroy(this->streamCensor);
     cudaStreamDestroy(this->streamPixelate);
     cudaStreamDestroy(this->streamVintage8bit);
+    cudaStreamDestroy(this->streamChangePalette);
+    cudaStreamDestroy(this->streamMonoMask);
 
     delete ui;
 }
@@ -1123,24 +1131,28 @@ void MainWindow::updateVintage8bitThumbnail() {
     memcpy(img, image.constBits(), size);
 
     unsigned char colorsRGB[] = {
-            67, 9, 64,
-            133, 70, 61,
-            197, 131, 59,
-            127, 124, 58,
-            61, 64, 61,
-            191, 188, 122,
-            255, 194, 122,
-            255, 246, 121,
-            254, 251, 187,
-            197, 134, 125,
+        67 , 9  , 64,
+        133, 70 , 61,
+        197, 131, 59,
+        127, 124, 58,
+        61 , 64 , 61,
+        191, 188, 122,
+        255, 194, 122,
+        255, 246, 121,
+        254, 251, 187,
+        197, 134, 125,
+        118, 72 , 56,
+        250, 202, 120,
+        205, 126, 47,
+        105, 44 , 20
     };
 
     unsigned char* d_img;
     unsigned char* d_colorsRGB;
     cudaMalloc(&d_img, size);
-    cudaMalloc(&d_colorsRGB, 30 * sizeof(unsigned char));
+    cudaMalloc(&d_colorsRGB, sizeof(colorsRGB));
     cudaMemcpy(d_img, img, size, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_colorsRGB, colorsRGB, 30 * sizeof(unsigned char), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_colorsRGB, colorsRGB, sizeof(colorsRGB), cudaMemcpyHostToDevice);
 
     dim3 blockDim(32, 32);
     dim3 gridDim((image.width() + blockDim.x - 1) / blockDim.x, (image.height() + blockDim.y - 1) / blockDim.y);
@@ -1154,7 +1166,7 @@ void MainWindow::updateVintage8bitThumbnail() {
         gridPixels, blockSize,
         gridSize, this->streamVintage8bit,
         d_img, pixelWidth, pixelHeight, thresh,
-        d_colorsRGB, 10,
+        d_colorsRGB, sizeof(colorsRGB) / 3,
         image.width(), image.height(), nPixels, size
     );
     cudaStreamSynchronize(this->streamVintage8bit);
@@ -1169,6 +1181,117 @@ void MainWindow::updateVintage8bitThumbnail() {
     // Cleanup
     delete[] img;
     cudaFree(d_img);
+    cudaFree(d_colorsRGB);
+}
+
+void MainWindow::updateChangePaletteThumbnail() {
+    if (this->changePaletteColorsVector.empty()) return;
+
+    unsigned char* colorsBGR = this->changePaletteColorsVector.data();
+    unsigned char* colorsRGB = new unsigned char[this->changePaletteColorsVector.size()];
+    int numColors = this->changePaletteColorsVector.size() / 3;
+
+    for (int i = 0; i < numColors; ++i) {
+        int index = i * 3;
+        colorsRGB[index] = colorsBGR[index + 2]; // R
+        colorsRGB[index + 1] = colorsBGR[index + 1]; // G
+        colorsRGB[index + 2] = colorsBGR[index];     // B
+    }
+
+    EffectButton* effectBtn = qobject_cast<EffectButton*>(ui->btnChangePalette);
+    if (!effectBtn) return;
+
+    QPixmap originalPixmap = effectBtn->getOriginalPixmap();
+
+    // 2. Process the image through CUDA
+    QImage image = originalPixmap.toImage().convertToFormat(QImage::Format_RGBA8888);
+
+    const int size = image.sizeInBytes();
+    const int nPixels = image.width() * image.height();
+
+    unsigned char* img = new unsigned char[size];
+    memcpy(img, image.constBits(), size);
+
+    unsigned char* d_img;
+    unsigned char* d_colorsRGB;
+    cudaMalloc(&d_img, size);
+    cudaMalloc(&d_colorsRGB, this->changePaletteColorsVector.size() * sizeof(unsigned char));
+    cudaMemcpy(d_img, img, size, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_colorsRGB, colorsRGB, this->changePaletteColorsVector.size() * sizeof(unsigned char), cudaMemcpyHostToDevice);
+
+    int blockSize = 1024;
+    int gridSize = (nPixels + blockSize - 1) / blockSize;
+
+    changePaletteRGBA(gridSize, blockSize, this->streamChangePalette, d_img, nPixels, d_colorsRGB, numColors);
+    cudaStreamSynchronize(this->streamChangePalette);
+
+    cudaMemcpy(img, d_img, size, cudaMemcpyDeviceToHost);
+
+    QImage result(img, image.width(), image.height(), QImage::Format_RGBA8888);
+    QPixmap resultPixmap = QPixmap::fromImage(result);
+
+    effectBtn->setProcessedPixmap(resultPixmap);
+
+    // Cleanup
+    delete[] img;
+    delete[] colorsRGB;
+    cudaFree(d_img);
+    cudaFree(d_colorsRGB);
+}
+
+void MainWindow::updateMonoMaskThumbnail() {
+    if (this->monoMaskColorsVector.size() < 6) return;
+
+    unsigned char* colorsBGR = this->monoMaskColorsVector.data();
+    unsigned char* colorsRGB = new unsigned char[this->monoMaskColorsVector.size()];
+    int numColors = this->monoMaskColorsVector.size() / 3;
+
+    for (int i = 0; i < numColors; ++i) {
+        int index = i * 3;
+        colorsRGB[index] = colorsBGR[index + 2]; // R
+        colorsRGB[index + 1] = colorsBGR[index + 1]; // G
+        colorsRGB[index + 2] = colorsBGR[index];     // B
+    }
+
+    EffectButton* effectBtn = qobject_cast<EffectButton*>(ui->btnMonoMask);
+    if (!effectBtn) return;
+
+    QPixmap originalPixmap = effectBtn->getOriginalPixmap();
+
+    // 2. Process the image through CUDA
+    QImage image = originalPixmap.toImage().convertToFormat(QImage::Format_RGBA8888);
+
+    const int size = image.sizeInBytes();
+    const int nPixels = image.width() * image.height();
+
+    unsigned char* img = new unsigned char[size];
+    memcpy(img, image.constBits(), size);
+
+    unsigned char* d_img;
+    unsigned char* d_colorsRGB;
+    cudaMalloc(&d_img, size);
+    cudaMalloc(&d_colorsRGB, this->monoMaskColorsVector.size() * sizeof(unsigned char));
+    cudaMemcpy(d_img, img, size, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_colorsRGB, colorsRGB, this->monoMaskColorsVector.size() * sizeof(unsigned char), cudaMemcpyHostToDevice);
+
+    int blockSize = 1024;
+    int gridSize = (nPixels + blockSize - 1) / blockSize;
+
+    monoMaskRGBA(gridSize, blockSize, this->streamMonoMask, d_img, nPixels, d_colorsRGB, numColors);
+    cudaStreamSynchronize(this->streamMonoMask);
+
+    cudaMemcpy(img, d_img, size, cudaMemcpyDeviceToHost);
+
+    QImage result(img, image.width(), image.height(), QImage::Format_RGBA8888);
+    QPixmap resultPixmap = QPixmap::fromImage(result);
+
+    effectBtn->setProcessedPixmap(resultPixmap);
+
+    // Cleanup
+    delete[] img;
+    delete[] colorsRGB;
+    cudaFree(d_img);
+    cudaFree(d_colorsRGB);
 }
 
 
@@ -1200,6 +1323,8 @@ void MainWindow::newThumbnails() {
     setThumbnail(ui->btnCensor, this->selectedPixmap);
     setThumbnail(ui->btnPixelate, this->selectedPixmap);
     setThumbnail(ui->btnVintage8bit, this->selectedPixmap);
+    setThumbnail(ui->btnChangePalette, this->selectedPixmap);
+    setThumbnail(ui->btnMonoMask, this->selectedPixmap);
 
     EffectButton* effectBtn = qobject_cast<EffectButton*>(ui->btnRadialBlur);
     QPixmap originalPixmap = effectBtn->getOriginalPixmap();
@@ -1241,4 +1366,6 @@ void MainWindow::updateThumbnails() {
     this->updateCensorThumbnail();
     this->updatePixelateThumbnail();
     this->updateVintage8bitThumbnail();
+    this->updateChangePaletteThumbnail();
+    this->updateMonoMaskThumbnail();
 }

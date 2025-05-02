@@ -185,7 +185,6 @@
     <CudaCompile Include="censor_launcher.cu" />
     <CudaCompile Include="changePalette_launcher.cu" />
     <CudaCompile Include="hueShift_launcher.cu" />
-    <CudaCompile Include="imageEditor.cu" />
     <CudaCompile Include="inverseColors_launcher.cu" />
     <CudaCompile Include="inverseContrast_launcher.cu" />
     <CudaCompile Include="lensFilter_launcher.cu" />
@@ -197,9 +196,6 @@
     <CudaCompile Include="posterize_launcher.cu" />
     <CudaCompile Include="radialBlur_launcher.cu" />
     <CudaCompile Include="trueOutlines_launcher.cu" />
-    <CudaCompile Include="videoEditor.cu">
-      <FileType>Document</FileType>
-    </CudaCompile>
     <CudaCompile Include="effects.cu" />
     <ClCompile Include="videoBlur.cpp" />
     <ClCompile Include="videoOutlines.cpp">
