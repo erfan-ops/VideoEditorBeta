@@ -220,6 +220,18 @@
     <Filter Include="Effects\Change Palette\Launcher">
       <UniqueIdentifier>{fbb00d66-ef3c-4249-8c1d-6d085f6f4d9c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Effects\Mono Mask">
+      <UniqueIdentifier>{94b8073c-89f4-4a1e-8348-771a8373c2b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Mono Mask\Launcher">
+      <UniqueIdentifier>{f3ca5113-1d79-424c-8aff-830f2e33c84e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Mono Mask\Video">
+      <UniqueIdentifier>{d5f2dba8-9abb-461a-aa17-3ae747a77a2a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Mono Mask\Image">
+      <UniqueIdentifier>{d9a9dd6c-a863-4595-abe9-5ffd79bb2b33}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -339,6 +351,12 @@
     <ClCompile Include="videoChangePalette.cpp">
       <Filter>Effects\Change Palette\Video</Filter>
     </ClCompile>
+    <ClCompile Include="imageMonoMask.cpp">
+      <Filter>Effects\Mono Mask\Image</Filter>
+    </ClCompile>
+    <ClCompile Include="videoMonoMask.cpp">
+      <Filter>Effects\Mono Mask\Video</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="videoEditor.cu">
@@ -397,6 +415,9 @@
     </CudaCompile>
     <CudaCompile Include="changePalette_launcher.cu">
       <Filter>Effects\Change Palette\Launcher</Filter>
+    </CudaCompile>
+    <CudaCompile Include="monoMask_launcher.cu">
+      <Filter>Effects\Mono Mask\Launcher</Filter>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
@@ -483,6 +504,9 @@
     </ClInclude>
     <ClInclude Include="changePalette_launcher.cuh">
       <Filter>Effects\Change Palette\Launcher</Filter>
+    </ClInclude>
+    <ClInclude Include="monoMask_launcher.cuh">
+      <Filter>Effects\Mono Mask\Launcher</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -599,6 +623,12 @@
     </QtMoc>
     <QtMoc Include="videoChangePalette.h">
       <Filter>Effects\Change Palette\Video</Filter>
+    </QtMoc>
+    <QtMoc Include="imageMonoMask.h">
+      <Filter>Effects\Mono Mask\Image</Filter>
+    </QtMoc>
+    <QtMoc Include="videoMonoMask.h">
+      <Filter>Effects\Mono Mask\Video</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

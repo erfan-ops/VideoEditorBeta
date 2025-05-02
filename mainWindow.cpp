@@ -419,7 +419,7 @@ MainWindow::MainWindow(QWidget* parent)
             worker = new IChangePaletteWorker(colorsBGR, numColors);
         }
 
-        processEffect(ui->btnFilter, worker);
+        processEffect(ui->btnChangePalette, worker);
         });
 
     if (!ui->monoMaskScrollAreaWidgetContents->layout()) {
@@ -455,6 +455,21 @@ MainWindow::MainWindow(QWidget* parent)
                 );
             }
         }
+        });
+    QObject::connect(ui->btnMonoMask, &QPushButton::clicked, this, [&]() {
+        unsigned char* colorsBGR = this->monoMaskColorsVector.data();
+        int numColors = this->monoMaskColorsVector.size() / 3;
+
+        EffectBase* worker = nullptr;
+        if (videoExtentions.find(fileUtils::splitextw(selectedFilePath).second) != videoExtentions.end()) {
+            worker = new VMonoMaskWorker(colorsBGR, numColors);
+            QObject::connect(worker, &EffectBase::progressChanged, this, &MainWindow::updateProgress, Qt::QueuedConnection);
+        }
+        else {
+            worker = new IMonoMaskWorker(colorsBGR, numColors);
+        }
+
+        processEffect(ui->btnMonoMask, worker);
         });
 }
 

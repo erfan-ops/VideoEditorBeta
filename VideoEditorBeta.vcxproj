@@ -144,6 +144,7 @@
     <ClCompile Include="imageInverseContrast.cpp" />
     <ClCompile Include="imageLensFilter.cpp" />
     <ClCompile Include="imageMonoChrome.cpp" />
+    <ClCompile Include="imageMonoMask.cpp" />
     <ClCompile Include="imageOutlines.cpp" />
     <ClCompile Include="imagePixelate.cpp" />
     <ClCompile Include="imagePosterize.cpp" />
@@ -171,6 +172,7 @@
     <ClCompile Include="videoLensFilter.cpp" />
     <ClCompile Include="videoMagicEye.cpp" />
     <ClCompile Include="videoMonoChrome.cpp" />
+    <ClCompile Include="videoMonoMask.cpp" />
     <ClCompile Include="videoPixelate.cpp" />
     <ClCompile Include="videoPosterize.cpp" />
     <ClCompile Include="videoRadialBlur.cpp" />
@@ -189,6 +191,7 @@
     <CudaCompile Include="lensFilter_launcher.cu" />
     <CudaCompile Include="magicEye_launcher.cu" />
     <CudaCompile Include="monoChrome_launcher.cu" />
+    <CudaCompile Include="monoMask_launcher.cu" />
     <CudaCompile Include="outline_launcher.cu" />
     <CudaCompile Include="pixelate_launcher.cu" />
     <CudaCompile Include="posterize_launcher.cu" />
@@ -212,10 +215,13 @@
     <QtMoc Include="imageLensFilter.h" />
     <ClInclude Include="changePalette_launcher.cuh" />
     <QtMoc Include="imageChangePalette.h" />
+    <QtMoc Include="imageMonoMask.h" />
     <ClInclude Include="launchers.h" />
     <ClInclude Include="lensFilter_launcher.cuh" />
     <QtMoc Include="videoLensFilter.h" />
     <QtMoc Include="videoChangePalette.h" />
+    <ClInclude Include="monoMask_launcher.cuh" />
+    <QtMoc Include="videoMonoMask.h" />
     <ClInclude Include="vintage8bit_launcher.cuh" />
     <QtMoc Include="videoMagicEye.h" />
     <QtMoc Include="videoTrueOutlines.h" />

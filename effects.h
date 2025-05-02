@@ -16,6 +16,7 @@
 #include "videoVintage8bit.h"
 #include "videoLensFilter.h"
 #include "videoChangePalette.h"
+#include "videoMonoMask.h"
 
 #include "ImageOutlines.h"
 #include "imageBlur.h"
@@ -32,3 +33,4 @@
 #include "imageVintage8bit.h"
 #include "imageLensFilter.h"
 #include "imageChangePalette.h"
+#include "imageMonoMask.h"
