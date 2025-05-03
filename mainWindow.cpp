@@ -48,11 +48,13 @@ MainWindow::MainWindow(QWidget* parent)
     cudaStreamCreate(&this->streamVintage8bit);
     cudaStreamCreate(&this->streamChangePalette);
     cudaStreamCreate(&this->streamMonoMask);
+    cudaStreamCreate(&this->streamSoftPalette);
 
     // Connect signals
     QObject::connect(ui->btnSelect, &QPushButton::clicked, [&]() {
-        selectedFilePath = FileDialog::OpenFileDialog(L"All Files");
-        if (!selectedFilePath.empty()) {
+        std::wstring newPath = FileDialog::OpenFileDialog(L"All Files");
+        if (!newPath.empty()) {
+            selectedFilePath = newPath;
             ui->label->setText(QString::fromStdWString(L"Selected: " + selectedFilePath));
 
             if (!(videoExtentions.find(fileUtils::splitextw(selectedFilePath).second) != videoExtentions.end()))
@@ -77,6 +79,7 @@ MainWindow::MainWindow(QWidget* parent)
     replaceButtonWithEffectButton(ui->btnFilter, ":/samples/samples/sample.jpg");
     replaceButtonWithEffectButton(ui->btnChangePalette, ":/samples/samples/sample.jpg");
     replaceButtonWithEffectButton(ui->btnMonoMask, ":/samples/samples/sample.jpg");
+    replaceButtonWithEffectButton(ui->btnSoftPalette, ":/samples/samples/sample.jpg");
 
     EffectButton* effectBtn = qobject_cast<EffectButton*>(ui->btnRadialBlur);
     QPixmap originalPixmap = effectBtn->getOriginalPixmap();
@@ -477,6 +480,59 @@ MainWindow::MainWindow(QWidget* parent)
 
         processEffect(ui->btnMonoMask, worker);
         });
+
+    if (!ui->softPaletteScrollAreaWidgetContents->layout()) {
+        QVBoxLayout* layout = new QVBoxLayout(ui->softPaletteScrollAreaWidgetContents);
+        layout->setSizeConstraint(QLayout::SetMinAndMaxSize);
+        layout->setAlignment(Qt::AlignTop);
+        ui->softPaletteScrollAreaWidgetContents->setLayout(layout);
+    }
+
+    QObject::connect(ui->softPaletteAddColorBtn, &QPushButton::clicked, this, [&]() {
+        QColor color = QColorDialog::getColor(Qt::white, this, "Select a Color");
+        if (color.isValid()) {
+            this->softPaletteColorsVector.push_back(color.blue());
+            this->softPaletteColorsVector.push_back(color.green());
+            this->softPaletteColorsVector.push_back(color.red());
+
+            // Create a styled label
+            QLabel* colorLabel = new QLabel();
+            colorLabel->setFixedSize(162, 20);
+            colorLabel->setStyleSheet(QString(
+                "background-color: %1; "
+                "border-radius: 4px;"
+            ).arg(color.name()));
+
+            // Add to the layout of the scroll area's contents widget
+            QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(ui->softPaletteScrollAreaWidgetContents->layout());
+            if (layout) {
+                layout->addWidget(colorLabel);
+
+                // Auto-scroll to bottom
+                ui->softPaletteScrollArea->verticalScrollBar()->setValue(
+                    ui->softPaletteScrollArea->verticalScrollBar()->maximum()
+                );
+            }
+
+            this->updateSoftPaletteThumbnail();
+        }
+        });
+    QObject::connect(ui->btnSoftPalette, &QPushButton::clicked, this, [&]() {
+        unsigned char* colorsBGR = this->changePaletteColorsVector.data();
+        int numColors = this->softPaletteColorsVector.size() / 3;
+
+        EffectBase* worker = nullptr;
+        if (videoExtentions.find(fileUtils::splitextw(selectedFilePath).second) != videoExtentions.end()) {
+            worker = new VSoftPaletteWorker(colorsBGR, numColors);
+            QObject::connect(worker, &EffectBase::progressChanged, this, &MainWindow::updateProgress, Qt::QueuedConnection);
+        }
+        else {
+            worker = new ISoftPaletteWorker(colorsBGR, numColors);
+        }
+
+        processEffect(ui->btnSoftPalette, worker);
+        });
+
 }
 
 MainWindow::~MainWindow()
@@ -498,6 +554,7 @@ MainWindow::~MainWindow()
     cudaStreamDestroy(this->streamVintage8bit);
     cudaStreamDestroy(this->streamChangePalette);
     cudaStreamDestroy(this->streamMonoMask);
+    cudaStreamDestroy(this->streamSoftPalette);
 
     delete ui;
 }
@@ -1294,6 +1351,61 @@ void MainWindow::updateMonoMaskThumbnail() {
     cudaFree(d_colorsRGB);
 }
 
+void MainWindow::updateSoftPaletteThumbnail() {
+    if (this->softPaletteColorsVector.empty()) return;
+
+    unsigned char* colorsBGR = this->softPaletteColorsVector.data();
+    unsigned char* colorsRGB = new unsigned char[this->softPaletteColorsVector.size()];
+    int numColors = this->softPaletteColorsVector.size() / 3;
+
+    for (int i = 0; i < numColors; ++i) {
+        int index = i * 3;
+        colorsRGB[index] = colorsBGR[index + 2]; // R
+        colorsRGB[index + 1] = colorsBGR[index + 1]; // G
+        colorsRGB[index + 2] = colorsBGR[index];     // B
+    }
+
+    EffectButton* effectBtn = qobject_cast<EffectButton*>(ui->btnSoftPalette);
+    if (!effectBtn) return;
+
+    QPixmap originalPixmap = effectBtn->getOriginalPixmap();
+
+    // 2. Process the image through CUDA
+    QImage image = originalPixmap.toImage().convertToFormat(QImage::Format_RGBA8888);
+
+    const int size = image.sizeInBytes();
+    const int nPixels = image.width() * image.height();
+
+    unsigned char* img = new unsigned char[size];
+    memcpy(img, image.constBits(), size);
+
+    unsigned char* d_img;
+    unsigned char* d_colorsRGB;
+    cudaMalloc(&d_img, size);
+    cudaMalloc(&d_colorsRGB, this->softPaletteColorsVector.size() * sizeof(unsigned char));
+    cudaMemcpy(d_img, img, size, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_colorsRGB, colorsRGB, this->softPaletteColorsVector.size() * sizeof(unsigned char), cudaMemcpyHostToDevice);
+
+    int blockSize = 1024;
+    int gridSize = (nPixels + blockSize - 1) / blockSize;
+
+    softPaletteRGBA(gridSize, blockSize, this->streamSoftPalette, d_img, nPixels, d_colorsRGB, numColors);
+    cudaStreamSynchronize(this->streamSoftPalette);
+
+    cudaMemcpy(img, d_img, size, cudaMemcpyDeviceToHost);
+
+    QImage result(img, image.width(), image.height(), QImage::Format_RGBA8888);
+    QPixmap resultPixmap = QPixmap::fromImage(result);
+
+    effectBtn->setProcessedPixmap(resultPixmap);
+
+    // Cleanup
+    delete[] img;
+    delete[] colorsRGB;
+    cudaFree(d_img);
+    cudaFree(d_colorsRGB);
+}
+
 
 static void setThumbnail(QPushButton* button, QPixmap pixmap) {
     EffectButton* effectBtn = qobject_cast<EffectButton*>(button);
@@ -1325,6 +1437,7 @@ void MainWindow::newThumbnails() {
     setThumbnail(ui->btnVintage8bit, this->selectedPixmap);
     setThumbnail(ui->btnChangePalette, this->selectedPixmap);
     setThumbnail(ui->btnMonoMask, this->selectedPixmap);
+    setThumbnail(ui->btnSoftPalette, this->selectedPixmap);
 
     EffectButton* effectBtn = qobject_cast<EffectButton*>(ui->btnRadialBlur);
     QPixmap originalPixmap = effectBtn->getOriginalPixmap();
@@ -1368,4 +1481,5 @@ void MainWindow::updateThumbnails() {
     this->updateVintage8bitThumbnail();
     this->updateChangePaletteThumbnail();
     this->updateMonoMaskThumbnail();
+    this->updateSoftPaletteThumbnail();
 }

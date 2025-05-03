@@ -232,6 +232,18 @@
     <Filter Include="Effects\Mono Mask\Image">
       <UniqueIdentifier>{d9a9dd6c-a863-4595-abe9-5ffd79bb2b33}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Effects\Soft Palette">
+      <UniqueIdentifier>{6d40b1ad-d318-446c-b67b-903e8bb824ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Soft Palette\Launcher">
+      <UniqueIdentifier>{8edd382c-c52c-4301-bf14-088e22e62633}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Soft Palette\Image">
+      <UniqueIdentifier>{77d36f76-1da1-4b19-ad69-429ad9150b90}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Soft Palette\Video">
+      <UniqueIdentifier>{ad4b11e6-ee6f-4608-9f46-ef8c362dc3c9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -357,6 +369,12 @@
     <ClCompile Include="videoMonoMask.cpp">
       <Filter>Effects\Mono Mask\Video</Filter>
     </ClCompile>
+    <ClCompile Include="imageSoftPalette.cpp">
+      <Filter>Effects\Soft Palette\Image</Filter>
+    </ClCompile>
+    <ClCompile Include="videoSoftPalette.cpp">
+      <Filter>Effects\Soft Palette\Video</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="outline_launcher.cu">
@@ -412,6 +430,9 @@
     </CudaCompile>
     <CudaCompile Include="monoMask_launcher.cu">
       <Filter>Effects\Mono Mask\Launcher</Filter>
+    </CudaCompile>
+    <CudaCompile Include="softPalette_launcher.cu">
+      <Filter>Effects\Soft Palette\Launcher</Filter>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
@@ -501,6 +522,9 @@
     </ClInclude>
     <ClInclude Include="monoMask_launcher.cuh">
       <Filter>Effects\Mono Mask\Launcher</Filter>
+    </ClInclude>
+    <ClInclude Include="softPalette_launcher.cuh">
+      <Filter>Effects\Soft Palette\Launcher</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -623,6 +647,12 @@
     </QtMoc>
     <QtMoc Include="videoMonoMask.h">
       <Filter>Effects\Mono Mask\Video</Filter>
+    </QtMoc>
+    <QtMoc Include="imageSoftpalette.h">
+      <Filter>Effects\Soft Palette\Image</Filter>
+    </QtMoc>
+    <QtMoc Include="videoSoftPalette.h">
+      <Filter>Effects\Soft Palette\Video</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

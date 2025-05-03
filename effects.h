@@ -17,6 +17,7 @@
 #include "videoLensFilter.h"
 #include "videoChangePalette.h"
 #include "videoMonoMask.h"
+#include "videoSoftPalette.h"
 
 #include "ImageOutlines.h"
 #include "imageBlur.h"
@@ -34,3 +35,4 @@
 #include "imageLensFilter.h"
 #include "imageChangePalette.h"
 #include "imageMonoMask.h"
+#include "imageSoftpalette.h"

@@ -16,3 +16,4 @@
 #include "vintage8bit_launcher.cuh"
 #include "changePalette_launcher.cuh"
 #include "monoMask_launcher.cuh"
+#include "softPalette_launcher.cuh"

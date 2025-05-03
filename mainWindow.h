@@ -33,7 +33,7 @@ private:
     QPixmap selectedPixmap;
 
     std::vector<unsigned char> changePaletteColorsVector;
-    
+    std::vector<unsigned char> softPaletteColorsVector;
     std::vector<unsigned char> monoMaskColorsVector;
 
     // effect specifics
@@ -53,6 +53,7 @@ private:
     cudaStream_t streamVintage8bit;
     cudaStream_t streamChangePalette;
     cudaStream_t streamMonoMask;
+    cudaStream_t streamSoftPalette;
 
     void processEffect(QPushButton* button, EffectBase* worker);
     void replaceButtonWithEffectButton(QPushButton*& button, const QString& imagePath);
@@ -77,4 +78,5 @@ private:
     void updateVintage8bitThumbnail();
     void updateChangePaletteThumbnail();
     void updateMonoMaskThumbnail();
+    void updateSoftPaletteThumbnail();
 };

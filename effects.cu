@@ -58,8 +58,9 @@ __global__ void pixelate_kernel(unsigned char* __restrict__ img, int rows, int c
     int pixelCount = 0;
 
     for (int y = blockY; y < blockEndY; ++y) {
+        int yc = y * cols;
         for (int x = blockX; x < blockEndX; ++x) {
-            int idx = (y * cols + x) * 3;
+            int idx = (yc + x) * 3;
             for (int c = 0; c < 3; ++c) {
                 sum_colors[c] += img[idx + c];
             }
@@ -68,15 +69,16 @@ __global__ void pixelate_kernel(unsigned char* __restrict__ img, int rows, int c
     }
 
     // Calculate the average color
-    unsigned char avg_colors[3];
+    unsigned char avg_colors[3]{ 0 };
     for (int c = 0; c < 3; ++c) {
         avg_colors[c] = static_cast<unsigned char>(sum_colors[c] / pixelCount);
     }
 
     // Apply the average color to the entire block
     for (int y = blockY; y < blockEndY; ++y) {
+        int yc = y * cols;
         for (int x = blockX; x < blockEndX; ++x) {
-            int idx = (y * cols + x) * 3;
+            int idx = (yc + x) * 3;
             for (int c = 0; c < 3; ++c) {
                 img[idx + c] = avg_colors[c];
             }
@@ -322,6 +324,110 @@ __global__ void nearestColorRGBA_kernel(unsigned char* __restrict__ img, const i
     img[idx]     = colors_RGB[palette_idx];     // Blue
     img[idx + 1] = colors_RGB[palette_idx + 1]; // Green
     img[idx + 2] = colors_RGB[palette_idx + 2]; // Red
+}
+
+__global__ void blendNearestColors_kernel(
+    unsigned char* __restrict__ img,
+    const int nPixels,
+    const unsigned char* __restrict__ colors_BGR,
+    const int num_colors
+) {
+    int pIdx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (pIdx >= nPixels) return;
+
+    int idx = pIdx * 3;
+
+    // Get the current pixel's color
+    unsigned char b = img[idx];
+    unsigned char g = img[idx + 1];
+    unsigned char r = img[idx + 2];
+
+    // Temporary arrays to store weights and avoid recomputation
+    float weights_sum = 0.0f;
+    float color_sum_b = 0.0f;
+    float color_sum_g = 0.0f;
+    float color_sum_r = 0.0f;
+
+    // Loop over all colors in the palette
+    for (int i = 0; i < num_colors; ++i) {
+        int palette_idx = i * 3;
+
+        // Get palette color
+        unsigned char pb = colors_BGR[palette_idx];
+        unsigned char pg = colors_BGR[palette_idx + 1];
+        unsigned char pr = colors_BGR[palette_idx + 2];
+
+        // Calculate squared distance
+        int db = int(b) - int(pb);
+        int dg = int(g) - int(pg);
+        int dr = int(r) - int(pr);
+        float dist_squared = float(db * db + dg * dg + dr * dr);
+
+        // Avoid division by zero: assign a very high weight to exact matches
+        float weight = (dist_squared == 0.0f) ? 1e6f : 1.0f / dist_squared;
+
+        weights_sum += weight;
+        color_sum_b += weight * pb;
+        color_sum_g += weight * pg;
+        color_sum_r += weight * pr;
+    }
+
+    // Compute weighted average color
+    img[idx] = static_cast<unsigned char>(fminf(fmaxf(color_sum_b / weights_sum, 0.0f), 255.0f));
+    img[idx + 1] = static_cast<unsigned char>(fminf(fmaxf(color_sum_g / weights_sum, 0.0f), 255.0f));
+    img[idx + 2] = static_cast<unsigned char>(fminf(fmaxf(color_sum_r / weights_sum, 0.0f), 255.0f));
+}
+
+__global__ void blendNearestColorsRGBA_kernel(
+    unsigned char* __restrict__ img,
+    const int nPixels,
+    const unsigned char* __restrict__ colors_BGR,
+    const int num_colors
+) {
+    int pIdx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (pIdx >= nPixels) return;
+
+    int idx = pIdx * 4;
+
+    // Get the current pixel's color
+    unsigned char b = img[idx];
+    unsigned char g = img[idx + 1];
+    unsigned char r = img[idx + 2];
+
+    // Temporary arrays to store weights and avoid recomputation
+    float weights_sum = 0.0f;
+    float color_sum_b = 0.0f;
+    float color_sum_g = 0.0f;
+    float color_sum_r = 0.0f;
+
+    // Loop over all colors in the palette
+    for (int i = 0; i < num_colors; ++i) {
+        int palette_idx = i * 3;
+
+        // Get palette color
+        unsigned char pb = colors_BGR[palette_idx];
+        unsigned char pg = colors_BGR[palette_idx + 1];
+        unsigned char pr = colors_BGR[palette_idx + 2];
+
+        // Calculate squared distance
+        int db = int(b) - int(pb);
+        int dg = int(g) - int(pg);
+        int dr = int(r) - int(pr);
+        float dist_squared = float(db * db + dg * dg + dr * dr);
+
+        // Avoid division by zero: assign a very high weight to exact matches
+        float weight = (dist_squared == 0.0f) ? 1e6f : 1.0f / dist_squared;
+
+        weights_sum += weight;
+        color_sum_b += weight * pb;
+        color_sum_g += weight * pg;
+        color_sum_r += weight * pr;
+    }
+
+    // Compute weighted average color
+    img[idx] = static_cast<unsigned char>(fminf(fmaxf(color_sum_b / weights_sum, 0.0f), 255.0f));
+    img[idx + 1] = static_cast<unsigned char>(fminf(fmaxf(color_sum_g / weights_sum, 0.0f), 255.0f));
+    img[idx + 2] = static_cast<unsigned char>(fminf(fmaxf(color_sum_r / weights_sum, 0.0f), 255.0f));
 }
 
 __global__ void radial_blur_kernel(unsigned char* __restrict__ img, int rows, int cols, float centerX, float centerY, int blurRadius, float intensity) {
@@ -675,23 +781,26 @@ __global__ void fastBlur_kernel(unsigned char* __restrict__ img, const unsigned 
 
     const int blur_radius_sqr = blur_radius * blur_radius;
 
-    // Iterate over the rounded neighborhood
-    for (int i = -blur_radius; i <= blur_radius; ++i) {
-        for (int j = -blur_radius; j <= blur_radius; ++j) {
+    // Precalculate boundaries
+    int startX = max(0, x - blur_radius);
+    int endX = min(cols - 1, x + blur_radius);
+    int startY = max(0, y - blur_radius);
+    int endY = min(rows - 1, y + blur_radius);
+
+    for (int sampleX = startX; sampleX <= endX; ++sampleX) {
+        int i = sampleX - x;  // Calculate relative position
+
+        for (int sampleY = startY; sampleY <= endY; ++sampleY) {
+            int j = sampleY - y;  // Calculate relative position
+
             // Calculate the distance from the center pixel
             float distance_sqr = i * i + j * j;
             if (distance_sqr <= blur_radius_sqr) {
-                int sampleX = x + i;
-                int sampleY = y + j;
-
-                // Check if the sampled pixel is within the image bounds
-                if (sampleX >= 0 && sampleX < cols && sampleY >= 0 && sampleY < rows) {
-                    int sampleIdx = (sampleY * cols + sampleX) * 3;
-                    sumR += img_copy[sampleIdx];
-                    sumG += img_copy[sampleIdx + 1];
-                    sumB += img_copy[sampleIdx + 2];
-                    count++;
-                }
+                int sampleIdx = (sampleY * cols + sampleX) * 3;
+                sumR += img_copy[sampleIdx];
+                sumG += img_copy[sampleIdx + 1];
+                sumB += img_copy[sampleIdx + 2];
+                count++;
             }
         }
     }
@@ -717,23 +826,26 @@ __global__ void fastBlurRGBA_kernel(unsigned char* __restrict__ img, const unsig
 
     const int blur_radius_sqr = blur_radius * blur_radius;
 
-    // Iterate over the rounded neighborhood
-    for (int i = -blur_radius; i <= blur_radius; ++i) {
-        for (int j = -blur_radius; j <= blur_radius; ++j) {
+    // Precalculate boundaries
+    int startX = max(0, x - blur_radius);
+    int endX = min(cols - 1, x + blur_radius);
+    int startY = max(0, y - blur_radius);
+    int endY = min(rows - 1, y + blur_radius);
+
+    for (int sampleY = startY; sampleY <= endY; ++sampleY) {
+        int j = sampleY - y;  // Calculate relative position
+        int helper = sampleY * cols;
+        for (int sampleX = startX; sampleX <= endX; ++sampleX) {
+            int i = sampleX - x;  // Calculate relative position
+
             // Calculate the distance from the center pixel
             float distance_sqr = i * i + j * j;
             if (distance_sqr <= blur_radius_sqr) {
-                int sampleX = x + i;
-                int sampleY = y + j;
-
-                // Check if the sampled pixel is within the image bounds
-                if (sampleX >= 0 && sampleX < cols && sampleY >= 0 && sampleY < rows) {
-                    int sampleIdx = (sampleY * cols + sampleX) * 4;
-                    sumR += img_copy[sampleIdx];
-                    sumG += img_copy[sampleIdx + 1];
-                    sumB += img_copy[sampleIdx + 2];
-                    count++;
-                }
+                int sampleIdx = (helper + sampleX) * 4;
+                sumR += img_copy[sampleIdx];
+                sumG += img_copy[sampleIdx + 1];
+                sumB += img_copy[sampleIdx + 2];
+                count++;
             }
         }
     }
