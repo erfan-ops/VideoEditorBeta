@@ -24,6 +24,7 @@
 #include "utils.h"
 
 #include "EffectButton.h"
+#include "colorButton.h"
 
 
 MainWindow::MainWindow(QWidget* parent)
@@ -392,17 +393,33 @@ MainWindow::MainWindow(QWidget* parent)
             this->changePaletteColorsVector.push_back(color.red());
 
             // Create a styled label
-            QLabel* colorLabel = new QLabel();
-            colorLabel->setFixedSize(162, 20);
-            colorLabel->setStyleSheet(QString(
+            int index = this->changePaletteColorButtons.size();
+
+            ColorButton* colorButton = new ColorButton(color, index);
+            colorButton->setFixedSize(162, 20);
+            colorButton->setStyleSheet(QString(
                 "background-color: %1; "
-                "border-radius: 4px;"
+                "border-radius: 4px; "
+                "border: 2px solid transparent;"
             ).arg(color.name()));
+
+            changePaletteColorButtons.push_back(colorButton);
+
+            QObject::connect(colorButton, &QPushButton::clicked, this, [=]() {
+                for (ColorButton* btn : this->changePaletteColorButtons) {
+                    btn->setStyleSheet(btn->styleSheet().replace("border: 2px solid #0078d7;", "border: 2px solid transparent;"));
+                    btn->setSelected(false);
+                }
+
+                colorButton->setStyleSheet(colorButton->styleSheet().replace("border: 2px solid transparent;", "border: 2px solid #0078d7;"));
+                this->changePaletteSelectedColor = colorButton->getIndex();
+                colorButton->setSelected(true);
+                });
 
             // Add to the layout of the scroll area's contents widget
             QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(ui->changePaletteScrollAreaWidgetContents->layout());
             if (layout) {
-                layout->addWidget(colorLabel);
+                layout->addWidget(colorButton);
 
                 // Auto-scroll to bottom
                 ui->changePaletteScrollArea->verticalScrollBar()->setValue(
@@ -412,6 +429,75 @@ MainWindow::MainWindow(QWidget* parent)
 
             this->updateChangePaletteThumbnail();
         }
+        });
+    QObject::connect(ui->changePaletteEditColorBtn, &QPushButton::clicked, this, [=]() {
+        int selectedIndex = this->changePaletteSelectedColor;
+        if (selectedIndex < 0 || selectedIndex >= this->changePaletteColorButtons.size())
+            return;
+
+        ColorButton* colorButton = this->changePaletteColorButtons[selectedIndex];
+        QColor currentColor = colorButton->getColor();
+
+        QColor newColor = QColorDialog::getColor(currentColor, this, "Select a Color");
+        if (newColor.isValid()) {
+            // Update button appearance
+            colorButton->setColor(newColor);
+
+            // Update color vector (stored as B, G, R)
+            int vectorIndex = selectedIndex * 3;
+            if (vectorIndex + 2 < this->changePaletteColorsVector.size()) {
+                this->changePaletteColorsVector[vectorIndex] = newColor.blue();
+                this->changePaletteColorsVector[vectorIndex + 1] = newColor.green();
+                this->changePaletteColorsVector[vectorIndex + 2] = newColor.red();
+            }
+
+            this->updateChangePaletteThumbnail();
+        }
+        });
+    QObject::connect(ui->changePaletteRemoveColorBtn, &QPushButton::clicked, this, [=]() {
+        int selectedIndex = this->changePaletteSelectedColor;
+        if (selectedIndex < 0 || selectedIndex >= this->changePaletteColorButtons.size())
+            return;
+
+        // Remove RGB values (3 components per color)
+        int vectorIndex = selectedIndex * 3;
+        if (vectorIndex + 2 < this->changePaletteColorsVector.size()) {
+            this->changePaletteColorsVector.erase(
+                this->changePaletteColorsVector.begin() + vectorIndex,
+                this->changePaletteColorsVector.begin() + vectorIndex + 3
+            );
+        }
+
+        // Remove the button from layout and delete it
+        QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(ui->changePaletteScrollAreaWidgetContents->layout());
+        ColorButton* buttonToRemove = this->changePaletteColorButtons[selectedIndex];
+        if (layout && buttonToRemove) {
+            layout->removeWidget(buttonToRemove);
+            buttonToRemove->deleteLater();
+        }
+
+        // Remove from button list
+        this->changePaletteColorButtons.removeAt(selectedIndex);
+
+        // Update indices of remaining buttons
+        for (int i = selectedIndex; i < this->changePaletteColorButtons.size(); ++i) {
+            this->changePaletteColorButtons[i]->setIndex(i);
+        }
+
+        // Reset selection
+        this->changePaletteSelectedColor -= 1;
+
+        if (this->changePaletteSelectedColor >= 0) {
+            ColorButton* previousButton = this->changePaletteColorButtons[this->changePaletteSelectedColor];
+            previousButton->setStyleSheet(previousButton->styleSheet().replace("border: 2px solid transparent;", "border: 2px solid #0078d7;"));
+        }
+        else if (!this->changePaletteColorButtons.empty()) {
+            this->changePaletteSelectedColor = 0;
+            ColorButton* previousButton = this->changePaletteColorButtons[this->changePaletteSelectedColor];
+            previousButton->setStyleSheet(previousButton->styleSheet().replace("border: 2px solid transparent;", "border: 2px solid #0078d7;"));
+        }
+
+        this->updateChangePaletteThumbnail();
         });
     QObject::connect(ui->btnChangePalette, &QPushButton::clicked, this, [&]() {
         unsigned char* colorsBGR = this->changePaletteColorsVector.data();
@@ -444,17 +530,33 @@ MainWindow::MainWindow(QWidget* parent)
             this->monoMaskColorsVector.push_back(color.red());
 
             // Create a styled label
-            QLabel* colorLabel = new QLabel();
-            colorLabel->setFixedSize(162, 20);
-            colorLabel->setStyleSheet(QString(
+            int index = this->monoMaskColorButtons.size();
+
+            ColorButton* colorButton = new ColorButton(color, index);
+            colorButton->setFixedSize(162, 20);
+            colorButton->setStyleSheet(QString(
                 "background-color: %1; "
-                "border-radius: 4px;"
+                "border-radius: 4px; "
+                "border: 2px solid transparent;"
             ).arg(color.name()));
+
+            monoMaskColorButtons.push_back(colorButton);
+
+            QObject::connect(colorButton, &QPushButton::clicked, this, [=]() {
+                for (ColorButton* btn : this->monoMaskColorButtons) {
+                    btn->setStyleSheet(btn->styleSheet().replace("border: 2px solid #0078d7;", "border: 2px solid transparent;"));
+                    btn->setSelected(false);
+                }
+
+                colorButton->setStyleSheet(colorButton->styleSheet().replace("border: 2px solid transparent;", "border: 2px solid #0078d7;"));
+                this->monoMaskSelectedColor = colorButton->getIndex();
+                colorButton->setSelected(true);
+                });
 
             // Add to the layout of the scroll area's contents widget
             QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(ui->monoMaskScrollAreaWidgetContents->layout());
             if (layout) {
-                layout->addWidget(colorLabel);
+                layout->addWidget(colorButton);
 
                 // Auto-scroll to bottom
                 ui->monoMaskScrollArea->verticalScrollBar()->setValue(
@@ -464,6 +566,75 @@ MainWindow::MainWindow(QWidget* parent)
 
             this->updateMonoMaskThumbnail();
         }
+        });
+    QObject::connect(ui->monoMaskEditColorBtn, &QPushButton::clicked, this, [=]() {
+        int selectedIndex = this->monoMaskSelectedColor;
+        if (selectedIndex < 0 || selectedIndex >= this->monoMaskColorButtons.size())
+            return;
+
+        ColorButton* colorButton = this->monoMaskColorButtons[selectedIndex];
+        QColor currentColor = colorButton->getColor();
+
+        QColor newColor = QColorDialog::getColor(currentColor, this, "Select a Color");
+        if (newColor.isValid()) {
+            // Update button appearance
+            colorButton->setColor(newColor);
+
+            // Update color vector (stored as B, G, R)
+            int vectorIndex = selectedIndex * 3;
+            if (vectorIndex + 2 < this->monoMaskColorsVector.size()) {
+                this->monoMaskColorsVector[vectorIndex] = newColor.blue();
+                this->monoMaskColorsVector[vectorIndex + 1] = newColor.green();
+                this->monoMaskColorsVector[vectorIndex + 2] = newColor.red();
+            }
+
+            this->updateMonoMaskThumbnail();
+        }
+        });
+    QObject::connect(ui->monoMaskRemoveColorBtn, &QPushButton::clicked, this, [=]() {
+        int selectedIndex = this->monoMaskSelectedColor;
+        if (selectedIndex < 0 || selectedIndex >= this->monoMaskColorButtons.size())
+            return;
+
+        // Remove RGB values (3 components per color)
+        int vectorIndex = selectedIndex * 3;
+        if (vectorIndex + 2 < this->monoMaskColorsVector.size()) {
+            this->monoMaskColorsVector.erase(
+                this->monoMaskColorsVector.begin() + vectorIndex,
+                this->monoMaskColorsVector.begin() + vectorIndex + 3
+            );
+        }
+
+        // Remove the button from layout and delete it
+        QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(ui->monoMaskScrollAreaWidgetContents->layout());
+        ColorButton* buttonToRemove = this->monoMaskColorButtons[selectedIndex];
+        if (layout && buttonToRemove) {
+            layout->removeWidget(buttonToRemove);
+            buttonToRemove->deleteLater();
+        }
+
+        // Remove from button list
+        this->monoMaskColorButtons.removeAt(selectedIndex);
+
+        // Update indices of remaining buttons
+        for (int i = selectedIndex; i < this->monoMaskColorButtons.size(); ++i) {
+            this->monoMaskColorButtons[i]->setIndex(i);
+        }
+
+        // Reset selection
+        this->monoMaskSelectedColor -= 1;
+
+        if (this->monoMaskSelectedColor >= 0) {
+            ColorButton* previousButton = this->monoMaskColorButtons[this->monoMaskSelectedColor];
+            previousButton->setStyleSheet(previousButton->styleSheet().replace("border: 2px solid transparent;", "border: 2px solid #0078d7;"));
+        }
+        else if (!this->monoMaskColorButtons.empty()) {
+            this->monoMaskSelectedColor = 0;
+            ColorButton* previousButton = this->monoMaskColorButtons[this->monoMaskSelectedColor];
+            previousButton->setStyleSheet(previousButton->styleSheet().replace("border: 2px solid transparent;", "border: 2px solid #0078d7;"));
+        }
+
+        this->updateMonoMaskThumbnail();
         });
     QObject::connect(ui->btnMonoMask, &QPushButton::clicked, this, [&]() {
         unsigned char* colorsBGR = this->monoMaskColorsVector.data();
@@ -496,17 +667,33 @@ MainWindow::MainWindow(QWidget* parent)
             this->softPaletteColorsVector.push_back(color.red());
 
             // Create a styled label
-            QLabel* colorLabel = new QLabel();
-            colorLabel->setFixedSize(162, 20);
-            colorLabel->setStyleSheet(QString(
+            int index = this->softPaletteColorButtons.size();
+
+            ColorButton* colorButton = new ColorButton(color, index);
+            colorButton->setFixedSize(162, 20);
+            colorButton->setStyleSheet(QString(
                 "background-color: %1; "
-                "border-radius: 4px;"
+                "border-radius: 4px; "
+                "border: 2px solid transparent;"
             ).arg(color.name()));
+
+            softPaletteColorButtons.push_back(colorButton);
+
+            QObject::connect(colorButton, &QPushButton::clicked, this, [=]() {
+                for (ColorButton* btn : this->softPaletteColorButtons) {
+                    btn->setStyleSheet(btn->styleSheet().replace("border: 2px solid #0078d7;", "border: 2px solid transparent;"));
+                    btn->setSelected(false);
+                }
+
+                colorButton->setStyleSheet(colorButton->styleSheet().replace("border: 2px solid transparent;", "border: 2px solid #0078d7;"));
+                this->softPaletteSelectedColor = colorButton->getIndex();
+                colorButton->setSelected(true);
+                });
 
             // Add to the layout of the scroll area's contents widget
             QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(ui->softPaletteScrollAreaWidgetContents->layout());
             if (layout) {
-                layout->addWidget(colorLabel);
+                layout->addWidget(colorButton);
 
                 // Auto-scroll to bottom
                 ui->softPaletteScrollArea->verticalScrollBar()->setValue(
@@ -517,8 +704,77 @@ MainWindow::MainWindow(QWidget* parent)
             this->updateSoftPaletteThumbnail();
         }
         });
+    QObject::connect(ui->softPaletteEditColorBtn, &QPushButton::clicked, this, [=]() {
+        int selectedIndex = this->softPaletteSelectedColor;
+        if (selectedIndex < 0 || selectedIndex >= this->softPaletteColorButtons.size())
+            return;
+
+        ColorButton* colorButton = this->softPaletteColorButtons[selectedIndex];
+        QColor currentColor = colorButton->getColor();
+
+        QColor newColor = QColorDialog::getColor(currentColor, this, "Select a Color");
+        if (newColor.isValid()) {
+            // Update button appearance
+            colorButton->setColor(newColor);
+
+            // Update color vector (stored as B, G, R)
+            int vectorIndex = selectedIndex * 3;
+            if (vectorIndex + 2 < this->softPaletteColorsVector.size()) {
+                this->softPaletteColorsVector[vectorIndex] = newColor.blue();
+                this->softPaletteColorsVector[vectorIndex + 1] = newColor.green();
+                this->softPaletteColorsVector[vectorIndex + 2] = newColor.red();
+            }
+
+            this->updateSoftPaletteThumbnail();
+        }
+        });
+    QObject::connect(ui->softPaletteRemoveColorBtn, &QPushButton::clicked, this, [=]() {
+        int selectedIndex = this->softPaletteSelectedColor;
+        if (selectedIndex < 0 || selectedIndex >= this->softPaletteColorButtons.size())
+            return;
+
+        // Remove RGB values (3 components per color)
+        int vectorIndex = selectedIndex * 3;
+        if (vectorIndex + 2 < this->softPaletteColorsVector.size()) {
+            this->softPaletteColorsVector.erase(
+                this->softPaletteColorsVector.begin() + vectorIndex,
+                this->softPaletteColorsVector.begin() + vectorIndex + 3
+            );
+        }
+
+        // Remove the button from layout and delete it
+        QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(ui->softPaletteScrollAreaWidgetContents->layout());
+        ColorButton* buttonToRemove = this->softPaletteColorButtons[selectedIndex];
+        if (layout && buttonToRemove) {
+            layout->removeWidget(buttonToRemove);
+            buttonToRemove->deleteLater();
+        }
+
+        // Remove from button list
+        this->softPaletteColorButtons.removeAt(selectedIndex);
+
+        // Update indices of remaining buttons
+        for (int i = selectedIndex; i < this->softPaletteColorButtons.size(); ++i) {
+            this->softPaletteColorButtons[i]->setIndex(i);
+        }
+
+        // Reset selection
+        this->softPaletteSelectedColor -= 1;
+
+        if (this->softPaletteSelectedColor >= 0) {
+            ColorButton* previousButton = this->softPaletteColorButtons[this->softPaletteSelectedColor];
+            previousButton->setStyleSheet(previousButton->styleSheet().replace("border: 2px solid transparent;", "border: 2px solid #0078d7;"));
+        }
+        else if (!this->softPaletteColorButtons.empty()) {
+            this->softPaletteSelectedColor = 0;
+            ColorButton* previousButton = this->softPaletteColorButtons[this->softPaletteSelectedColor];
+            previousButton->setStyleSheet(previousButton->styleSheet().replace("border: 2px solid transparent;", "border: 2px solid #0078d7;"));
+        }
+
+        this->updateSoftPaletteThumbnail();
+        });
     QObject::connect(ui->btnSoftPalette, &QPushButton::clicked, this, [&]() {
-        unsigned char* colorsBGR = this->changePaletteColorsVector.data();
+        unsigned char* colorsBGR = this->softPaletteColorsVector.data();
         int numColors = this->softPaletteColorsVector.size() / 3;
 
         EffectBase* worker = nullptr;

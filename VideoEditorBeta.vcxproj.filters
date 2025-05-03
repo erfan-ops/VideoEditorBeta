@@ -244,6 +244,9 @@
     <Filter Include="Effects\Soft Palette\Video">
       <UniqueIdentifier>{ad4b11e6-ee6f-4608-9f46-ef8c362dc3c9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Ui\ColorButton">
+      <UniqueIdentifier>{2cf98f29-cf68-40d9-8eb0-bb2a4cb38f65}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -374,6 +377,9 @@
     </ClCompile>
     <ClCompile Include="videoSoftPalette.cpp">
       <Filter>Effects\Soft Palette\Video</Filter>
+    </ClCompile>
+    <ClCompile Include="colorButton.cpp">
+      <Filter>Ui\ColorButton</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -653,6 +659,9 @@
     </QtMoc>
     <QtMoc Include="videoSoftPalette.h">
       <Filter>Effects\Soft Palette\Video</Filter>
+    </QtMoc>
+    <QtMoc Include="colorButton.h">
+      <Filter>Ui\ColorButton</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

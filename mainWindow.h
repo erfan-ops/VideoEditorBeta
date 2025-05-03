@@ -12,6 +12,8 @@
 #include "timer.h"
 #include "video.h"
 
+#include "colorButton.h"
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -33,8 +35,16 @@ private:
     QPixmap selectedPixmap;
 
     std::vector<unsigned char> changePaletteColorsVector;
-    std::vector<unsigned char> softPaletteColorsVector;
+    QVector<ColorButton*> changePaletteColorButtons;
+    int changePaletteSelectedColor;
+    
     std::vector<unsigned char> monoMaskColorsVector;
+    QVector<ColorButton*> monoMaskColorButtons;
+    int monoMaskSelectedColor;
+
+    std::vector<unsigned char> softPaletteColorsVector;
+    QVector<ColorButton*> softPaletteColorButtons;
+    int softPaletteSelectedColor;
 
     // effect specifics
     cudaStream_t streamHueShift;

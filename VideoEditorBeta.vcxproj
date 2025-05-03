@@ -127,6 +127,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="colorButton.cpp" />
     <ClCompile Include="EffectButton.cpp">
       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
       <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).moc</QtMocFileName>
@@ -216,6 +217,7 @@
     <QtMoc Include="imageChangePalette.h" />
     <QtMoc Include="imageMonoMask.h" />
     <QtMoc Include="imageSoftpalette.h" />
+    <QtMoc Include="colorButton.h" />
     <ClInclude Include="launchers.h" />
     <ClInclude Include="lensFilter_launcher.cuh" />
     <QtMoc Include="videoLensFilter.h" />

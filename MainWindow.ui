@@ -1635,7 +1635,7 @@ border-radius: 6px;</string>
        </property>
       </widget>
      </widget>
-     <widget class="QPushButton" name="changePaletteAddColorBtn_2">
+     <widget class="QPushButton" name="changePaletteEditColorBtn">
       <property name="geometry">
        <rect>
         <x>990</x>
@@ -1653,7 +1653,7 @@ border-radius: 6px;</string>
        <string>Edit</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="changePaletteAddColorBtn_3">
+     <widget class="QPushButton" name="changePaletteRemoveColorBtn">
       <property name="geometry">
        <rect>
         <x>1050</x>
@@ -1671,7 +1671,7 @@ border-radius: 6px;</string>
        <string>Remove</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="monoMaskAddColorBtn_2">
+     <widget class="QPushButton" name="monoMaskEditColorBtn">
       <property name="geometry">
        <rect>
         <x>410</x>
@@ -1689,7 +1689,7 @@ border-radius: 6px;</string>
        <string>Edit</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="monoMaskAddColorBtn_3">
+     <widget class="QPushButton" name="monoMaskRemoveColorBtn">
       <property name="geometry">
        <rect>
         <x>470</x>
@@ -1765,7 +1765,7 @@ border-radius: 6px;</string>
        <string>Add</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="pushButton_2">
+     <widget class="QPushButton" name="softPaletteEditColorBtn">
       <property name="geometry">
        <rect>
         <x>990</x>
@@ -1783,7 +1783,7 @@ border-radius: 6px;</string>
        <string>Edit</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="pushButton_3">
+     <widget class="QPushButton" name="softPaletteRemoveColorBtn">
       <property name="geometry">
        <rect>
         <x>1050</x>
