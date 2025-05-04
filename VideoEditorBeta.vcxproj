@@ -109,7 +109,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>cudart_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;Qt6Core.lib;Qt6Gui.lib;Qt6Widgets.lib;opencv_world4100.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>cudart_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;Qt6Core.lib;Qt6Gui.lib;Qt6Widgets.lib;opencv_world4100.lib;OpenCL.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Qt\6.8.2\msvc2022_64\lib;$(ProjectDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <CudaCompile>
@@ -123,7 +123,8 @@
       <AdditionalLibraryDirectories>$(ProjectDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </CudaLink>
     <PostBuildEvent>
-      <Command>"C:\Qt\6.8.2\msvc2022_64\bin\windeployqt.exe" --$(ConfigurationName.ToLower()) "$(TargetPath)"</Command>
+      <Command>set QTDIR=C:\Qt\6.8.2\msvc2022_64
+"%QTDIR%\bin\windeployqt.exe" --release --qmldir "E:\coding\C\VideoEditorQt" --no-translations --no-system-d3d-compiler --no-opengl-sw --no-compiler-runtime "E:\coding\C\VideoEditorQt\x64\Release\VideoEditorBeta.exe"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -135,6 +136,7 @@
       <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).moc</QtMocFileName>
     </ClCompile>
     <ClCompile Include="fileDialog.cpp" />
+    <ClCompile Include="globals.cpp" />
     <ClCompile Include="image.cpp" />
     <ClCompile Include="imageBlackAndWhite.cpp" />
     <ClCompile Include="imageBlur.cpp" />
@@ -157,6 +159,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="mainWindow.cpp" />
+    <ClCompile Include="softPalette.cpp" />
     <ClCompile Include="timer.cpp" />
     <ClCompile Include="utils.cpp" />
     <ClCompile Include="Video.cpp" />
@@ -218,14 +221,17 @@
     <QtMoc Include="imageMonoMask.h" />
     <QtMoc Include="imageSoftpalette.h" />
     <QtMoc Include="colorButton.h" />
+    <ClInclude Include="globals.h" />
     <ClInclude Include="launchers.h" />
     <ClInclude Include="lensFilter_launcher.cuh" />
     <QtMoc Include="videoLensFilter.h" />
     <QtMoc Include="videoChangePalette.h" />
     <ClInclude Include="monoMask_launcher.cuh" />
     <QtMoc Include="videoMonoMask.h" />
+    <ClInclude Include="softPalette.h" />
     <ClInclude Include="softPalette_launcher.cuh" />
     <QtMoc Include="videoSoftPalette.h" />
+    <ClInclude Include="SourcesOpenCL.h" />
     <ClInclude Include="vintage8bit_launcher.cuh" />
     <QtMoc Include="videoMagicEye.h" />
     <QtMoc Include="videoTrueOutlines.h" />

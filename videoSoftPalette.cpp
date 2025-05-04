@@ -1,5 +1,5 @@
 #include "videoSoftPalette.h"
-#include "softPalette_launcher.cuh"
+#include "softPalette.h"
 #include "videoHeaders.h"
 
 
@@ -17,12 +17,6 @@ void VSoftPaletteWorker::process() {
 
         Video video(m_inputPath, temp_video_name);
         Timer timer;
-
-        unsigned char* d_img;
-        unsigned char* d_colorsBGR;
-
-        videoUtils::checkCudaError(cudaMalloc(&d_img, video.getSize()), "Failed to allocate device memory for image");
-        videoUtils::checkCudaError(cudaMalloc(&d_colorsBGR, 3ULL * sizeof(unsigned char) * m_numColors), "Failed to allocate device memory for image");
 
         std::queue<cv::Mat> bufferPool;
         for (int i = 0; i < videoUtils::nBuffers; i++) {
@@ -62,13 +56,7 @@ void VSoftPaletteWorker::process() {
             }
             };
 
-        cudaStream_t stream;
-        videoUtils::checkCudaError(cudaStreamCreate(&stream), "Failed to create stream");
-
-        cudaMemcpyAsync(d_colorsBGR, m_colorsBGR, 3ULL * sizeof(unsigned char) * m_numColors, cudaMemcpyHostToDevice, stream);
-
-        int blockSize = 1024;
-        int gridSize = (video.getNumPixels() + blockSize - 1) / blockSize;
+        SoftPaletteProcessor softPaletteProcessor(video.getNumPixels(), video.getSize(), m_colorsBGR, m_numColors);
 
         std::thread writer(writerThread);
 
@@ -81,12 +69,9 @@ void VSoftPaletteWorker::process() {
             bufferPool.pop();
             bufferLock.unlock();
 
-            cudaMemcpyAsync(d_img, video.getData(), video.getSize(), cudaMemcpyHostToDevice, stream);
-
-            softPalette(gridSize, blockSize, stream, d_img, video.getNumPixels(), d_colorsBGR, m_numColors);
-
-            cudaMemcpyAsync(frameBuffer.data, d_img, video.getSize(), cudaMemcpyDeviceToHost, stream);
-            cudaStreamSynchronize(stream);
+            softPaletteProcessor.setImage(video.getData(), video.getSize());
+            softPaletteProcessor.process();
+            memcpy(frameBuffer.data, softPaletteProcessor.getImage(), video.getSize());
 
             {
                 std::lock_guard<std::mutex> frameLock(queueMutex);
@@ -104,9 +89,6 @@ void VSoftPaletteWorker::process() {
         writer.join();
 
         video.release();
-        cudaFree(d_img);
-        cudaFree(d_colorsBGR);
-        cudaStreamDestroy(stream);
 
         videoUtils::mergeAudio(temp_video_name, temp_audio_name, m_outputPath);
 

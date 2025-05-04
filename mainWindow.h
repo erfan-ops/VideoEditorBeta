@@ -63,7 +63,6 @@ private:
     cudaStream_t streamVintage8bit;
     cudaStream_t streamChangePalette;
     cudaStream_t streamMonoMask;
-    cudaStream_t streamSoftPalette;
 
     void processEffect(QPushButton* button, EffectBase* worker);
     void replaceButtonWithEffectButton(QPushButton*& button, const QString& imagePath);

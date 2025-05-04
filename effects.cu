@@ -390,9 +390,9 @@ __global__ void blendNearestColorsRGBA_kernel(
     int idx = pIdx * 4;
 
     // Get the current pixel's color
-    unsigned char b = img[idx];
+    unsigned char r = img[idx];
     unsigned char g = img[idx + 1];
-    unsigned char r = img[idx + 2];
+    unsigned char b = img[idx + 2];
 
     // Temporary arrays to store weights and avoid recomputation
     float weights_sum = 0.0f;
@@ -425,9 +425,9 @@ __global__ void blendNearestColorsRGBA_kernel(
     }
 
     // Compute weighted average color
-    img[idx] = static_cast<unsigned char>(fminf(fmaxf(color_sum_b / weights_sum, 0.0f), 255.0f));
+    img[idx] = static_cast<unsigned char>(fminf(fmaxf(color_sum_r / weights_sum, 0.0f), 255.0f));
     img[idx + 1] = static_cast<unsigned char>(fminf(fmaxf(color_sum_g / weights_sum, 0.0f), 255.0f));
-    img[idx + 2] = static_cast<unsigned char>(fminf(fmaxf(color_sum_r / weights_sum, 0.0f), 255.0f));
+    img[idx + 2] = static_cast<unsigned char>(fminf(fmaxf(color_sum_b / weights_sum, 0.0f), 255.0f));
 }
 
 __global__ void radial_blur_kernel(unsigned char* __restrict__ img, int rows, int cols, float centerX, float centerY, int blurRadius, float intensity) {

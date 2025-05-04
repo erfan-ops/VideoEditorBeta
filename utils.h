@@ -7,6 +7,7 @@
 #include <QString>
 
 #include <cuda_runtime.h>
+#include <CL/cl.h>
 
 
 std::wstring secondsToTimeW(float seconds);
@@ -32,4 +33,12 @@ namespace videoUtils {
     void checkCudaError(cudaError_t err, const char* msg);
     void extractAudio(const std::wstring& inputVideo, const std::wstring& outputAudio);
     void mergeAudio(const std::wstring& inputVideo, const std::wstring& inputAudio, const std::wstring& outputVideo);
+}
+
+bool isCudaAvailable();
+
+namespace openclUtils {
+    cl_context createContext(cl_device_id& device);
+    cl_command_queue createCommandQueue(cl_context context, cl_device_id device);
+    cl_kernel createKernelFromSource(cl_context context, cl_device_id device, const char* source, const char* kernelName);
 }

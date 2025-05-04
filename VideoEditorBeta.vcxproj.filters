@@ -247,6 +247,15 @@
     <Filter Include="Ui\ColorButton">
       <UniqueIdentifier>{2cf98f29-cf68-40d9-8eb0-bb2a4cb38f65}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Effects\Soft Palette\Launcher\CUDA">
+      <UniqueIdentifier>{f92bb467-47ba-409d-b188-3e9dfed4b7f9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\OpenCL">
+      <UniqueIdentifier>{cd2daf7c-0527-47ef-b843-f2fd24e1c041}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Mono Mask\Launcher\CUDA">
+      <UniqueIdentifier>{8f4eda3e-0a48-46d7-bb8b-3bf0aa9d955c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -381,6 +390,12 @@
     <ClCompile Include="colorButton.cpp">
       <Filter>Ui\ColorButton</Filter>
     </ClCompile>
+    <ClCompile Include="softPalette.cpp">
+      <Filter>Effects\Soft Palette\Launcher</Filter>
+    </ClCompile>
+    <ClCompile Include="globals.cpp">
+      <Filter>Effects\OpenCL</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="outline_launcher.cu">
@@ -434,11 +449,11 @@
     <CudaCompile Include="changePalette_launcher.cu">
       <Filter>Effects\Change Palette\Launcher</Filter>
     </CudaCompile>
-    <CudaCompile Include="monoMask_launcher.cu">
-      <Filter>Effects\Mono Mask\Launcher</Filter>
-    </CudaCompile>
     <CudaCompile Include="softPalette_launcher.cu">
-      <Filter>Effects\Soft Palette\Launcher</Filter>
+      <Filter>Effects\Soft Palette\Launcher\CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="monoMask_launcher.cu">
+      <Filter>Effects\Mono Mask\Launcher\CUDA</Filter>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
@@ -526,11 +541,20 @@
     <ClInclude Include="changePalette_launcher.cuh">
       <Filter>Effects\Change Palette\Launcher</Filter>
     </ClInclude>
-    <ClInclude Include="monoMask_launcher.cuh">
-      <Filter>Effects\Mono Mask\Launcher</Filter>
-    </ClInclude>
     <ClInclude Include="softPalette_launcher.cuh">
+      <Filter>Effects\Soft Palette\Launcher\CUDA</Filter>
+    </ClInclude>
+    <ClInclude Include="softPalette.h">
       <Filter>Effects\Soft Palette\Launcher</Filter>
+    </ClInclude>
+    <ClInclude Include="SourcesOpenCL.h">
+      <Filter>Effects\OpenCL</Filter>
+    </ClInclude>
+    <ClInclude Include="monoMask_launcher.cuh">
+      <Filter>Effects\Mono Mask\Launcher\CUDA</Filter>
+    </ClInclude>
+    <ClInclude Include="globals.h">
+      <Filter>Effects\OpenCL</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

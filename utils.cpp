@@ -189,3 +189,79 @@ void videoUtils::mergeAudio(const std::wstring& inputVideo, const std::wstring& 
         });
     process.waitForFinished();
 }
+
+bool isCudaAvailable() {
+    int deviceCount = 0;
+    cudaError_t err = cudaGetDeviceCount(&deviceCount);
+    return (err == cudaSuccess && deviceCount > 0);
+}
+
+cl_context openclUtils::createContext(cl_device_id& device) {
+    cl_uint numPlatforms;
+    cl_platform_id platform = nullptr;
+    cl_int err;
+
+    err = clGetPlatformIDs(1, &platform, &numPlatforms);
+    if (err != CL_SUCCESS || numPlatforms == 0) {
+        std::cerr << "Failed to find any OpenCL platforms.\n";
+        return nullptr;
+    }
+
+    cl_uint numDevices = 0;
+    err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &device, &numDevices);
+    if (err != CL_SUCCESS || numDevices == 0) {
+        std::cerr << "No OpenCL GPU devices found.\n";
+        return nullptr;
+    }
+
+    cl_context context = clCreateContext(nullptr, 1, &device, nullptr, nullptr, &err);
+    if (err != CL_SUCCESS) {
+        std::cerr << "Failed to create OpenCL context.\n";
+        return nullptr;
+    }
+
+    return context;
+}
+
+cl_command_queue openclUtils::createCommandQueue(cl_context context, cl_device_id device) {
+    cl_int err;
+    cl_command_queue queue = clCreateCommandQueueWithProperties(
+        context, device, 0, &err
+    );
+    if (err != CL_SUCCESS) {
+        std::cerr << "Failed to create OpenCL command queue.\n";
+        return nullptr;
+    }
+    return queue;
+}
+
+cl_kernel openclUtils::createKernelFromSource(cl_context context, cl_device_id device, const char* source, const char* kernelName) {
+    cl_int err;
+    size_t lengths[] = { strlen(source) };
+    const char* sources[] = { source };
+
+    cl_program program = clCreateProgramWithSource(context, 1, sources, lengths, &err);
+    if (err != CL_SUCCESS) {
+        std::cerr << "Failed to create OpenCL program from source.\n";
+        return nullptr;
+    }
+
+    err = clBuildProgram(program, 1, &device, nullptr, nullptr, nullptr);
+    if (err != CL_SUCCESS) {
+        // Show build log
+        size_t logSize;
+        clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, 0, nullptr, &logSize);
+        std::vector<char> log(logSize);
+        clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, logSize, log.data(), nullptr);
+        std::cerr << "Build log:\n" << log.data() << "\n";
+        return nullptr;
+    }
+
+    cl_kernel kernel = clCreateKernel(program, kernelName, &err);
+    if (err != CL_SUCCESS) {
+        std::cerr << "Failed to create OpenCL kernel.\n";
+        return nullptr;
+    }
+
+    return kernel;
+}

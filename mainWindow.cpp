@@ -26,12 +26,26 @@
 #include "EffectButton.h"
 #include "colorButton.h"
 
+#include "softPalette.h"
+#include "globals.h"
+
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
     setWindowIcon(QIcon(":/icon.ico"));
+    setWindowTitle(QString("RetroShade"));
+
+    // First create OpenCL context and queue if CUDA isn't available
+    if (!isCudaAvailable()) {
+        globalContextOpenCL = openclUtils::createContext(globalDeviceOpenCL);
+        globalQueueOpenCL = openclUtils::createCommandQueue(globalContextOpenCL, globalDeviceOpenCL);
+    }
+
+    // Then initialize the processor
+    SoftPaletteProcessor::init();
+        
 
     cudaStreamCreate(&this->streamHueShift);
     cudaStreamCreate(&this->streamFilter);
@@ -49,7 +63,6 @@ MainWindow::MainWindow(QWidget* parent)
     cudaStreamCreate(&this->streamVintage8bit);
     cudaStreamCreate(&this->streamChangePalette);
     cudaStreamCreate(&this->streamMonoMask);
-    cudaStreamCreate(&this->streamSoftPalette);
 
     // Connect signals
     QObject::connect(ui->btnSelect, &QPushButton::clicked, [&]() {
@@ -810,7 +823,6 @@ MainWindow::~MainWindow()
     cudaStreamDestroy(this->streamVintage8bit);
     cudaStreamDestroy(this->streamChangePalette);
     cudaStreamDestroy(this->streamMonoMask);
-    cudaStreamDestroy(this->streamSoftPalette);
 
     delete ui;
 }
@@ -1611,55 +1623,28 @@ void MainWindow::updateSoftPaletteThumbnail() {
     if (this->softPaletteColorsVector.empty()) return;
 
     unsigned char* colorsBGR = this->softPaletteColorsVector.data();
-    unsigned char* colorsRGB = new unsigned char[this->softPaletteColorsVector.size()];
     int numColors = this->softPaletteColorsVector.size() / 3;
-
-    for (int i = 0; i < numColors; ++i) {
-        int index = i * 3;
-        colorsRGB[index] = colorsBGR[index + 2]; // R
-        colorsRGB[index + 1] = colorsBGR[index + 1]; // G
-        colorsRGB[index + 2] = colorsBGR[index];     // B
-    }
 
     EffectButton* effectBtn = qobject_cast<EffectButton*>(ui->btnSoftPalette);
     if (!effectBtn) return;
 
     QPixmap originalPixmap = effectBtn->getOriginalPixmap();
 
-    // 2. Process the image through CUDA
     QImage image = originalPixmap.toImage().convertToFormat(QImage::Format_RGBA8888);
 
     const int size = image.sizeInBytes();
     const int nPixels = image.width() * image.height();
 
-    unsigned char* img = new unsigned char[size];
-    memcpy(img, image.constBits(), size);
+    SoftPaletteProcessor softPaletteProcessor(nPixels, size, colorsBGR, numColors);
 
-    unsigned char* d_img;
-    unsigned char* d_colorsRGB;
-    cudaMalloc(&d_img, size);
-    cudaMalloc(&d_colorsRGB, this->softPaletteColorsVector.size() * sizeof(unsigned char));
-    cudaMemcpy(d_img, img, size, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_colorsRGB, colorsRGB, this->softPaletteColorsVector.size() * sizeof(unsigned char), cudaMemcpyHostToDevice);
+    softPaletteProcessor.setImage(image.bits(), size);
+    softPaletteProcessor.processRGBA();
+    memcpy(image.bits(), softPaletteProcessor.getImage(), size);
 
-    int blockSize = 1024;
-    int gridSize = (nPixels + blockSize - 1) / blockSize;
-
-    softPaletteRGBA(gridSize, blockSize, this->streamSoftPalette, d_img, nPixels, d_colorsRGB, numColors);
-    cudaStreamSynchronize(this->streamSoftPalette);
-
-    cudaMemcpy(img, d_img, size, cudaMemcpyDeviceToHost);
-
-    QImage result(img, image.width(), image.height(), QImage::Format_RGBA8888);
+    QImage result(image.bits(), image.width(), image.height(), QImage::Format_RGBA8888);
     QPixmap resultPixmap = QPixmap::fromImage(result);
 
     effectBtn->setProcessedPixmap(resultPixmap);
-
-    // Cleanup
-    delete[] img;
-    delete[] colorsRGB;
-    cudaFree(d_img);
-    cudaFree(d_colorsRGB);
 }
 
 

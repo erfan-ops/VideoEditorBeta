@@ -1,6 +1,6 @@
 #include "softPalette_launcher.cuh"
 
-void softPalette(
+void softPaletteLauncher(
 	const int gridSize, const int blockSize, const cudaStream_t stream,
 	unsigned char* __restrict d_img, const int nPixels,
 	const unsigned char* __restrict colorsBGR, const int numColors
@@ -8,7 +8,7 @@ void softPalette(
 	blendNearestColors_kernel<<<gridSize, blockSize, 0, stream>>>(d_img, nPixels, colorsBGR, numColors);
 }
 
-void softPaletteRGBA(
+void softPaletteLauncherRGBA(
 	const int gridSize, const int blockSize, const cudaStream_t stream,
 	unsigned char* __restrict d_img, const int nPixels,
 	const unsigned char* __restrict colorsRGB, const int numColors
