@@ -17,10 +17,9 @@ public:
     void processRGBA() const;
 
     // setters
-    void setImage(unsigned char* img, int size);
+    void setImage(const unsigned char* img);
 
-    // getters
-    unsigned char* getImage();
+    void upload(unsigned char* Dst);
 
     // initializer
     static void init();

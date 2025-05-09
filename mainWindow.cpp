@@ -26,7 +26,6 @@
 #include "EffectButton.h"
 #include "colorButton.h"
 
-#include "softPalette.h"
 #include "globals.h"
 
 
@@ -37,7 +36,7 @@ MainWindow::MainWindow(QWidget* parent)
     setWindowIcon(QIcon(":/icon.ico"));
     setWindowTitle(QString("RetroShade"));
 
-    // First create OpenCL context and queue if CUDA isn't available
+    // create OpenCL context and queue if CUDA isn't available
     if (!isCudaAvailable()) {
         globalContextOpenCL = openclUtils::createContext(globalDeviceOpenCL);
         globalQueueOpenCL = openclUtils::createCommandQueue(globalContextOpenCL, globalDeviceOpenCL);
@@ -45,23 +44,24 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Then initialize the processor
     SoftPaletteProcessor::init();
+    BlackAndWhiteProcessor::init();
+    BlurProcessor::init();
+    CensorProcessor::init();
+    FlatLightProcessor::init();
+    ChangePaletteProcessor::init();
         
 
     cudaStreamCreate(&this->streamHueShift);
     cudaStreamCreate(&this->streamFilter);
-    cudaStreamCreate(&this->streamBinary);
     cudaStreamCreate(&this->streamInverseColors);
     cudaStreamCreate(&this->streamInverseContrast);
     cudaStreamCreate(&this->streamMonoChrome);
-    cudaStreamCreate(&this->streamBlur);
     cudaStreamCreate(&this->streamOutLine);
     cudaStreamCreate(&this->streamTrueOutLine);
     cudaStreamCreate(&this->streamPosterize);
     cudaStreamCreate(&this->streamRadialBlur);
-    cudaStreamCreate(&this->streamCensor);
     cudaStreamCreate(&this->streamPixelate);
     cudaStreamCreate(&this->streamVintage8bit);
-    cudaStreamCreate(&this->streamChangePalette);
     cudaStreamCreate(&this->streamMonoMask);
 
     // Connect signals
@@ -94,6 +94,7 @@ MainWindow::MainWindow(QWidget* parent)
     replaceButtonWithEffectButton(ui->btnChangePalette, ":/samples/samples/sample.jpg");
     replaceButtonWithEffectButton(ui->btnMonoMask, ":/samples/samples/sample.jpg");
     replaceButtonWithEffectButton(ui->btnSoftPalette, ":/samples/samples/sample.jpg");
+    replaceButtonWithEffectButton(ui->btnFlatLight, ":/samples/samples/sample.jpg");
 
     EffectButton* effectBtn = qobject_cast<EffectButton*>(ui->btnRadialBlur);
     QPixmap originalPixmap = effectBtn->getOriginalPixmap();
@@ -215,7 +216,7 @@ MainWindow::MainWindow(QWidget* parent)
         });
 
     QObject::connect(ui->btnHueShift, &QPushButton::clicked, this, [&]() {
-        float shift = ui->HueShift->value();
+        int shift = ui->hueShiftSlider->value();
 
         EffectBase* worker = nullptr;
         if (videoExtentions.find(fileUtils::splitextw(selectedFilePath).second) != videoExtentions.end()) {
@@ -228,13 +229,13 @@ MainWindow::MainWindow(QWidget* parent)
 
         processEffect(ui->btnHueShift, worker);
         });
-    QObject::connect(ui->HueShift, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::updateHueShiftThumbnail);
+    QObject::connect(ui->hueShiftSlider, QOverload<int>::of(&QSlider::valueChanged), this, &MainWindow::updateHueShiftThumbnail);
 
     QObject::connect(ui->btnRadialBlur, &QPushButton::clicked, this, [&]() {
         int blurRadius = ui->radialBlurRadius->value();
         float intensity = static_cast<float>(ui->Intensity->value());
-        float centerX = static_cast<float>(ui->centerX->value());
-        float centerY = static_cast<float>(ui->centerY->value());
+        float centerX = static_cast<float>(ui->centerX->value()) / this->widthRatio;
+        float centerY = static_cast<float>(ui->centerY->value()) / this->heightRatio;
 
         EffectBase* worker = nullptr;
         if (videoExtentions.find(fileUtils::splitextw(selectedFilePath).second) != videoExtentions.end()) {
@@ -801,27 +802,37 @@ MainWindow::MainWindow(QWidget* parent)
 
         processEffect(ui->btnSoftPalette, worker);
         });
+    
+    QObject::connect(ui->btnFlatLight, &QPushButton::clicked, this, [&]() {
+        float lightness = ui->lightness->value();
 
+        EffectBase* worker = nullptr;
+        if (videoExtentions.find(fileUtils::splitextw(selectedFilePath).second) != videoExtentions.end()) {
+            worker = new VFlatLightWorker(lightness);
+            QObject::connect(worker, &EffectBase::progressChanged, this, &MainWindow::updateProgress, Qt::QueuedConnection);
+        }
+        else {
+            worker = new IFlatLightWorker(lightness);
+        }
+
+        processEffect(ui->btnFlatLight, worker);
+        });
+    QObject::connect(ui->lightness, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::updateFlatLightThumbnail);
 }
 
 MainWindow::~MainWindow()
 {
     cudaStreamDestroy(this->streamHueShift);
     cudaStreamDestroy(this->streamFilter);
-    cudaStreamDestroy(this->streamBinary);
     cudaStreamDestroy(this->streamInverseColors);
     cudaStreamDestroy(this->streamInverseContrast);
     cudaStreamDestroy(this->streamMonoChrome);
-    cudaStreamDestroy(this->streamBlur);
     cudaStreamDestroy(this->streamOutLine);
     cudaStreamDestroy(this->streamTrueOutLine);
     cudaStreamDestroy(this->streamPosterize);
     cudaStreamDestroy(this->streamRadialBlur);
-    cudaStreamDestroy(this->streamCensor);
-    cudaStreamDestroy(this->streamCensor);
     cudaStreamDestroy(this->streamPixelate);
     cudaStreamDestroy(this->streamVintage8bit);
-    cudaStreamDestroy(this->streamChangePalette);
     cudaStreamDestroy(this->streamMonoMask);
 
     delete ui;
@@ -910,7 +921,7 @@ void MainWindow::updateProgress(const Video& video, const Timer& timer) {
 
 
 void MainWindow::updateHueShiftThumbnail() {
-    float rotationFactor = ui->HueShift->value() * 2.0f;
+    float rotationFactor = ui->hueShiftSlider->value() / 180.0f;
 
     EffectButton* effectBtn = qobject_cast<EffectButton*>(ui->btnHueShift);
     if (!effectBtn) return;
@@ -1008,31 +1019,16 @@ void MainWindow::updateBinaryThumbnail() {
     int size = image.sizeInBytes();
     int nPixels = image.width() * image.height();
 
-    unsigned char* bgrCopy = new unsigned char[size];
-    memcpy(bgrCopy, image.constBits(), size);
+    BlackAndWhiteProcessor blackAndWhiteProcessor(nPixels, size, middle);
 
-    unsigned char* d_img;
+    blackAndWhiteProcessor.setImage(image.bits(), size);
+    blackAndWhiteProcessor.processRGBA();
+    memcpy(image.bits(), blackAndWhiteProcessor.getImage(), size);
 
-    cudaMalloc(&d_img, size);
-
-    cudaMemcpy(d_img, bgrCopy, size, cudaMemcpyHostToDevice);
-
-    int blockSize = 1024;
-    int gridSize = (size + blockSize - 1) / blockSize;
-
-    blackAndWhiteRGBA(gridSize, blockSize, this->streamBinary, d_img, nPixels, middle);
-    cudaStreamSynchronize(this->streamBinary);
-
-    cudaMemcpy(bgrCopy, d_img, size, cudaMemcpyDeviceToHost);
-
-    QImage result(bgrCopy, image.width(), image.height(), QImage::Format_RGBA8888);
+    QImage result(image.bits(), image.width(), image.height(), QImage::Format_RGBA8888);
     QPixmap resultPixmap = QPixmap::fromImage(result);
 
     effectBtn->setProcessedPixmap(resultPixmap);
-
-    // Cleanup
-    delete[] bgrCopy;
-    cudaFree(d_img);
 }
 
 void MainWindow::updateInverseColorsThumbnail() {
@@ -1146,7 +1142,7 @@ void MainWindow::updateMonoChromeThumbnail() {
 }
 
 void MainWindow::updateBlurThumbnail() {
-    int radius = ui->blurRadius->value();
+    int radius = ui->blurRadius->value() * this->widthRatio;
 
     EffectButton* effectBtn = qobject_cast<EffectButton*>(ui->btnBlur);
     if (!effectBtn) return;
@@ -1158,38 +1154,21 @@ void MainWindow::updateBlurThumbnail() {
 
     int size = image.sizeInBytes();
 
-    unsigned char* img = new unsigned char[size];
-    memcpy(img, image.constBits(), size);
+    BlurProcessor blurProcessor(size, image.width(), image.height(), radius);
 
-    unsigned char* d_img;
-    unsigned char* d_img_copy;
-    cudaMalloc(&d_img, size);
-    cudaMalloc(&d_img_copy, size);
-    cudaMemcpy(d_img, img, size, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_img_copy, d_img, size, cudaMemcpyDeviceToDevice);
+    blurProcessor.setImage(image.bits());
+    blurProcessor.processRGBA();
+    memcpy(image.bits(), blurProcessor.getImage(), size);
 
-    dim3 blockDim(32, 32);
-    dim3 gridDim((image.width() + blockDim.x - 1) / blockDim.x, (image.height() + blockDim.y - 1) / blockDim.y);
-
-    blurRGBA(gridDim, blockDim, this->streamBlur, d_img, d_img_copy, image.width(), image.height(), radius);
-    cudaStreamSynchronize(this->streamBlur);
-
-    cudaMemcpy(img, d_img, size, cudaMemcpyDeviceToHost);
-
-    QImage result(img, image.width(), image.height(), QImage::Format_RGBA8888);
+    QImage result(image.bits(), image.width(), image.height(), QImage::Format_RGBA8888);
     QPixmap resultPixmap = QPixmap::fromImage(result);
 
     effectBtn->setProcessedPixmap(resultPixmap);
-
-    // Cleanup
-    delete[] img;
-    cudaFree(d_img);
-    cudaFree(d_img_copy);
 }
 
 void MainWindow::updateOutLineThumbnail() {
-    const int thicknessX = ui->ThicknessX->value();
-    const int thicknessY = ui->ThicknessY->value();
+    const int thicknessX = ui->ThicknessX->value() * this->widthRatio;
+    const int thicknessY = ui->ThicknessY->value() * this->heightRatio;
 
     EffectButton* effectBtn = qobject_cast<EffectButton*>(ui->btnOutlines);
     if (!effectBtn) return;
@@ -1231,7 +1210,7 @@ void MainWindow::updateOutLineThumbnail() {
 }
 
 void MainWindow::updateTrueOutLineThumbnail() {
-    const int thresh = ui->trueOutlinesThresh->value();
+    const int thresh = ui->trueOutlinesThresh->value() * this->widthRatio;
 
     EffectButton* effectBtn = qobject_cast<EffectButton*>(ui->btnTrueOutlines);
     if (!effectBtn) return;
@@ -1359,8 +1338,8 @@ void MainWindow::updateRadialBlurThumbnail() {
 }
 
 void MainWindow::updateCensorThumbnail() {
-    const int pixelWidth = ui->censorWidth->value();
-    const int pixelHeight = ui->censorHeight->value();
+    const int pixelWidth = ui->censorWidth->value() * this->widthRatio;
+    const int pixelHeight = ui->censorHeight->value() * this->heightRatio;
 
     EffectButton* effectBtn = qobject_cast<EffectButton*>(ui->btnCensor);
     if (!effectBtn) return;
@@ -1372,34 +1351,21 @@ void MainWindow::updateCensorThumbnail() {
 
     const int size = image.sizeInBytes();
 
-    unsigned char* img = new unsigned char[size];
-    memcpy(img, image.constBits(), size);
+    CensorProcessor censorProcessor(size, image.width(), image.height(), pixelWidth, pixelHeight);
 
-    unsigned char* d_img;
-    cudaMalloc(&d_img, size);
-    cudaMemcpy(d_img, img, size, cudaMemcpyHostToDevice);
+    censorProcessor.setImage(image.constBits());
+    censorProcessor.processRGBA();
+    censorProcessor.upload(image.bits());
 
-    dim3 blockDim(32, 32);
-    dim3 gridDim((image.width() + blockDim.x - 1) / blockDim.x, (image.height() + blockDim.y - 1) / blockDim.y);
-
-    censorRGBA(gridDim, blockDim, this->streamCensor, d_img, image.width(), image.height(), pixelWidth, pixelHeight);
-    cudaStreamSynchronize(this->streamCensor);
-
-    cudaMemcpy(img, d_img, size, cudaMemcpyDeviceToHost);
-
-    QImage result(img, image.width(), image.height(), QImage::Format_RGBA8888);
+    QImage result(image.bits(), image.width(), image.height(), QImage::Format_RGBA8888);
     QPixmap resultPixmap = QPixmap::fromImage(result);
 
     effectBtn->setProcessedPixmap(resultPixmap);
-
-    // Cleanup
-    delete[] img;
-    cudaFree(d_img);
 }
 
 void MainWindow::updatePixelateThumbnail() {
-    const int pixelWidth = ui->pixelWidth->value();
-    const int pixelHeight = ui->pixelHeight->value();
+    const int pixelWidth = ui->pixelWidth->value() * this->widthRatio;
+    const int pixelHeight = ui->pixelHeight->value() * this->heightRatio;
 
     EffectButton* effectBtn = qobject_cast<EffectButton*>(ui->btnPixelate);
     if (!effectBtn) return;
@@ -1437,8 +1403,8 @@ void MainWindow::updatePixelateThumbnail() {
 }
 
 void MainWindow::updateVintage8bitThumbnail() {
-    const int pixelWidth = ui->vintagePixelWidth->value();
-    const int pixelHeight = ui->vintagePixelHeight->value();
+    const int pixelWidth = ui->vintagePixelWidth->value() * this->widthRatio;
+    const int pixelHeight = ui->vintagePixelHeight->value() * this->heightRatio;
     const float thresh = 255.0f / static_cast<float>(ui->vintagePosterizeThresh->value());
 
     EffectButton* effectBtn = qobject_cast<EffectButton*>(ui->btnVintage8bit);
@@ -1455,29 +1421,29 @@ void MainWindow::updateVintage8bitThumbnail() {
     unsigned char* img = new unsigned char[size];
     memcpy(img, image.constBits(), size);
 
-    unsigned char colorsRGB[] = {
-        67 , 9  , 64,
-        133, 70 , 61,
-        197, 131, 59,
-        127, 124, 58,
-        61 , 64 , 61,
-        191, 188, 122,
-        255, 194, 122,
-        255, 246, 121,
-        254, 251, 187,
-        197, 134, 125,
-        118, 72 , 56,
-        250, 202, 120,
-        205, 126, 47,
-        105, 44 , 20
+    unsigned char colorsBGR[] = {
+            64, 9, 67,
+            61, 70, 133,
+            59, 131, 197,
+            58, 124, 127,
+            61, 64, 61,
+            122, 188, 191,
+            122, 194, 255,
+            121, 246, 255,
+            187, 251, 254,
+            125, 134, 197,
+            56, 72, 118,
+            120, 202, 250,
+            47, 126, 205,
+            20, 44, 105
     };
 
     unsigned char* d_img;
     unsigned char* d_colorsRGB;
     cudaMalloc(&d_img, size);
-    cudaMalloc(&d_colorsRGB, sizeof(colorsRGB));
+    cudaMalloc(&d_colorsRGB, sizeof(colorsBGR));
     cudaMemcpy(d_img, img, size, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_colorsRGB, colorsRGB, sizeof(colorsRGB), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_colorsRGB, colorsBGR, sizeof(colorsBGR), cudaMemcpyHostToDevice);
 
     dim3 blockDim(32, 32);
     dim3 gridDim((image.width() + blockDim.x - 1) / blockDim.x, (image.height() + blockDim.y - 1) / blockDim.y);
@@ -1491,7 +1457,7 @@ void MainWindow::updateVintage8bitThumbnail() {
         gridPixels, blockSize,
         gridSize, this->streamVintage8bit,
         d_img, pixelWidth, pixelHeight, thresh,
-        d_colorsRGB, sizeof(colorsRGB) / 3,
+        d_colorsRGB, sizeof(colorsBGR) / 3,
         image.width(), image.height(), nPixels, size
     );
     cudaStreamSynchronize(this->streamVintage8bit);
@@ -1513,55 +1479,28 @@ void MainWindow::updateChangePaletteThumbnail() {
     if (this->changePaletteColorsVector.empty()) return;
 
     unsigned char* colorsBGR = this->changePaletteColorsVector.data();
-    unsigned char* colorsRGB = new unsigned char[this->changePaletteColorsVector.size()];
     int numColors = this->changePaletteColorsVector.size() / 3;
-
-    for (int i = 0; i < numColors; ++i) {
-        int index = i * 3;
-        colorsRGB[index] = colorsBGR[index + 2]; // R
-        colorsRGB[index + 1] = colorsBGR[index + 1]; // G
-        colorsRGB[index + 2] = colorsBGR[index];     // B
-    }
 
     EffectButton* effectBtn = qobject_cast<EffectButton*>(ui->btnChangePalette);
     if (!effectBtn) return;
 
     QPixmap originalPixmap = effectBtn->getOriginalPixmap();
 
-    // 2. Process the image through CUDA
     QImage image = originalPixmap.toImage().convertToFormat(QImage::Format_RGBA8888);
 
     const int size = image.sizeInBytes();
     const int nPixels = image.width() * image.height();
 
-    unsigned char* img = new unsigned char[size];
-    memcpy(img, image.constBits(), size);
+    ChangePaletteProcessor processor(size, nPixels, colorsBGR, numColors);
 
-    unsigned char* d_img;
-    unsigned char* d_colorsRGB;
-    cudaMalloc(&d_img, size);
-    cudaMalloc(&d_colorsRGB, this->changePaletteColorsVector.size() * sizeof(unsigned char));
-    cudaMemcpy(d_img, img, size, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_colorsRGB, colorsRGB, this->changePaletteColorsVector.size() * sizeof(unsigned char), cudaMemcpyHostToDevice);
+    processor.setImage(image.constBits());
+    processor.processRGBA();
+    processor.upload(image.bits());
 
-    int blockSize = 1024;
-    int gridSize = (nPixels + blockSize - 1) / blockSize;
-
-    changePaletteRGBA(gridSize, blockSize, this->streamChangePalette, d_img, nPixels, d_colorsRGB, numColors);
-    cudaStreamSynchronize(this->streamChangePalette);
-
-    cudaMemcpy(img, d_img, size, cudaMemcpyDeviceToHost);
-
-    QImage result(img, image.width(), image.height(), QImage::Format_RGBA8888);
+    QImage result(image.bits(), image.width(), image.height(), QImage::Format_RGBA8888);
     QPixmap resultPixmap = QPixmap::fromImage(result);
 
     effectBtn->setProcessedPixmap(resultPixmap);
-
-    // Cleanup
-    delete[] img;
-    delete[] colorsRGB;
-    cudaFree(d_img);
-    cudaFree(d_colorsRGB);
 }
 
 void MainWindow::updateMonoMaskThumbnail() {
@@ -1637,9 +1576,34 @@ void MainWindow::updateSoftPaletteThumbnail() {
 
     SoftPaletteProcessor softPaletteProcessor(nPixels, size, colorsBGR, numColors);
 
-    softPaletteProcessor.setImage(image.bits(), size);
+    softPaletteProcessor.setImage(image.constBits());
     softPaletteProcessor.processRGBA();
-    memcpy(image.bits(), softPaletteProcessor.getImage(), size);
+    softPaletteProcessor.upload(image.bits());
+
+    QImage result(image.bits(), image.width(), image.height(), QImage::Format_RGBA8888);
+    QPixmap resultPixmap = QPixmap::fromImage(result);
+
+    effectBtn->setProcessedPixmap(resultPixmap);
+}
+
+void MainWindow::updateFlatLightThumbnail() {
+    float lightness = ui->lightness->value();
+
+    EffectButton* effectBtn = qobject_cast<EffectButton*>(ui->btnFlatLight);
+    if (!effectBtn) return;
+
+    QPixmap originalPixmap = effectBtn->getOriginalPixmap();
+
+    QImage image = originalPixmap.toImage().convertToFormat(QImage::Format_RGBA8888);
+
+    const int size = image.sizeInBytes();
+    const int nPixels = image.width() * image.height();
+
+    FlatLightProcessor processor(size, nPixels, lightness);
+
+    processor.setImage(image.constBits());
+    processor.processRGBA();
+    processor.upload(image.bits());
 
     QImage result(image.bits(), image.width(), image.height(), QImage::Format_RGBA8888);
     QPixmap resultPixmap = QPixmap::fromImage(result);
@@ -1660,6 +1624,8 @@ void MainWindow::newThumbnails() {
     if (pixmap.isNull()) return;
 
     // Scale down with smooth transformation
+    this->widthRatio = 960.0f / pixmap.width();
+    this->heightRatio = 540.0f / pixmap.height();
     this->selectedPixmap = pixmap.scaled(960, 540, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
     setThumbnail(ui->btnHueShift, this->selectedPixmap);
@@ -1679,6 +1645,7 @@ void MainWindow::newThumbnails() {
     setThumbnail(ui->btnChangePalette, this->selectedPixmap);
     setThumbnail(ui->btnMonoMask, this->selectedPixmap);
     setThumbnail(ui->btnSoftPalette, this->selectedPixmap);
+    setThumbnail(ui->btnFlatLight, this->selectedPixmap);
 
     EffectButton* effectBtn = qobject_cast<EffectButton*>(ui->btnRadialBlur);
     QPixmap originalPixmap = effectBtn->getOriginalPixmap();
@@ -1723,4 +1690,5 @@ void MainWindow::updateThumbnails() {
     this->updateChangePaletteThumbnail();
     this->updateMonoMaskThumbnail();
     this->updateSoftPaletteThumbnail();
+    this->updateFlatLightThumbnail();
 }

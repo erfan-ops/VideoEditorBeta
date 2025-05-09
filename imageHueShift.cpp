@@ -4,7 +4,7 @@
 
 
 IHueShiftWorker::IHueShiftWorker(float shift, QObject* parent)
-    : ImageEffect(parent), m_shift(shift * 2.0f)
+    : ImageEffect(parent), m_shift(shift / 180.0f)
 {
 }
 

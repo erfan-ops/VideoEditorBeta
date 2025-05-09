@@ -102,7 +102,7 @@
        <x>0</x>
        <y>0</y>
        <width>1445</width>
-       <height>2450</height>
+       <height>2700</height>
       </rect>
      </property>
      <property name="sizePolicy">
@@ -114,7 +114,7 @@
      <property name="minimumSize">
       <size>
        <width>0</width>
-       <height>2450</height>
+       <height>2700</height>
       </size>
      </property>
      <widget class="QSpinBox" name="censorHeight">
@@ -631,7 +631,7 @@
        </font>
       </property>
       <property name="text">
-       <string>Shift:</string>
+       <string>Hue</string>
       </property>
      </widget>
      <widget class="QLabel" name="label_15">
@@ -672,25 +672,6 @@
       </property>
       <property name="text">
        <string/>
-      </property>
-     </widget>
-     <widget class="QDoubleSpinBox" name="HueShift">
-      <property name="geometry">
-       <rect>
-        <x>400</x>
-        <y>890</y>
-        <width>62</width>
-        <height>25</height>
-       </rect>
-      </property>
-      <property name="maximum">
-       <double>1.000000000000000</double>
-      </property>
-      <property name="singleStep">
-       <double>0.010000000000000</double>
-      </property>
-      <property name="value">
-       <double>0.500000000000000</double>
       </property>
      </widget>
      <widget class="QLabel" name="label_16">
@@ -1823,6 +1804,170 @@ border-radius: 6px;</string>
         </rect>
        </property>
       </widget>
+     </widget>
+     <widget class="QLabel" name="label_33">
+      <property name="geometry">
+       <rect>
+        <x>350</x>
+        <y>2500</y>
+        <width>91</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>14</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Lightness:</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="btnFlatLight">
+      <property name="geometry">
+       <rect>
+        <x>50</x>
+        <y>2510</y>
+        <width>291</width>
+        <height>161</height>
+       </rect>
+      </property>
+      <property name="cursor">
+       <cursorShape>PointingHandCursor</cursorShape>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_34">
+      <property name="geometry">
+       <rect>
+        <x>50</x>
+        <y>2450</y>
+        <width>231</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>28</pointsize>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+      <property name="text">
+       <string>Flat Lightness</string>
+      </property>
+     </widget>
+     <widget class="QDoubleSpinBox" name="lightness">
+      <property name="geometry">
+       <rect>
+        <x>440</x>
+        <y>2510</y>
+        <width>62</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="maximum">
+       <double>1.000000000000000</double>
+      </property>
+      <property name="singleStep">
+       <double>0.050000000000000</double>
+      </property>
+      <property name="stepType">
+       <enum>QAbstractSpinBox::StepType::DefaultStepType</enum>
+      </property>
+      <property name="value">
+       <double>0.500000000000000</double>
+      </property>
+     </widget>
+     <widget class="QSlider" name="hueShiftSlider">
+      <property name="geometry">
+       <rect>
+        <x>350</x>
+        <y>910</y>
+        <width>200</width>
+        <height>32</height>
+       </rect>
+      </property>
+      <property name="minimum">
+       <number>0</number>
+      </property>
+      <property name="maximum">
+       <number>360</number>
+      </property>
+      <property name="value">
+       <number>180</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Orientation::Horizontal</enum>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_35">
+      <property name="geometry">
+       <rect>
+        <x>350</x>
+        <y>940</y>
+        <width>91</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>14</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Saturation</string>
+      </property>
+     </widget>
+     <widget class="QSlider" name="saturationSlider">
+      <property name="geometry">
+       <rect>
+        <x>350</x>
+        <y>960</y>
+        <width>200</width>
+        <height>32</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Orientation::Horizontal</enum>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_36">
+      <property name="geometry">
+       <rect>
+        <x>350</x>
+        <y>985</y>
+        <width>91</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>14</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Lightness</string>
+      </property>
+     </widget>
+     <widget class="QSlider" name="lighnessSlider">
+      <property name="geometry">
+       <rect>
+        <x>350</x>
+        <y>1010</y>
+        <width>200</width>
+        <height>32</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Orientation::Horizontal</enum>
+      </property>
      </widget>
     </widget>
    </widget>

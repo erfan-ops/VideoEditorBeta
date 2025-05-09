@@ -99,8 +99,6 @@ void SoftPaletteProcessor::processRGBA_CUDA() const {
 }
 
 void SoftPaletteProcessor::processOpenCL() const {
-    const size_t paletteSize = 3ULL * sizeof(unsigned char) * m_numColors;
-
     // 1. Copy input image to device
     clEnqueueWriteBuffer(globalQueueOpenCL,
         m_imgBuf,
@@ -139,8 +137,6 @@ void SoftPaletteProcessor::processOpenCL() const {
 }
 
 void SoftPaletteProcessor::processRGBA_OpenCL() const {
-    const size_t paletteSize = 3ULL * sizeof(unsigned char) * m_numColors;
-
     // 1. Copy input image to device
     clEnqueueWriteBuffer(globalQueueOpenCL,
         m_imgBuf,
@@ -178,12 +174,12 @@ void SoftPaletteProcessor::processRGBA_OpenCL() const {
     clReleaseEvent(kernelEvent);
 }
 
-void SoftPaletteProcessor::setImage(unsigned char* img, int size) {
-    memcpy(m_img, img, size);
+void SoftPaletteProcessor::setImage(const unsigned char* img) {
+    memcpy(m_img, img, imgSize);
 }
 
-unsigned char* SoftPaletteProcessor::getImage() {
-    return m_img;
+void SoftPaletteProcessor::upload(unsigned char* Dst) {
+    memcpy(Dst, m_img, imgSize);
 }
 
 void SoftPaletteProcessor::init() {

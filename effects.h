@@ -18,6 +18,7 @@
 #include "videoChangePalette.h"
 #include "videoMonoMask.h"
 #include "videoSoftPalette.h"
+#include "videoFlatLight.h"
 
 #include "ImageOutlines.h"
 #include "imageBlur.h"
@@ -36,3 +37,11 @@
 #include "imageChangePalette.h"
 #include "imageMonoMask.h"
 #include "imageSoftpalette.h"
+#include "imageFlatLight.h"
+
+#include "softPalette.h"
+#include "blackAndWhite.h"
+#include "Blur.h"
+#include "censor.h"
+#include "flatLight.h"
+#include "changePalette.h"

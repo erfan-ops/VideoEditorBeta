@@ -1,41 +1,17 @@
+#include "Blur.h"
 #include "imageBlur.h"
-#include "blur_launcher.cuh"
 #include "image.h"
 
-
-IBlurWorker::IBlurWorker(int blurRadius, QObject* parent)
-    : ImageEffect(parent), m_blurRadius(blurRadius)
-{
-}
 
 void IBlurWorker::process() {
     try {
         Image img(m_inputPath);
+
+        BlurProcessor blurProcessor(img.getSize(), img.getWidth(), img.getHeight(), m_blurRadius);
         
-        unsigned char* d_img;
-        unsigned char* d_img_copy;
-        
-        dim3 blockDim(32, 32);
-        dim3 gridDim((img.getWidth() + blockDim.x - 1) / blockDim.x, (img.getHeight() + blockDim.y - 1) / blockDim.y);
-        
-        cudaStream_t stream;
-        cudaStreamCreate(&stream);
-        
-        cudaMallocAsync(&d_img, img.getSize(), stream);
-        cudaMallocAsync(&d_img_copy, img.getSize(), stream);
-        
-        cudaMemcpyAsync(d_img, img.getData(), img.getSize(), cudaMemcpyHostToDevice, stream);
-        cudaMemcpyAsync(d_img_copy, d_img, img.getSize(), cudaMemcpyDeviceToDevice, stream);
-        
-        blur(gridDim, blockDim, stream, d_img, d_img_copy, img.getWidth(), img.getHeight(), m_blurRadius);
-        
-        cudaMemcpyAsync(img.getData(), d_img, img.getSize(), cudaMemcpyDeviceToHost, stream);
-        
-        cudaStreamSynchronize(stream);
-        
-        cudaFreeAsync(d_img, stream);
-        cudaFreeAsync(d_img_copy, stream);
-        cudaStreamDestroy(stream);
+        blurProcessor.setImage(img.getData());
+        blurProcessor.process();
+        memcpy(img.getData(), blurProcessor.getImage(), img.getSize());
         
         img.save(m_outputPath);
 

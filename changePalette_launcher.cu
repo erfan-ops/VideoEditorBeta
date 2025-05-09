@@ -1,6 +1,6 @@
 #include "changePalette_launcher.cuh"
 
-void changePalette(
+void changePalette_CUDA(
 	const int gridSize, const int blockSize, const cudaStream_t stream,
 	unsigned char* __restrict d_img, const int nPixels,
 	const unsigned char* __restrict colorsBGR, const int numColors
@@ -8,7 +8,7 @@ void changePalette(
 	nearestColor_kernel<<<gridSize, blockSize, 0, stream>>>(d_img, nPixels, colorsBGR, numColors);
 }
 
-void changePaletteRGBA(
+void changePaletteRGBA_CUDA(
 	const int gridSize, const int blockSize, const cudaStream_t stream,
 	unsigned char* __restrict d_img, const int nPixels,
 	const unsigned char* __restrict colorsRGB, const int numColors

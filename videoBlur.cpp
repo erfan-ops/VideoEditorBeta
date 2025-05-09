@@ -1,12 +1,7 @@
+#include "Blur.h"
 #include "videoBlur.h"
-#include "blur_launcher.cuh"
 #include "videoHeaders.h"
 
-
-VBlurWorker::VBlurWorker(int blurRadius, QObject* parent)
-    : VideoEffect(parent), m_blurRadius(blurRadius)
-{
-}
 
 void VBlurWorker::process() {
     try {
@@ -24,13 +19,6 @@ void VBlurWorker::process() {
         
         Video video(m_inputPath, temp_video_name);
         Timer timer;
-        
-        unsigned char* d_img;
-        unsigned char* d_img_copy;
-        
-        // Allocate device memory
-        videoUtils::checkCudaError(cudaMalloc(&d_img, video.getSize()), "Failed to allocate device memory for image");
-        videoUtils::checkCudaError(cudaMalloc(&d_img_copy, video.getSize()), "Failed to allocate device memory for image copy");
         
         // Frame buffer pool (preallocated)
         std::queue<cv::Mat> bufferPool;
@@ -72,11 +60,7 @@ void VBlurWorker::process() {
             }
             };
         
-        cudaStream_t stream;
-        videoUtils::checkCudaError(cudaStreamCreate(&stream), "Failed to create stream");
-        
-        dim3 blockDim(32, 32);
-        dim3 gridDim((video.getWidth() + blockDim.x - 1) / blockDim.x, (video.getHeight() + blockDim.y - 1) / blockDim.y);
+        BlurProcessor blurProcessor(video.getSize(), video.getWidth(), video.getHeight(), m_blurRadius);
         
         std::thread writer(writerThread);
         
@@ -89,13 +73,9 @@ void VBlurWorker::process() {
             bufferPool.pop();
             bufferLock.unlock();
         
-            cudaMemcpyAsync(d_img, video.getData(), video.getSize(), cudaMemcpyHostToDevice, stream);
-            cudaMemcpyAsync(d_img_copy, d_img, video.getSize(), cudaMemcpyDeviceToDevice, stream);
-        
-            blur(gridDim, blockDim, stream, d_img, d_img_copy, video.getWidth(), video.getHeight(), m_blurRadius);
-        
-            cudaMemcpyAsync(frameBuffer.data, d_img, video.getSize(), cudaMemcpyDeviceToHost, stream);
-            cudaStreamSynchronize(stream);
+            blurProcessor.setImage(video.getData());
+            blurProcessor.process();
+            memcpy(frameBuffer.data, blurProcessor.getImage(), video.getSize());
         
             {
                 std::lock_guard<std::mutex> frameLock(queueMutex);
@@ -115,9 +95,6 @@ void VBlurWorker::process() {
         
         // clean up
         video.release();
-        cudaFree(d_img);
-        cudaFree(d_img_copy);
-        cudaStreamDestroy(stream);
         
         videoUtils::mergeAudio(temp_video_name, temp_audio_name, m_outputPath);
         

@@ -13,11 +13,11 @@ __global__ void censor_kernel(unsigned char* __restrict__ img, const int rows, c
     int block_y = (y / pixelHeight) * pixelHeight;
     int block_x = (x / pixelWidth) * pixelWidth;
 
-    int blockCenterIdx = ((block_y + pixelHeight / 2) * cols + (block_x + pixelWidth / 2)) * 3; // Top-left pixel index in the block
+    int blockCenterIdx = ((block_y + pixelHeight / 2) * cols + (block_x + pixelWidth / 2)) * 3; // Centeral pixel index in the block
     int idx = (y * cols + x) * 3;
 
     for (int c = 0; c < 3; ++c) {
-        img[idx + c] = img[blockCenterIdx + c]; // Copy the color from the top-left pixel
+        img[idx + c] = img[blockCenterIdx + c];
     }
 }
 
@@ -281,7 +281,7 @@ __global__ void nearestColor_kernel(unsigned char* __restrict__ img, const int n
     img[idx + 2] = colors_BGR[palette_idx + 2]; // Red
 }
 
-__global__ void nearestColorRGBA_kernel(unsigned char* __restrict__ img, const int nPixels, const unsigned char* __restrict__ colors_RGB, const int num_colors) {
+__global__ void nearestColorRGBA_kernel(unsigned char* __restrict__ img, const int nPixels, const unsigned char* __restrict__ color_BGR, const int num_colors) {
     int pIdx = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (pIdx >= nPixels) return;
@@ -302,9 +302,9 @@ __global__ void nearestColorRGBA_kernel(unsigned char* __restrict__ img, const i
         int palette_idx = i * 3;
 
         // Get the palette color
-        unsigned char pr = colors_RGB[palette_idx];
-        unsigned char pg = colors_RGB[palette_idx + 1];
-        unsigned char pb = colors_RGB[palette_idx + 2];
+        unsigned char pr = color_BGR[palette_idx + 2];
+        unsigned char pg = color_BGR[palette_idx + 1];
+        unsigned char pb = color_BGR[palette_idx];
 
         // Calculate the squared Euclidean distance between the colors
         int dr = r - pr;
@@ -321,9 +321,9 @@ __global__ void nearestColorRGBA_kernel(unsigned char* __restrict__ img, const i
 
     // Set the pixel to the nearest color
     int palette_idx = nearest_color_idx * 3;
-    img[idx]     = colors_RGB[palette_idx];     // Blue
-    img[idx + 1] = colors_RGB[palette_idx + 1]; // Green
-    img[idx + 2] = colors_RGB[palette_idx + 2]; // Red
+    img[idx]     = color_BGR[palette_idx + 2]; // Red
+    img[idx + 1] = color_BGR[palette_idx + 1]; // Green
+    img[idx + 2] = color_BGR[palette_idx];     // Blue
 }
 
 __global__ void blendNearestColors_kernel(
@@ -1091,4 +1091,106 @@ __global__ void generateBinaryNoise(unsigned char* __restrict__ img, const int n
     img[idx++] = c;
     img[idx++] = c;
     img[idx] = c;
+}
+
+__device__ static __inline__ void RGBtoHSL(float r, float g, float b, float& h, float& s, float& l) {
+    float max_c = fmaxf(fmaxf(r, g), b);
+    float min_c = fminf(fminf(r, g), b);
+    float delta = max_c - min_c;
+
+    l = 0.5f * (max_c + min_c);
+
+    if (delta < 1e-6f) {
+        h = 0.0f;
+        s = 0.0f;
+        return;
+    }
+
+    s = delta / (1.0f - fabsf(2.0f * l - 1.0f));
+
+    if (max_c == r)
+        h = fmodf((g - b) / delta, 6.0f);
+    else if (max_c == g)
+        h = ((b - r) / delta) + 2.0f;
+    else
+        h = ((r - g) / delta) + 4.0f;
+
+    h /= 6.0f;
+    if (h < 0.0f) h += 1.0f;
+}
+
+__device__ static __inline__ float hueToRGB(float p, float q, float t) {
+    if (t < 0.0f) t += 1.0f;
+    if (t > 1.0f) t -= 1.0f;
+    if (t < 1.0f / 6.0f) return p + (q - p) * 6.0f * t;
+    if (t < 1.0f / 2.0f) return q;
+    if (t < 2.0f / 3.0f) return p + (q - p) * (2.0f / 3.0f - t) * 6.0f;
+    return p;
+}
+
+__device__ static __inline__ void HSLtoRGB(float h, float s, float l, float& r, float& g, float& b) {
+    if (s < 1e-6f) {
+        r = g = b = l;
+        return;
+    }
+
+    float q = l < 0.5f ? l * (1.0f + s) : l + s - l * s;
+    float p = 2.0f * l - q;
+    r = hueToRGB(p, q, h + 1.0f / 3.0f);
+    g = hueToRGB(p, q, h);
+    b = hueToRGB(p, q, h - 1.0f / 3.0f);
+}
+
+__global__ void fixedLightness_kernel(unsigned char* __restrict__ img, const int nPixels, const float lightness) {
+    int pIdx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (pIdx >= nPixels) return;
+
+    int idx = pIdx * 3;
+
+    // Read and normalize RGB
+    float r = img[idx + 2] / 255.0f;
+    float g = img[idx + 1] / 255.0f;
+    float b = img[idx] / 255.0f;
+
+    // Convert to HSL
+    float h, s, l;
+    RGBtoHSL(r, g, b, h, s, l);
+
+    // Set lightness
+    l = lightness;
+
+    // Convert back to RGB
+    HSLtoRGB(h, s, l, r, g, b);
+
+    // Write back
+    img[idx + 2] = static_cast<unsigned char>(fminf(fmaxf(r * 255.0f, 0.0f), 255.0f));
+    img[idx + 1] = static_cast<unsigned char>(fminf(fmaxf(g * 255.0f, 0.0f), 255.0f));
+    img[idx] = static_cast<unsigned char>(fminf(fmaxf(b * 255.0f, 0.0f), 255.0f));
+}
+
+__global__ void fixedLightnessRGBA_kernel(unsigned char* __restrict__ img, const int nPixels, const float lightness) {
+    int pIdx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (pIdx >= nPixels) return;
+
+    int idx = pIdx * 4;
+
+    // Read and normalize RGB
+    float r = img[idx + 2] / 255.0f;
+    float g = img[idx + 1] / 255.0f;
+    float b = img[idx] / 255.0f;
+
+    // Convert to HSL
+    float h, s, l;
+    RGBtoHSL(r, g, b, h, s, l);
+
+    // Set lightness
+    l = lightness;
+
+    // Convert back to RGB
+    HSLtoRGB(h, s, l, r, g, b);
+
+    // Write back
+    img[idx + 2] = static_cast<unsigned char>(fminf(fmaxf(r * 255.0f, 0.0f), 255.0f));
+    img[idx + 1] = static_cast<unsigned char>(fminf(fmaxf(g * 255.0f, 0.0f), 255.0f));
+    img[idx] = static_cast<unsigned char>(fminf(fmaxf(b * 255.0f, 0.0f), 255.0f));
 }

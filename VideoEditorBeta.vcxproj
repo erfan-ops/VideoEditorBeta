@@ -128,6 +128,10 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="blackAndWhite.cpp" />
+    <ClCompile Include="Blur.cpp" />
+    <ClCompile Include="censor.cpp" />
+    <ClCompile Include="changePalette.cpp" />
     <ClCompile Include="colorButton.cpp" />
     <ClCompile Include="EffectButton.cpp">
       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
@@ -136,12 +140,14 @@
       <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).moc</QtMocFileName>
     </ClCompile>
     <ClCompile Include="fileDialog.cpp" />
+    <ClCompile Include="flatLight.cpp" />
     <ClCompile Include="globals.cpp" />
     <ClCompile Include="image.cpp" />
     <ClCompile Include="imageBlackAndWhite.cpp" />
     <ClCompile Include="imageBlur.cpp" />
     <ClCompile Include="imageCensor.cpp" />
     <ClCompile Include="imageChangePalette.cpp" />
+    <ClCompile Include="imageFlatLight.cpp" />
     <ClCompile Include="imageHueShift.cpp" />
     <ClCompile Include="imageInverseColors.cpp" />
     <ClCompile Include="imageInverseContrast.cpp" />
@@ -160,12 +166,14 @@
     </ClCompile>
     <ClCompile Include="mainWindow.cpp" />
     <ClCompile Include="softPalette.cpp" />
+    <ClCompile Include="SourcesOpenCL.cpp" />
     <ClCompile Include="timer.cpp" />
     <ClCompile Include="utils.cpp" />
     <ClCompile Include="Video.cpp" />
     <ClCompile Include="videoBlackAndWhite.cpp" />
     <ClCompile Include="videoCensor.cpp" />
     <ClCompile Include="videoChangePalette.cpp" />
+    <ClCompile Include="videoFlatLight.cpp" />
     <ClCompile Include="videoHueShift.cpp">
       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
       <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).moc</QtMocFileName>
@@ -190,6 +198,7 @@
     <CudaCompile Include="blur_launcher.cu" />
     <CudaCompile Include="censor_launcher.cu" />
     <CudaCompile Include="changePalette_launcher.cu" />
+    <CudaCompile Include="flatLight_launcher.cu" />
     <CudaCompile Include="hueShift_launcher.cu" />
     <CudaCompile Include="inverseColors_launcher.cu" />
     <CudaCompile Include="inverseContrast_launcher.cu" />
@@ -212,16 +221,23 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="blackAndWhite_launcher.cuh" />
+    <ClInclude Include="blackAndWhite.h" />
+    <ClInclude Include="Blur.h" />
     <ClInclude Include="blur_launcher.cuh" />
     <QtMoc Include="imageVintage8bit.h" />
     <QtMoc Include="videoVintage8bit.h" />
     <QtMoc Include="imageLensFilter.h" />
+    <ClInclude Include="censor.h" />
+    <ClInclude Include="changePalette.h" />
     <ClInclude Include="changePalette_launcher.cuh" />
     <QtMoc Include="imageChangePalette.h" />
     <QtMoc Include="imageMonoMask.h" />
     <QtMoc Include="imageSoftpalette.h" />
     <QtMoc Include="colorButton.h" />
+    <ClInclude Include="flatLight.h" />
+    <ClInclude Include="flatLight_launcher.cuh" />
     <ClInclude Include="globals.h" />
+    <QtMoc Include="imageFlatLight.h" />
     <ClInclude Include="launchers.h" />
     <ClInclude Include="lensFilter_launcher.cuh" />
     <QtMoc Include="videoLensFilter.h" />
@@ -232,6 +248,7 @@
     <ClInclude Include="softPalette_launcher.cuh" />
     <QtMoc Include="videoSoftPalette.h" />
     <ClInclude Include="SourcesOpenCL.h" />
+    <QtMoc Include="videoFlatLight.h" />
     <ClInclude Include="vintage8bit_launcher.cuh" />
     <QtMoc Include="videoMagicEye.h" />
     <QtMoc Include="videoTrueOutlines.h" />
@@ -288,6 +305,9 @@
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="bin\opencv_world4100.dll">
+      <FileType>Document</FileType>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="bin\opencv_videoio_ffmpeg4100_64.dll">
       <FileType>Document</FileType>
     </CopyFileToFolders>
     <None Include="bin\opencv_world4100d.dll">

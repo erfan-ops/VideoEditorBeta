@@ -1,12 +1,7 @@
+#include "blackAndWhite.h"
 #include "videoBlackAndWhite.h"
-#include "blackAndWhite_launcher.cuh"
 #include "videoHeaders.h"
 
-
-VBlackAndWhiteWorker::VBlackAndWhiteWorker(float middle, QObject* parent)
-    : VideoEffect(parent), m_middle(middle)
-{
-}
 
 void VBlackAndWhiteWorker::process() {
     try {
@@ -22,10 +17,6 @@ void VBlackAndWhiteWorker::process() {
 
         Video video(m_inputPath, temp_video_name);
         Timer timer;
-
-        unsigned char* d_img;
-
-        videoUtils::checkCudaError(cudaMalloc(&d_img, video.getSize()), "Failed to allocate device memory for image");
 
         std::queue<cv::Mat> bufferPool;
         for (int i = 0; i < videoUtils::nBuffers; i++) {
@@ -64,11 +55,7 @@ void VBlackAndWhiteWorker::process() {
             }
             };
 
-        cudaStream_t stream;
-        videoUtils::checkCudaError(cudaStreamCreate(&stream), "Failed to create stream");
-
-        int blockSize = 1024;
-        int gridSize = (video.getNumPixels() + blockSize - 1) / blockSize;
+        BlackAndWhiteProcessor blackAndWhiteProcessor(video.getNumPixels(), video.getSize(), m_middle);
 
         std::thread writer(writerThread);
 
@@ -81,12 +68,9 @@ void VBlackAndWhiteWorker::process() {
             bufferPool.pop();
             bufferLock.unlock();
 
-            cudaMemcpyAsync(d_img, video.getData(), video.getSize(), cudaMemcpyHostToDevice, stream);
-
-            blackAndWhite(gridSize, blockSize, stream, d_img, video.getNumPixels(), m_middle);
-
-            cudaMemcpyAsync(frameBuffer.data, d_img, video.getSize(), cudaMemcpyDeviceToHost, stream);
-            cudaStreamSynchronize(stream);
+            blackAndWhiteProcessor.setImage(video.getData(), video.getSize());
+            blackAndWhiteProcessor.process();
+            memcpy(frameBuffer.data, blackAndWhiteProcessor.getImage(), video.getSize());
 
             {
                 std::lock_guard<std::mutex> frameLock(queueMutex);
@@ -104,8 +88,6 @@ void VBlackAndWhiteWorker::process() {
         writer.join();
 
         video.release();
-        cudaFree(d_img);
-        cudaStreamDestroy(stream);
 
         videoUtils::mergeAudio(temp_video_name, temp_audio_name, m_outputPath);
 

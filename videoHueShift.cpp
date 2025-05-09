@@ -4,7 +4,7 @@
 
 
 VHueShiftWorker::VHueShiftWorker(float shift, QObject* parent)
-    : VideoEffect(parent), m_shift(shift * 2.0f)
+    : VideoEffect(parent), m_shift(shift / 180.0f)
 {
 }
 

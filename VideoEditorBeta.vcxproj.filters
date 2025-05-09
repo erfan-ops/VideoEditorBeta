@@ -256,6 +256,33 @@
     <Filter Include="Effects\Mono Mask\Launcher\CUDA">
       <UniqueIdentifier>{8f4eda3e-0a48-46d7-bb8b-3bf0aa9d955c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Effects\BlackAndWhite\Launcher\CUDA">
+      <UniqueIdentifier>{9200805e-6c4d-4eda-a9bd-005ed06a1800}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Blur\Launcher\CUDA">
+      <UniqueIdentifier>{e0ae2c65-f7e1-41f5-91a8-15216f938d4b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Censor\Launcher\CUDA">
+      <UniqueIdentifier>{a407ae00-6417-4ad0-853f-50d971cdb1c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Flat Light">
+      <UniqueIdentifier>{7c1807a5-f938-40b9-8c65-01f4aa81f326}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Flat Light\Image">
+      <UniqueIdentifier>{1dd324ea-d451-40e5-8c04-f702c9dd2553}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Flat Light\Video">
+      <UniqueIdentifier>{7b42c9d9-f72f-4bac-937c-4eec915c24ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Flat Light\Launcher">
+      <UniqueIdentifier>{dd7915d2-6226-4f2f-8db3-4c82c2324e1b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Flat Light\Launcher\CUDA">
+      <UniqueIdentifier>{7ca8121f-19d4-4d68-a28e-80e5c7e249b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Change Palette\Launcher\CUDA">
+      <UniqueIdentifier>{53036b61-8176-4dd4-b062-79ff54ee3d19}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -396,22 +423,40 @@
     <ClCompile Include="globals.cpp">
       <Filter>Effects\OpenCL</Filter>
     </ClCompile>
+    <ClCompile Include="blackAndWhite.cpp">
+      <Filter>Effects\BlackAndWhite\Launcher</Filter>
+    </ClCompile>
+    <ClCompile Include="SourcesOpenCL.cpp">
+      <Filter>Effects\OpenCL</Filter>
+    </ClCompile>
+    <ClCompile Include="Blur.cpp">
+      <Filter>Effects\Blur\Launcher</Filter>
+    </ClCompile>
+    <ClCompile Include="censor.cpp">
+      <Filter>Effects\Censor\Launcher</Filter>
+    </ClCompile>
+    <ClCompile Include="flatLight.cpp">
+      <Filter>Effects\Flat Light\Launcher</Filter>
+    </ClCompile>
+    <ClCompile Include="imageFlatLight.cpp">
+      <Filter>Effects\Flat Light\Image</Filter>
+    </ClCompile>
+    <ClCompile Include="videoFlatLight.cpp">
+      <Filter>Effects\Flat Light\Video</Filter>
+    </ClCompile>
+    <ClCompile Include="changePalette.cpp">
+      <Filter>Effects\Change Palette\Launcher</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="outline_launcher.cu">
       <Filter>Effects\Outlines\Launcher</Filter>
-    </CudaCompile>
-    <CudaCompile Include="blur_launcher.cu">
-      <Filter>Effects\Blur\Launcher</Filter>
     </CudaCompile>
     <CudaCompile Include="effects.cu">
       <Filter>Effects\Kernels</Filter>
     </CudaCompile>
     <CudaCompile Include="pixelate_launcher.cu">
       <Filter>Effects\Pixelate\Launcher</Filter>
-    </CudaCompile>
-    <CudaCompile Include="censor_launcher.cu">
-      <Filter>Effects\Censor\Launcher</Filter>
     </CudaCompile>
     <CudaCompile Include="inverseColors_launcher.cu">
       <Filter>Effects\Inverse Colors\Launcher</Filter>
@@ -428,9 +473,6 @@
     <CudaCompile Include="monoChrome_launcher.cu">
       <Filter>Effects\MonoChrome\Launcher</Filter>
     </CudaCompile>
-    <CudaCompile Include="blackAndWhite_launcher.cu">
-      <Filter>Effects\BlackAndWhite\Launcher</Filter>
-    </CudaCompile>
     <CudaCompile Include="posterize_launcher.cu">
       <Filter>Effects\Posterize\Launcher</Filter>
     </CudaCompile>
@@ -446,14 +488,26 @@
     <CudaCompile Include="lensFilter_launcher.cu">
       <Filter>Effects\Lens Filter\Launcher</Filter>
     </CudaCompile>
-    <CudaCompile Include="changePalette_launcher.cu">
-      <Filter>Effects\Change Palette\Launcher</Filter>
-    </CudaCompile>
     <CudaCompile Include="softPalette_launcher.cu">
       <Filter>Effects\Soft Palette\Launcher\CUDA</Filter>
     </CudaCompile>
     <CudaCompile Include="monoMask_launcher.cu">
       <Filter>Effects\Mono Mask\Launcher\CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="blackAndWhite_launcher.cu">
+      <Filter>Effects\BlackAndWhite\Launcher\CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="blur_launcher.cu">
+      <Filter>Effects\Blur\Launcher\CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="censor_launcher.cu">
+      <Filter>Effects\Censor\Launcher\CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="flatLight_launcher.cu">
+      <Filter>Effects\Flat Light\Launcher\CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="changePalette_launcher.cu">
+      <Filter>Effects\Change Palette\Launcher\CUDA</Filter>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
@@ -484,9 +538,6 @@
     <ClInclude Include="outline_launcher.cuh">
       <Filter>Effects\Outlines\Launcher</Filter>
     </ClInclude>
-    <ClInclude Include="blur_launcher.cuh">
-      <Filter>Effects\Blur\Launcher</Filter>
-    </ClInclude>
     <ClInclude Include="effects.h">
       <Filter>Effects\include</Filter>
     </ClInclude>
@@ -495,9 +546,6 @@
     </ClInclude>
     <ClInclude Include="pixelate_launcher.cuh">
       <Filter>Effects\Pixelate\Launcher</Filter>
-    </ClInclude>
-    <ClInclude Include="censor_launcher.cuh">
-      <Filter>Effects\Censor\Launcher</Filter>
     </ClInclude>
     <ClInclude Include="videoHeaders.h">
       <Filter>Effects\include</Filter>
@@ -517,9 +565,6 @@
     <ClInclude Include="monoChrome_launcher.cuh">
       <Filter>Effects\MonoChrome\Launcher</Filter>
     </ClInclude>
-    <ClInclude Include="blackAndWhite_launcher.cuh">
-      <Filter>Effects\BlackAndWhite\Launcher</Filter>
-    </ClInclude>
     <ClInclude Include="posterize_launcher.cuh">
       <Filter>Effects\Posterize\Launcher</Filter>
     </ClInclude>
@@ -538,9 +583,6 @@
     <ClInclude Include="launchers.h">
       <Filter>Effects\include</Filter>
     </ClInclude>
-    <ClInclude Include="changePalette_launcher.cuh">
-      <Filter>Effects\Change Palette\Launcher</Filter>
-    </ClInclude>
     <ClInclude Include="softPalette_launcher.cuh">
       <Filter>Effects\Soft Palette\Launcher\CUDA</Filter>
     </ClInclude>
@@ -555,6 +597,36 @@
     </ClInclude>
     <ClInclude Include="globals.h">
       <Filter>Effects\OpenCL</Filter>
+    </ClInclude>
+    <ClInclude Include="blackAndWhite_launcher.cuh">
+      <Filter>Effects\BlackAndWhite\Launcher\CUDA</Filter>
+    </ClInclude>
+    <ClInclude Include="blackAndWhite.h">
+      <Filter>Effects\BlackAndWhite\Launcher</Filter>
+    </ClInclude>
+    <ClInclude Include="blur_launcher.cuh">
+      <Filter>Effects\Blur\Launcher\CUDA</Filter>
+    </ClInclude>
+    <ClInclude Include="Blur.h">
+      <Filter>Effects\Blur\Launcher</Filter>
+    </ClInclude>
+    <ClInclude Include="censor_launcher.cuh">
+      <Filter>Effects\Censor\Launcher\CUDA</Filter>
+    </ClInclude>
+    <ClInclude Include="censor.h">
+      <Filter>Effects\Censor\Launcher</Filter>
+    </ClInclude>
+    <ClInclude Include="flatLight.h">
+      <Filter>Effects\Flat Light\Launcher</Filter>
+    </ClInclude>
+    <ClInclude Include="flatLight_launcher.cuh">
+      <Filter>Effects\Flat Light\Launcher\CUDA</Filter>
+    </ClInclude>
+    <ClInclude Include="changePalette_launcher.cuh">
+      <Filter>Effects\Change Palette\Launcher\CUDA</Filter>
+    </ClInclude>
+    <ClInclude Include="changePalette.h">
+      <Filter>Effects\Change Palette\Launcher</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -687,6 +759,12 @@
     <QtMoc Include="colorButton.h">
       <Filter>Ui\ColorButton</Filter>
     </QtMoc>
+    <QtMoc Include="imageFlatLight.h">
+      <Filter>Effects\Flat Light\Image</Filter>
+    </QtMoc>
+    <QtMoc Include="videoFlatLight.h">
+      <Filter>Effects\Flat Light\Video</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="MainWindow.ui">
@@ -710,6 +788,9 @@
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="bin\opencv_world4100.dll">
+      <Filter>bin</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="bin\opencv_videoio_ffmpeg4100_64.dll">
       <Filter>bin</Filter>
     </CopyFileToFolders>
   </ItemGroup>

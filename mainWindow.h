@@ -46,22 +46,21 @@ private:
     QVector<ColorButton*> softPaletteColorButtons;
     int softPaletteSelectedColor;
 
+    float widthRatio{ 1 };
+    float heightRatio{ 1 };
+
     // effect specifics
     cudaStream_t streamHueShift;
     cudaStream_t streamFilter;
-    cudaStream_t streamBinary;
     cudaStream_t streamInverseColors;
     cudaStream_t streamInverseContrast;
     cudaStream_t streamMonoChrome;
-    cudaStream_t streamBlur;
     cudaStream_t streamOutLine;
     cudaStream_t streamTrueOutLine;
     cudaStream_t streamPosterize;
     cudaStream_t streamRadialBlur;
-    cudaStream_t streamCensor;
     cudaStream_t streamPixelate;
     cudaStream_t streamVintage8bit;
-    cudaStream_t streamChangePalette;
     cudaStream_t streamMonoMask;
 
     void processEffect(QPushButton* button, EffectBase* worker);
@@ -88,4 +87,5 @@ private:
     void updateChangePaletteThumbnail();
     void updateMonoMaskThumbnail();
     void updateSoftPaletteThumbnail();
+    void updateFlatLightThumbnail();
 };

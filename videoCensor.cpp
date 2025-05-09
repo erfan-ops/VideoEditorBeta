@@ -1,5 +1,5 @@
+#include "censor.h"
 #include "videoCensor.h"
-#include "censor_launcher.cuh"
 #include "videoHeaders.h"
 
 
@@ -19,11 +19,6 @@ void VCensorWorker::process() {
 
         Video video(m_inputPath, temp_video_name);
         Timer timer;
-
-        unsigned char* d_img;
-
-        // Allocate device memory
-        videoUtils::checkCudaError(cudaMalloc(&d_img, video.getSize()), "Failed to allocate device memory for image");
 
         // Frame buffer pool (preallocated)
         std::queue<cv::Mat> bufferPool;
@@ -65,11 +60,7 @@ void VCensorWorker::process() {
             }
             };
 
-        cudaStream_t stream;
-        videoUtils::checkCudaError(cudaStreamCreate(&stream), "Failed to create stream");
-
-        dim3 blockDim(32, 32);
-        dim3 gridDim((video.getWidth() + blockDim.x - 1) / blockDim.x, (video.getHeight() + blockDim.y - 1) / blockDim.y);
+        CensorProcessor censorProcessor(video.getSize(), video.getWidth(), video.getHeight(), m_pixelWidth, m_pixelHeight);
 
         std::thread writer(writerThread);
 
@@ -82,12 +73,9 @@ void VCensorWorker::process() {
             bufferPool.pop();
             bufferLock.unlock();
 
-            cudaMemcpyAsync(d_img, video.getData(), video.getSize(), cudaMemcpyHostToDevice, stream);
-
-            censor(gridDim, blockDim, stream, d_img, video.getWidth(), video.getHeight(), m_pixelWidth, m_pixelHeight);
-
-            cudaMemcpyAsync(frameBuffer.data, d_img, video.getSize(), cudaMemcpyDeviceToHost, stream);
-            cudaStreamSynchronize(stream);
+            censorProcessor.setImage(video.getData());
+            censorProcessor.process();
+            censorProcessor.upload(frameBuffer.data);
 
             {
                 std::lock_guard<std::mutex> frameLock(queueMutex);
@@ -106,8 +94,6 @@ void VCensorWorker::process() {
 
         // clean up
         video.release();
-        cudaFree(d_img);
-        cudaStreamDestroy(stream);
 
         videoUtils::mergeAudio(temp_video_name, temp_audio_name, m_outputPath);
 

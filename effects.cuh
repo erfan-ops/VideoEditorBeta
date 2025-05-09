@@ -39,3 +39,5 @@ __global__ void inverseColorsRGBA_kernel(unsigned char* __restrict__ img, const 
 __global__ void blackNwhiteRGBA_kernel(unsigned char* __restrict__ img, const int nPixels, const float middle);
 __global__ void blackNwhite_kernel(unsigned char* __restrict__ img, const int nPixels, const float middle);
 __global__ void generateBinaryNoise(unsigned char* __restrict__ img, const int nPixels, size_t seed);
+__global__ void fixedLightness_kernel(unsigned char* __restrict__ img, const int nPixels, const float lightness);
+__global__ void fixedLightnessRGBA_kernel(unsigned char* __restrict__ img, const int nPixels, const float lightness);
