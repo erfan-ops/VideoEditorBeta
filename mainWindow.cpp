@@ -49,11 +49,11 @@ MainWindow::MainWindow(QWidget* parent)
     CensorProcessor::init();
     FlatLightProcessor::init();
     ChangePaletteProcessor::init();
+    HueShiftProcessor::init();
+    InverseColorsProcessor::init();
         
 
-    cudaStreamCreate(&this->streamHueShift);
     cudaStreamCreate(&this->streamFilter);
-    cudaStreamCreate(&this->streamInverseColors);
     cudaStreamCreate(&this->streamInverseContrast);
     cudaStreamCreate(&this->streamMonoChrome);
     cudaStreamCreate(&this->streamOutLine);
@@ -822,9 +822,7 @@ MainWindow::MainWindow(QWidget* parent)
 
 MainWindow::~MainWindow()
 {
-    cudaStreamDestroy(this->streamHueShift);
     cudaStreamDestroy(this->streamFilter);
-    cudaStreamDestroy(this->streamInverseColors);
     cudaStreamDestroy(this->streamInverseContrast);
     cudaStreamDestroy(this->streamMonoChrome);
     cudaStreamDestroy(this->streamOutLine);
@@ -934,31 +932,16 @@ void MainWindow::updateHueShiftThumbnail() {
     int size = image.sizeInBytes();
     int nPixels = image.width() * image.height();
 
-    unsigned char* img = new unsigned char[size];
-    memcpy(img, image.constBits(), size);
+    HueShiftProcessor processor(size, nPixels, rotationFactor);
 
-    unsigned char* d_img;
+    processor.setImage(image.constBits());
+    processor.processRGBA();
+    processor.upload(image.bits());
 
-    cudaMalloc(&d_img, size);
-
-    cudaMemcpy(d_img, img, size, cudaMemcpyHostToDevice);
-
-    int blockSize = 1024;
-    int gridSize = (nPixels + blockSize - 1) / blockSize;
-
-    hueShiftRGBA(gridSize, blockSize, this->streamHueShift, d_img, nPixels, rotationFactor);
-    cudaStreamSynchronize(this->streamHueShift);
-
-    cudaMemcpy(img, d_img, size, cudaMemcpyDeviceToHost);
-
-    QImage result(img, image.width(), image.height(), QImage::Format_RGBA8888);
+    QImage result(image.bits(), image.width(), image.height(), QImage::Format_RGBA8888);
     QPixmap resultPixmap = QPixmap::fromImage(result);
 
     effectBtn->setProcessedPixmap(resultPixmap);
-
-    // Cleanup
-    delete[] img;
-    cudaFree(d_img);
 }
 
 void MainWindow::updateFilterThumbnail() {
@@ -1042,29 +1025,16 @@ void MainWindow::updateInverseColorsThumbnail() {
 
     int size = image.sizeInBytes();
 
-    unsigned char* img = new unsigned char[size];
-    memcpy(img, image.constBits(), size);
+    InverseColorsProcessor processor(size);
 
-    unsigned char* d_img;
-    cudaMalloc(&d_img, size);
-    cudaMemcpy(d_img, img, size, cudaMemcpyHostToDevice);
+    processor.setImage(image.constBits());
+    processor.processRGBA();
+    processor.upload(image.bits());
 
-    int blockSize = 1024;
-    int gridSize = (size + blockSize - 1) / blockSize;
-
-    inverseColorsRGBA(gridSize, blockSize, this->streamInverseColors, d_img, size);
-    cudaStreamSynchronize(this->streamInverseColors);
-
-    cudaMemcpy(img, d_img, size, cudaMemcpyDeviceToHost);
-
-    QImage result(img, image.width(), image.height(), QImage::Format_RGBA8888);
+    QImage result(image.bits(), image.width(), image.height(), QImage::Format_RGBA8888);
     QPixmap resultPixmap = QPixmap::fromImage(result);
 
     effectBtn->setProcessedPixmap(resultPixmap);
-
-    // Cleanup
-    delete[] img;
-    cudaFree(d_img);
 }
 
 void MainWindow::updateInverseContrastThumbnail() {

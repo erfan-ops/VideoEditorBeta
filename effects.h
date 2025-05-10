@@ -45,3 +45,5 @@
 #include "censor.h"
 #include "flatLight.h"
 #include "changePalette.h"
+#include "hueShift.h"
+#include "inverseColors.h"

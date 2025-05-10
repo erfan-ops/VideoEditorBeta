@@ -1,12 +1,12 @@
 #pragma once
 #include "effects.cuh"
 
-void hueShift(
+void hueShift_CUDA(
 	const int gridSize, const int blockSize, const cudaStream_t stream,
 	unsigned char* __restrict d_img, const int nPixels, const float rotationFactor
 );
 
-void hueShiftRGBA(
+void hueShiftRGBA_CUDA(
 	const int gridSize, const int blockSize, const cudaStream_t stream,
 	unsigned char* __restrict d_img, const int nPixels, const float rotationFactor
 );

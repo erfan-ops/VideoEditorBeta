@@ -283,6 +283,12 @@
     <Filter Include="Effects\Change Palette\Launcher\CUDA">
       <UniqueIdentifier>{53036b61-8176-4dd4-b062-79ff54ee3d19}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Effects\Hue Shift\Launcher\CUDA">
+      <UniqueIdentifier>{0ef7589e-9fa4-4779-af90-1f7aa7317ab3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Inverse Colors\Launcher\CUDA">
+      <UniqueIdentifier>{3a2df497-3dfc-4cd1-a8b9-8bd286a0c265}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -447,6 +453,12 @@
     <ClCompile Include="changePalette.cpp">
       <Filter>Effects\Change Palette\Launcher</Filter>
     </ClCompile>
+    <ClCompile Include="hueShift.cpp">
+      <Filter>Effects\Hue Shift\Launcher</Filter>
+    </ClCompile>
+    <ClCompile Include="inverseColors.cpp">
+      <Filter>Effects\Inverse Colors\Launcher</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="outline_launcher.cu">
@@ -458,14 +470,8 @@
     <CudaCompile Include="pixelate_launcher.cu">
       <Filter>Effects\Pixelate\Launcher</Filter>
     </CudaCompile>
-    <CudaCompile Include="inverseColors_launcher.cu">
-      <Filter>Effects\Inverse Colors\Launcher</Filter>
-    </CudaCompile>
     <CudaCompile Include="inverseContrast_launcher.cu">
       <Filter>Effects\Inverse Contrast\Launcher</Filter>
-    </CudaCompile>
-    <CudaCompile Include="hueShift_launcher.cu">
-      <Filter>Effects\Hue Shift\Launcher</Filter>
     </CudaCompile>
     <CudaCompile Include="radialBlur_launcher.cu">
       <Filter>Effects\Radial Blur\Launcher</Filter>
@@ -509,6 +515,12 @@
     <CudaCompile Include="changePalette_launcher.cu">
       <Filter>Effects\Change Palette\Launcher\CUDA</Filter>
     </CudaCompile>
+    <CudaCompile Include="hueShift_launcher.cu">
+      <Filter>Effects\Hue Shift\Launcher\CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="inverseColors_launcher.cu">
+      <Filter>Effects\Inverse Colors\Launcher\CUDA</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="utils.h">
@@ -550,14 +562,8 @@
     <ClInclude Include="videoHeaders.h">
       <Filter>Effects\include</Filter>
     </ClInclude>
-    <ClInclude Include="inverseColors_launcher.cuh">
-      <Filter>Effects\Inverse Colors\Launcher</Filter>
-    </ClInclude>
     <ClInclude Include="inverseContrast_launcher.cuh">
       <Filter>Effects\Inverse Contrast\Launcher</Filter>
-    </ClInclude>
-    <ClInclude Include="hueShift_launcher.cuh">
-      <Filter>Effects\Hue Shift\Launcher</Filter>
     </ClInclude>
     <ClInclude Include="radialBlur_launcher.cuh">
       <Filter>Effects\Radial Blur\Launcher</Filter>
@@ -627,6 +633,18 @@
     </ClInclude>
     <ClInclude Include="changePalette.h">
       <Filter>Effects\Change Palette\Launcher</Filter>
+    </ClInclude>
+    <ClInclude Include="hueShift.h">
+      <Filter>Effects\Hue Shift\Launcher</Filter>
+    </ClInclude>
+    <ClInclude Include="hueShift_launcher.cuh">
+      <Filter>Effects\Hue Shift\Launcher\CUDA</Filter>
+    </ClInclude>
+    <ClInclude Include="inverseColors_launcher.cuh">
+      <Filter>Effects\Inverse Colors\Launcher\CUDA</Filter>
+    </ClInclude>
+    <ClInclude Include="inverseColors.h">
+      <Filter>Effects\Inverse Colors\Launcher</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

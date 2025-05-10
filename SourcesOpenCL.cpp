@@ -513,3 +513,127 @@ __kernel void changePaletteRGBA_kernel(
     img[idx + 2] = colors_BGR[palette_idx];       // Blue
 }
 )CLC";
+
+const char* hueShiftOpenCLKernelSource = R"CLC(
+inline void rgb_to_yiq(float r, float g, float b, __private float* y, __private float* i, __private float* q) {
+    *y = 0.299f * r + 0.587f * g + 0.114f * b;
+    *i = 0.596f * r - 0.274f * g - 0.322f * b;
+    *q = 0.211f * r - 0.523f * g + 0.312f * b;
+}
+
+inline void yiq_to_rgb(float y, float i, float q, __private float* r, __private float* g, __private float* b) {
+    *r = y + 0.956f * i + 0.621f * q;
+    *g = y - 0.272f * i - 0.647f * q;
+    *b = y - 1.105f * i + 1.702f * q;
+}
+
+__kernel void hueShift_kernel(
+    __global uchar* img,
+    const int nPixels,
+    const float rotationFactor
+) {
+    int pIdx = get_global_id(0);
+    if (pIdx >= nPixels) return;
+
+    int idx = pIdx * 3;
+
+    float b = (float)(img[idx])     / 255.0f;
+    float g = (float)(img[idx + 1]) / 255.0f;
+    float r = (float)(img[idx + 2]) / 255.0f;
+
+    float y, i, q;
+    rgb_to_yiq(r, g, b, &y, &i, &q);
+
+    float angle = M_PI_F * rotationFactor;
+    float cos_theta = cos(angle);
+    float sin_theta = sin(angle);
+
+    float new_i = i * cos_theta - q * sin_theta;
+    float new_q = i * sin_theta + q * cos_theta;
+
+    yiq_to_rgb(y, new_i, new_q, &r, &g, &b);
+
+    // Clamp and write back
+    r = clamp(r, 0.0f, 1.0f);
+    g = clamp(g, 0.0f, 1.0f);
+    b = clamp(b, 0.0f, 1.0f);
+
+    img[idx]     = (uchar)(b * 255.0f);
+    img[idx + 1] = (uchar)(g * 255.0f);
+    img[idx + 2] = (uchar)(r * 255.0f);
+}
+)CLC";
+
+const char* hueShiftRGBAOpenCLKernelSource = R"CLC(
+inline void rgb_to_yiq(float r, float g, float b, __private float* y, __private float* i, __private float* q) {
+    *y = 0.299f * r + 0.587f * g + 0.114f * b;
+    *i = 0.596f * r - 0.274f * g - 0.322f * b;
+    *q = 0.211f * r - 0.523f * g + 0.312f * b;
+}
+
+inline void yiq_to_rgb(float y, float i, float q, __private float* r, __private float* g, __private float* b) {
+    *r = y + 0.956f * i + 0.621f * q;
+    *g = y - 0.272f * i - 0.647f * q;
+    *b = y - 1.105f * i + 1.702f * q;
+}
+
+__kernel void hueShiftRGBA_kernel(
+    __global uchar* img,
+    const int nPixels,
+    const float rotationFactor
+) {
+    int pIdx = get_global_id(0);
+    if (pIdx >= nPixels) return;
+
+    int idx = pIdx * 4;
+
+    float r = (float)(img[idx])     / 255.0f;
+    float g = (float)(img[idx + 1]) / 255.0f;
+    float b = (float)(img[idx + 2]) / 255.0f;
+
+    float y, i, q;
+    rgb_to_yiq(r, g, b, &y, &i, &q);
+
+    float angle = M_PI_F * rotationFactor;
+    float cos_theta = cos(angle);
+    float sin_theta = sin(angle);
+
+    float new_i = i * cos_theta - q * sin_theta;
+    float new_q = i * sin_theta + q * cos_theta;
+
+    yiq_to_rgb(y, new_i, new_q, &r, &g, &b);
+
+    // Clamp and write back
+    r = clamp(r, 0.0f, 1.0f);
+    g = clamp(g, 0.0f, 1.0f);
+    b = clamp(b, 0.0f, 1.0f);
+
+    img[idx]     = (uchar)(r * 255.0f);
+    img[idx + 1] = (uchar)(g * 255.0f);
+    img[idx + 2] = (uchar)(b * 255.0f);
+}
+)CLC";
+
+const char* inverseColorsOpenCLKernelSource = R"CLC(
+__kernel void inverseColors_kernel(
+    __global uchar* img,
+    const int size
+) {
+    int idx = get_global_id(0);
+    if (idx >= size) return;
+
+    img[idx] = 255 - img[idx];
+}
+)CLC";
+
+const char* inverseColorsRGBAOpenCLKernelSource = R"CLC(
+__kernel void inverseColorsRGBA_kernel(
+    __global uchar* img,
+    const int size
+) {
+    int idx = get_global_id(0);
+    if (idx % 4 == 3 || idx >= size) return;
+
+    img[idx] = 255 - img[idx];
+}
+)CLC";

@@ -17,3 +17,9 @@ extern const char* flatLightRGBAOpenCLKernelSource;
 
 extern const char* changePaletteOpenCLKernelSource;
 extern const char* changePaletteRGBAOpenCLKernelSource;
+
+extern const char* hueShiftOpenCLKernelSource;
+extern const char* hueShiftRGBAOpenCLKernelSource;
+
+extern const char* inverseColorsOpenCLKernelSource;
+extern const char* inverseColorsRGBAOpenCLKernelSource;

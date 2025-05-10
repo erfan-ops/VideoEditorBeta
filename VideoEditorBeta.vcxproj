@@ -142,6 +142,7 @@
     <ClCompile Include="fileDialog.cpp" />
     <ClCompile Include="flatLight.cpp" />
     <ClCompile Include="globals.cpp" />
+    <ClCompile Include="hueShift.cpp" />
     <ClCompile Include="image.cpp" />
     <ClCompile Include="imageBlackAndWhite.cpp" />
     <ClCompile Include="imageBlur.cpp" />
@@ -161,6 +162,7 @@
     <ClCompile Include="imageSoftPalette.cpp" />
     <ClCompile Include="imageTrueOutlines.cpp" />
     <ClCompile Include="imageVintage8bit.cpp" />
+    <ClCompile Include="inverseColors.cpp" />
     <ClCompile Include="main.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -238,6 +240,8 @@
     <ClInclude Include="flatLight_launcher.cuh" />
     <ClInclude Include="globals.h" />
     <QtMoc Include="imageFlatLight.h" />
+    <ClInclude Include="hueShift.h" />
+    <ClInclude Include="inverseColors.h" />
     <ClInclude Include="launchers.h" />
     <ClInclude Include="lensFilter_launcher.cuh" />
     <QtMoc Include="videoLensFilter.h" />
