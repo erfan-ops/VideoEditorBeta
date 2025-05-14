@@ -47,3 +47,5 @@
 #include "changePalette.h"
 #include "hueShift.h"
 #include "inverseColors.h"
+#include "inverseContrast.h"
+#include "lensFilter.h"

@@ -576,9 +576,9 @@ __global__ void reverseContrastRGBA_kernel(unsigned char* __restrict__ img, cons
     int idx = pIdx * 4;
 
     // Load RGB components and normalize to [0,1]
-    float b = img[idx] / 255.0f;
+    float r = img[idx] / 255.0f;
     float g = img[idx + 1] / 255.0f;
-    float r = img[idx + 2] / 255.0f;
+    float b = img[idx + 2] / 255.0f;
 
     // Compute max and min values
     float max_color = fmaxf(fmaxf(r, g), b);
@@ -619,9 +619,9 @@ __global__ void reverseContrastRGBA_kernel(unsigned char* __restrict__ img, cons
     float new_b = (b == max_color) ? new_max : fmaf(b - min_color, ratio, new_min);
 
     // Store back to image buffer
-    img[idx] = static_cast<unsigned char>(fminf(fmaxf(new_b * 255.0f, 0.0f), 255.0f));
+    img[idx] = static_cast<unsigned char>(fminf(fmaxf(new_r * 255.0f, 0.0f), 255.0f));
     img[idx + 1] = static_cast<unsigned char>(fminf(fmaxf(new_g * 255.0f, 0.0f), 255.0f));
-    img[idx + 2] = static_cast<unsigned char>(fminf(fmaxf(new_r * 255.0f, 0.0f), 255.0f));
+    img[idx + 2] = static_cast<unsigned char>(fminf(fmaxf(new_b * 255.0f, 0.0f), 255.0f));
 }
 
 __device__ static __inline__ void rgb_to_yiq(float r, float g, float b, float& y, float& i, float& q) {

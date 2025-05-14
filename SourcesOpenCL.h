@@ -23,3 +23,9 @@ extern const char* hueShiftRGBAOpenCLKernelSource;
 
 extern const char* inverseColorsOpenCLKernelSource;
 extern const char* inverseColorsRGBAOpenCLKernelSource;
+
+extern const char* inverseContrastOpenCLKernelSource;
+extern const char* inverseContrastRGBAOpenCLKernelSource;
+
+extern const char* lensFilterOpenCLKernelSource;
+extern const char* lensFilterRGBAOpenCLKernelSource;

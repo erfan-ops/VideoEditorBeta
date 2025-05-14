@@ -163,6 +163,8 @@
     <ClCompile Include="imageTrueOutlines.cpp" />
     <ClCompile Include="imageVintage8bit.cpp" />
     <ClCompile Include="inverseColors.cpp" />
+    <ClCompile Include="inverseContrast.cpp" />
+    <ClCompile Include="lensFilter.cpp" />
     <ClCompile Include="main.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -242,7 +244,9 @@
     <QtMoc Include="imageFlatLight.h" />
     <ClInclude Include="hueShift.h" />
     <ClInclude Include="inverseColors.h" />
+    <ClInclude Include="inverseContrast.h" />
     <ClInclude Include="launchers.h" />
+    <ClInclude Include="lensFilter.h" />
     <ClInclude Include="lensFilter_launcher.cuh" />
     <QtMoc Include="videoLensFilter.h" />
     <QtMoc Include="videoChangePalette.h" />

@@ -50,8 +50,6 @@ private:
     float heightRatio{ 1 };
 
     // effect specifics
-    cudaStream_t streamFilter;
-    cudaStream_t streamInverseContrast;
     cudaStream_t streamMonoChrome;
     cudaStream_t streamOutLine;
     cudaStream_t streamTrueOutLine;

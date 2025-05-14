@@ -1,36 +1,17 @@
+#include "lensFilter.h"
 #include "imageLensFilter.h"
 #include "image.h"
-#include "lensFilter_launcher.cuh"
 
 
 void ILensFilterWorker::process() {
     try {
         Image img(m_inputPath);
 
-        unsigned char* d_img;
-        float* d_passThreshValues;
+        LensFilterProcessor processor(img.getSize(), m_passThreshValues, 3);
 
-        int blockSize = 1024;
-        int gridSize = (img.getSize() + blockSize - 1) / blockSize;
-
-        cudaStream_t stream;
-        cudaStreamCreate(&stream);
-
-        cudaMallocAsync(&d_img, img.getSize(), stream);
-        cudaMallocAsync(&d_passThreshValues, 3 * sizeof(float), stream);
-
-        cudaMemcpyAsync(d_img, img.getData(), img.getSize(), cudaMemcpyHostToDevice, stream);
-        cudaMemcpyAsync(d_passThreshValues, m_passThreshValues, 3 * sizeof(float), cudaMemcpyHostToDevice, stream);
-
-        lensFilter(gridSize, blockSize, stream, d_img, img.getSize(), d_passThreshValues);
-
-        cudaMemcpyAsync(img.getData(), d_img, img.getSize(), cudaMemcpyDeviceToHost, stream);
-
-        cudaStreamSynchronize(stream);
-
-        cudaFreeAsync(d_img, stream);
-        cudaFreeAsync(d_passThreshValues, stream);
-        cudaStreamDestroy(stream);
+        processor.setImage(img.getData());
+        processor.process();
+        processor.upload(img.getData());
 
         img.save(m_outputPath);
 

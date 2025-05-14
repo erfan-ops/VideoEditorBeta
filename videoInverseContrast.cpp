@@ -1,5 +1,5 @@
+#include "inverseContrast.h"
 #include "videoInverseContrast.h"
-#include "inverseContrast_launcher.cuh"
 #include "videoHeaders.h"
 
 
@@ -19,11 +19,6 @@ void VInverseContrastWorker::process() {
 
         Video video(m_inputPath, temp_video_name);
         Timer timer;
-
-        unsigned char* d_img;
-
-        // Allocate device memory
-        videoUtils::checkCudaError(cudaMalloc(&d_img, video.getSize()), "Failed to allocate device memory for image");
 
         // Frame buffer pool (preallocated)
         std::queue<cv::Mat> bufferPool;
@@ -65,11 +60,7 @@ void VInverseContrastWorker::process() {
             }
             };
 
-        cudaStream_t stream;
-        videoUtils::checkCudaError(cudaStreamCreate(&stream), "Failed to create stream");
-
-        int blockSize = 1024;
-        int gridSize = (video.getNumPixels() + blockSize - 1) / blockSize;
+        InverseContrastProcessor processor(video.getSize(), video.getNumPixels());
 
         std::thread writer(writerThread);
 
@@ -82,12 +73,9 @@ void VInverseContrastWorker::process() {
             bufferPool.pop();
             bufferLock.unlock();
 
-            cudaMemcpyAsync(d_img, video.getData(), video.getSize(), cudaMemcpyHostToDevice, stream);
-
-            inverseContrast(gridSize, blockSize, stream, d_img, video.getNumPixels());
-
-            cudaMemcpyAsync(frameBuffer.data, d_img, video.getSize(), cudaMemcpyDeviceToHost, stream);
-            cudaStreamSynchronize(stream);
+            processor.setImage(video.getData());
+            processor.process();
+            processor.upload(frameBuffer.data);
 
             {
                 std::lock_guard<std::mutex> frameLock(queueMutex);
@@ -106,8 +94,6 @@ void VInverseContrastWorker::process() {
 
         // clean up
         video.release();
-        cudaFree(d_img);
-        cudaStreamDestroy(stream);
 
         videoUtils::mergeAudio(temp_video_name, temp_audio_name, m_outputPath);
 

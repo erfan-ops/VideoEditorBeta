@@ -289,6 +289,12 @@
     <Filter Include="Effects\Inverse Colors\Launcher\CUDA">
       <UniqueIdentifier>{3a2df497-3dfc-4cd1-a8b9-8bd286a0c265}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Effects\Inverse Contrast\Launcher\CUDA">
+      <UniqueIdentifier>{a7e751bf-10f3-44a6-991a-ebf04192f55b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Lens Filter\Launcher\CUDA">
+      <UniqueIdentifier>{109adcf3-0b3d-40ed-92f0-5de23757c214}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -459,6 +465,12 @@
     <ClCompile Include="inverseColors.cpp">
       <Filter>Effects\Inverse Colors\Launcher</Filter>
     </ClCompile>
+    <ClCompile Include="inverseContrast.cpp">
+      <Filter>Effects\Inverse Contrast\Launcher</Filter>
+    </ClCompile>
+    <ClCompile Include="lensFilter.cpp">
+      <Filter>Effects\Lens Filter\Launcher</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="outline_launcher.cu">
@@ -469,9 +481,6 @@
     </CudaCompile>
     <CudaCompile Include="pixelate_launcher.cu">
       <Filter>Effects\Pixelate\Launcher</Filter>
-    </CudaCompile>
-    <CudaCompile Include="inverseContrast_launcher.cu">
-      <Filter>Effects\Inverse Contrast\Launcher</Filter>
     </CudaCompile>
     <CudaCompile Include="radialBlur_launcher.cu">
       <Filter>Effects\Radial Blur\Launcher</Filter>
@@ -490,9 +499,6 @@
     </CudaCompile>
     <CudaCompile Include="vintage8bit_launcher.cu">
       <Filter>Effects\Vintage8bit\Launcher</Filter>
-    </CudaCompile>
-    <CudaCompile Include="lensFilter_launcher.cu">
-      <Filter>Effects\Lens Filter\Launcher</Filter>
     </CudaCompile>
     <CudaCompile Include="softPalette_launcher.cu">
       <Filter>Effects\Soft Palette\Launcher\CUDA</Filter>
@@ -520,6 +526,12 @@
     </CudaCompile>
     <CudaCompile Include="inverseColors_launcher.cu">
       <Filter>Effects\Inverse Colors\Launcher\CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="inverseContrast_launcher.cu">
+      <Filter>Effects\Inverse Contrast\Launcher\CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="lensFilter_launcher.cu">
+      <Filter>Effects\Lens Filter\Launcher\CUDA</Filter>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
@@ -562,9 +574,6 @@
     <ClInclude Include="videoHeaders.h">
       <Filter>Effects\include</Filter>
     </ClInclude>
-    <ClInclude Include="inverseContrast_launcher.cuh">
-      <Filter>Effects\Inverse Contrast\Launcher</Filter>
-    </ClInclude>
     <ClInclude Include="radialBlur_launcher.cuh">
       <Filter>Effects\Radial Blur\Launcher</Filter>
     </ClInclude>
@@ -582,9 +591,6 @@
     </ClInclude>
     <ClInclude Include="vintage8bit_launcher.cuh">
       <Filter>Effects\Vintage8bit\Launcher</Filter>
-    </ClInclude>
-    <ClInclude Include="lensFilter_launcher.cuh">
-      <Filter>Effects\Lens Filter\Launcher</Filter>
     </ClInclude>
     <ClInclude Include="launchers.h">
       <Filter>Effects\include</Filter>
@@ -645,6 +651,18 @@
     </ClInclude>
     <ClInclude Include="inverseColors.h">
       <Filter>Effects\Inverse Colors\Launcher</Filter>
+    </ClInclude>
+    <ClInclude Include="inverseContrast_launcher.cuh">
+      <Filter>Effects\Inverse Contrast\Launcher\CUDA</Filter>
+    </ClInclude>
+    <ClInclude Include="inverseContrast.h">
+      <Filter>Effects\Inverse Contrast\Launcher</Filter>
+    </ClInclude>
+    <ClInclude Include="lensFilter_launcher.cuh">
+      <Filter>Effects\Lens Filter\Launcher\CUDA</Filter>
+    </ClInclude>
+    <ClInclude Include="lensFilter.h">
+      <Filter>Effects\Lens Filter\Launcher</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

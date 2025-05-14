@@ -637,3 +637,132 @@ __kernel void inverseColorsRGBA_kernel(
     img[idx] = 255 - img[idx];
 }
 )CLC";
+
+const char* inverseContrastOpenCLKernelSource = R"CLC(
+__kernel void inverseContrast_kernel(__global uchar* img, const int nPixels) {
+    int pIdx = get_global_id(0);
+    if (pIdx >= nPixels) return;
+
+    int idx = pIdx * 3;
+
+    // Load RGB components and normalize to [0,1]
+    float b = (float)(img[idx])     / 255.0f;
+    float g = (float)(img[idx + 1]) / 255.0f;
+    float r = (float)(img[idx + 2]) / 255.0f;
+
+    // Compute max and min values
+    float max_color = fmax(fmax(r, g), b);
+    float min_color = fmin(fmin(r, g), b);
+
+    // Compute original lightness
+    float l = 0.5f * (max_color + min_color);
+
+    // Invert lightness
+    float inverted_l = 1.0f - l;
+
+    float delta = max_color - min_color;
+    if (delta < 1e-6f) {
+        // Grayscale: set all channels to inverted lightness
+        uchar inv = (uchar)(clamp(inverted_l * 255.0f, 0.0f, 255.0f));
+        img[idx]     = inv;
+        img[idx + 1] = inv;
+        img[idx + 2] = inv;
+        return;
+    }
+
+    // Compute saturation
+    float s = delta / (1.0f - fabs(2.0f * l - 1.0f));
+
+    // Compute new min and max based on inverted lightness
+    float tmp = s * (1.0f - fabs(2.0f * inverted_l - 1.0f)) * 0.5f;
+    float new_max = inverted_l + tmp;
+    float new_min = inverted_l - tmp;
+
+    // Remap RGB values while preserving hue
+    float new_r = (r == max_color) ? new_max : new_min + (r - min_color) * (new_max - new_min) / delta;
+    float new_g = (g == max_color) ? new_max : new_min + (g - min_color) * (new_max - new_min) / delta;
+    float new_b = (b == max_color) ? new_max : new_min + (b - min_color) * (new_max - new_min) / delta;
+
+    img[idx]     = (uchar)(clamp(new_b * 255.0f, 0.0f, 255.0f));
+    img[idx + 1] = (uchar)(clamp(new_g * 255.0f, 0.0f, 255.0f));
+    img[idx + 2] = (uchar)(clamp(new_r * 255.0f, 0.0f, 255.0f));
+}
+)CLC";
+
+
+const char* inverseContrastRGBAOpenCLKernelSource = R"CLC(
+__kernel void inverseContrastRGBA_kernel(__global uchar* img, const int nPixels) {
+    int pIdx = get_global_id(0);
+    if (pIdx >= nPixels) return;
+
+    int idx = pIdx * 4;
+
+    // Load RGB components and normalize to [0,1]
+    float r = (float)(img[idx])     / 255.0f;
+    float g = (float)(img[idx + 1]) / 255.0f;
+    float b = (float)(img[idx + 2]) / 255.0f;
+
+    // Compute max and min values
+    float max_color = fmax(fmax(r, g), b);
+    float min_color = fmin(fmin(r, g), b);
+
+    // Compute original lightness
+    float l = 0.5f * (max_color + min_color);
+
+    // Invert lightness
+    float inverted_l = 1.0f - l;
+
+    float delta = max_color - min_color;
+    if (delta < 1e-6f) {
+        // Grayscale: set all channels to inverted lightness
+        uchar inv = (uchar)(clamp(inverted_l * 255.0f, 0.0f, 255.0f));
+        img[idx]     = inv;
+        img[idx + 1] = inv;
+        img[idx + 2] = inv;
+        return;
+    }
+
+    // Compute saturation
+    float s = delta / (1.0f - fabs(2.0f * l - 1.0f));
+
+    // Compute new min and max based on inverted lightness
+    float tmp = s * (1.0f - fabs(2.0f * inverted_l - 1.0f)) * 0.5f;
+    float new_max = inverted_l + tmp;
+    float new_min = inverted_l - tmp;
+
+    // Remap RGB values while preserving hue
+    float new_r = (r == max_color) ? new_max : new_min + (r - min_color) * (new_max - new_min) / delta;
+    float new_g = (g == max_color) ? new_max : new_min + (g - min_color) * (new_max - new_min) / delta;
+    float new_b = (b == max_color) ? new_max : new_min + (b - min_color) * (new_max - new_min) / delta;
+
+    img[idx]     = (uchar)(clamp(new_r * 255.0f, 0.0f, 255.0f));
+    img[idx + 1] = (uchar)(clamp(new_g * 255.0f, 0.0f, 255.0f));
+    img[idx + 2] = (uchar)(clamp(new_b * 255.0f, 0.0f, 255.0f));
+}
+)CLC";
+
+const char* lensFilterOpenCLKernelSource = R"CLC(
+__kernel void lensFilter_kernel(
+    __global uchar* img,
+    const int size,
+    __global const float* passThreshValues
+) {
+    int idx = get_global_id(0);
+    if (idx >= size) return;
+
+    img[idx] = passThreshValues[idx % 3] * img[idx];
+}
+)CLC";
+
+const char* lensFilterRGBAOpenCLKernelSource = R"CLC(
+__kernel void lensFilterRGBA_kernel(
+    __global uchar* img,
+    const int size,
+    __global const float* passThreshValues
+) {
+    int idx = get_global_id(0);
+    if (idx >= size) return;
+
+    img[idx] = passThreshValues[idx % 4] * img[idx];
+}
+)CLC";

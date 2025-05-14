@@ -5,6 +5,6 @@
 class IInverseContrastWorker : public ImageEffect {
     Q_OBJECT
 public:
-    IInverseContrastWorker(QObject* parent = nullptr);
+    IInverseContrastWorker(QObject* parent = nullptr) {}
     void process() override;
 };
