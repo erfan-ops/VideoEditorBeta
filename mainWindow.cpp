@@ -1504,10 +1504,14 @@ void MainWindow::newThumbnails() {
     QPixmap pixmap(QString::fromStdWString(this->selectedFilePath));
     if (pixmap.isNull()) return;
 
+    int orgW = pixmap.width();
+    int orgH = pixmap.height();
+
     // Scale down with smooth transformation
-    this->widthRatio = 960.0f / pixmap.width();
-    this->heightRatio = 540.0f / pixmap.height();
-    this->selectedPixmap = pixmap.scaled(960, 540, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    this->selectedPixmap = pixmap.scaled(960, 540, Qt::AspectRatioMode::KeepAspectRatio, Qt::TransformationMode::SmoothTransformation);
+
+    this->widthRatio = static_cast<float>(this->selectedPixmap.width()) / static_cast<float>(orgW);
+    this->heightRatio = static_cast<float>(this->selectedPixmap.height()) / static_cast<float>(orgH);
 
     setThumbnail(ui->btnHueShift, this->selectedPixmap);
     setThumbnail(ui->btnFilter, this->selectedPixmap);
@@ -1528,26 +1532,40 @@ void MainWindow::newThumbnails() {
     setThumbnail(ui->btnSoftPalette, this->selectedPixmap);
     setThumbnail(ui->btnFlatLight, this->selectedPixmap);
 
-    EffectButton* effectBtn = qobject_cast<EffectButton*>(ui->btnRadialBlur);
-    QPixmap originalPixmap = effectBtn->getOriginalPixmap();
+    ui->centerX->setMaximum(this->selectedPixmap.width());
+    ui->centerY->setMaximum(this->selectedPixmap.height());
 
-    ui->centerX->setMaximum(originalPixmap.width());
-    ui->centerY->setMaximum(originalPixmap.height());
+    ui->centerX->setValue(0.5f * this->selectedPixmap.width());
+    ui->centerY->setValue(0.5f * this->selectedPixmap.height());
 
-    ui->centerX->setValue(0.5f * originalPixmap.width());
-    ui->centerY->setValue(0.5f * originalPixmap.height());
+    int widthOver40 = orgW / 40;
 
-    effectBtn = qobject_cast<EffectButton*>(ui->btnCensor);
-    originalPixmap = effectBtn->getOriginalPixmap();
+    ui->censorWidth->setValue(widthOver40);
+    ui->censorHeight->setValue(widthOver40);
 
-    ui->censorWidth->setMaximum(originalPixmap.width());
-    ui->censorHeight->setMaximum(originalPixmap.height());
+    ui->censorWidth->setMaximum(orgW);
+    ui->censorHeight->setMaximum(orgH);
 
-    ui->pixelWidth->setMaximum(originalPixmap.width());
-    ui->pixelHeight->setMaximum(originalPixmap.height());
+    ui->pixelWidth->setValue(widthOver40);
+    ui->pixelHeight->setValue(widthOver40);
 
-    ui->vintagePixelWidth->setMaximum(originalPixmap.width());
-    ui->vintagePixelHeight->setMaximum(originalPixmap.height());
+    ui->pixelWidth->setMaximum(orgW);
+    ui->pixelHeight->setMaximum(orgH);
+
+    ui->vintagePixelWidth->setValue(widthOver40);
+    ui->vintagePixelHeight->setValue(widthOver40);
+
+    ui->vintagePixelWidth->setMaximum(orgW);
+    ui->vintagePixelHeight->setMaximum(orgH);
+
+    ui->blurRadius->setValue(widthOver40);
+    ui->blurRadius->setMaximum(orgW / 10);
+
+    float rWidthRatio = 1.f / this->widthRatio;
+
+    ui->ThicknessX->setValue(static_cast<int>(std::ceil(rWidthRatio)));
+    ui->ThicknessY->setValue(static_cast<int>(std::ceil(rWidthRatio)));
+    ui->trueOutlinesThresh->setValue(static_cast<int>(std::ceil(rWidthRatio * 2.f)));
 
 
     this->updateThumbnails();
