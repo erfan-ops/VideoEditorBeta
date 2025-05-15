@@ -169,6 +169,9 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="mainWindow.cpp" />
+    <ClCompile Include="monoChrome.cpp" />
+    <ClCompile Include="monoMask.cpp" />
+    <ClCompile Include="posterize.cpp" />
     <ClCompile Include="softPalette.cpp" />
     <ClCompile Include="SourcesOpenCL.cpp" />
     <ClCompile Include="timer.cpp" />
@@ -250,8 +253,11 @@
     <ClInclude Include="lensFilter_launcher.cuh" />
     <QtMoc Include="videoLensFilter.h" />
     <QtMoc Include="videoChangePalette.h" />
+    <ClInclude Include="monoChrome.h" />
+    <ClInclude Include="monoMask.h" />
     <ClInclude Include="monoMask_launcher.cuh" />
     <QtMoc Include="videoMonoMask.h" />
+    <ClInclude Include="posterize.h" />
     <ClInclude Include="softPalette.h" />
     <ClInclude Include="softPalette_launcher.cuh" />
     <QtMoc Include="videoSoftPalette.h" />

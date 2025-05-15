@@ -3,14 +3,14 @@
 #include <CL/cl.h>
 #include <cuda_runtime.h>
 
-class SoftPaletteProcessor {
+class MonoChromeProcessor {
 public:
-    SoftPaletteProcessor(int nPixels, int size, unsigned char* colorsBGR, int numColors);
-    ~SoftPaletteProcessor();
+    MonoChromeProcessor(int size, int nPixels);
+    ~MonoChromeProcessor();
 
     // Function pointer to process image with either CUDA or OpenCL
-    static void (SoftPaletteProcessor::* processFunc)() const;
-    static void (SoftPaletteProcessor::* processFuncRGBA)() const;
+    static void (MonoChromeProcessor::* processFunc)() const;
+    static void (MonoChromeProcessor::* processFuncRGBA)() const;
 
     // Main processing function (no need to pass img or colorsBGR)
     void process() const;
@@ -18,8 +18,7 @@ public:
 
     // setters
     void setImage(const unsigned char* img);
-
-    void upload(unsigned char* Dst);
+    void upload(unsigned char* Dst) const;
 
     // initializer
     static void init();
@@ -28,23 +27,19 @@ private:
     // CUDA
     cudaStream_t m_cudaStream = nullptr;
     unsigned char* d_img = nullptr;
-    unsigned char* d_colorsBGR = nullptr;
 
-    int gridSize = 0;
-    int blockSize = 0;
+    int gridSize;
+    int blockSize;
 
     // OpenCL
     static cl_kernel m_openclKernel;
     static cl_kernel m_openclKernelRGBA;
     cl_mem m_imgBuf = nullptr;
-    cl_mem m_colorBuf = nullptr;
 
-    // Image and color palette members
+    // members
     unsigned char* m_img = nullptr;
-
-    int m_nPixels{0};
-    int m_numColors{0};
-    int imgSize{0};
+    int m_nPixels;
+    int imgSize;
 
     // Allocate buffers
     void allocateCUDA();

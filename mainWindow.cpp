@@ -53,16 +53,16 @@ MainWindow::MainWindow(QWidget* parent)
     InverseColorsProcessor::init();
     InverseContrastProcessor::init();
     LensFilterProcessor::init();
+    MonoChromeProcessor::init();
+    MonoMaskProcessor::init();
+    PosterizeProcessor::init();
         
 
-    cudaStreamCreate(&this->streamMonoChrome);
     cudaStreamCreate(&this->streamOutLine);
     cudaStreamCreate(&this->streamTrueOutLine);
-    cudaStreamCreate(&this->streamPosterize);
     cudaStreamCreate(&this->streamRadialBlur);
     cudaStreamCreate(&this->streamPixelate);
     cudaStreamCreate(&this->streamVintage8bit);
-    cudaStreamCreate(&this->streamMonoMask);
 
     // Connect signals
     QObject::connect(ui->btnSelect, &QPushButton::clicked, [&]() {
@@ -822,14 +822,11 @@ MainWindow::MainWindow(QWidget* parent)
 
 MainWindow::~MainWindow()
 {
-    cudaStreamDestroy(this->streamMonoChrome);
     cudaStreamDestroy(this->streamOutLine);
     cudaStreamDestroy(this->streamTrueOutLine);
-    cudaStreamDestroy(this->streamPosterize);
     cudaStreamDestroy(this->streamRadialBlur);
     cudaStreamDestroy(this->streamPixelate);
     cudaStreamDestroy(this->streamVintage8bit);
-    cudaStreamDestroy(this->streamMonoMask);
 
     delete ui;
 }
@@ -1052,29 +1049,16 @@ void MainWindow::updateMonoChromeThumbnail() {
     int size = image.sizeInBytes();
     int nPixels = image.width() * image.height();
 
-    unsigned char* img = new unsigned char[size];
-    memcpy(img, image.constBits(), size);
+    MonoChromeProcessor processor(size, nPixels);
 
-    unsigned char* d_img;
-    cudaMalloc(&d_img, size);
-    cudaMemcpy(d_img, img, size, cudaMemcpyHostToDevice);
+    processor.setImage(image.constBits());
+    processor.processRGBA();
+    processor.upload(image.bits());
 
-    int blockSize = 1024;
-    int gridSize = (nPixels + blockSize - 1) / blockSize;
-
-    monoChromeRGBA(gridSize, blockSize, this->streamMonoChrome, d_img, nPixels);
-    cudaStreamSynchronize(this->streamMonoChrome);
-
-    cudaMemcpy(img, d_img, size, cudaMemcpyDeviceToHost);
-
-    QImage result(img, image.width(), image.height(), QImage::Format_RGBA8888);
+    QImage result(image.bits(), image.width(), image.height(), QImage::Format_RGBA8888);
     QPixmap resultPixmap = QPixmap::fromImage(result);
 
     effectBtn->setProcessedPixmap(resultPixmap);
-
-    // Cleanup
-    delete[] img;
-    cudaFree(d_img);
 }
 
 void MainWindow::updateBlurThumbnail() {
@@ -1207,29 +1191,16 @@ void MainWindow::updatePosterizeThumbnail() {
 
     int size = image.sizeInBytes();
 
-    unsigned char* img = new unsigned char[size];
-    memcpy(img, image.constBits(), size);
+    PosterizeProcessor processor(size, thresh);
 
-    unsigned char* d_img;
-    cudaMalloc(&d_img, size);
-    cudaMemcpy(d_img, img, size, cudaMemcpyHostToDevice);
+    processor.upload(image.constBits());
+    processor.processRGBA();
+    processor.download(image.bits());
 
-    int blockSize = 1024;
-    int gridSize = (size + blockSize - 1) / blockSize;
-
-    posterizeRGBA(gridSize, blockSize, this->streamPosterize, d_img, size, thresh);
-    cudaStreamSynchronize(this->streamPosterize);
-
-    cudaMemcpy(img, d_img, size, cudaMemcpyDeviceToHost);
-
-    QImage result(img, image.width(), image.height(), QImage::Format_RGBA8888);
+    QImage result(image.bits(), image.width(), image.height(), QImage::Format_RGBA8888);
     QPixmap resultPixmap = QPixmap::fromImage(result);
 
     effectBtn->setProcessedPixmap(resultPixmap);
-
-    // Cleanup
-    delete[] img;
-    cudaFree(d_img);
 }
 
 void MainWindow::updateRadialBlurThumbnail() {
@@ -1443,15 +1414,7 @@ void MainWindow::updateMonoMaskThumbnail() {
     if (this->monoMaskColorsVector.size() < 6) return;
 
     unsigned char* colorsBGR = this->monoMaskColorsVector.data();
-    unsigned char* colorsRGB = new unsigned char[this->monoMaskColorsVector.size()];
     int numColors = this->monoMaskColorsVector.size() / 3;
-
-    for (int i = 0; i < numColors; ++i) {
-        int index = i * 3;
-        colorsRGB[index] = colorsBGR[index + 2]; // R
-        colorsRGB[index + 1] = colorsBGR[index + 1]; // G
-        colorsRGB[index + 2] = colorsBGR[index];     // B
-    }
 
     EffectButton* effectBtn = qobject_cast<EffectButton*>(ui->btnMonoMask);
     if (!effectBtn) return;
@@ -1464,34 +1427,16 @@ void MainWindow::updateMonoMaskThumbnail() {
     const int size = image.sizeInBytes();
     const int nPixels = image.width() * image.height();
 
-    unsigned char* img = new unsigned char[size];
-    memcpy(img, image.constBits(), size);
+    MonoMaskProcessor processor(nPixels, size, colorsBGR, numColors);
 
-    unsigned char* d_img;
-    unsigned char* d_colorsRGB;
-    cudaMalloc(&d_img, size);
-    cudaMalloc(&d_colorsRGB, this->monoMaskColorsVector.size() * sizeof(unsigned char));
-    cudaMemcpy(d_img, img, size, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_colorsRGB, colorsRGB, this->monoMaskColorsVector.size() * sizeof(unsigned char), cudaMemcpyHostToDevice);
+    processor.setImage(image.constBits());
+    processor.processRGBA();
+    processor.upload(image.bits());
 
-    int blockSize = 1024;
-    int gridSize = (nPixels + blockSize - 1) / blockSize;
-
-    monoMaskRGBA(gridSize, blockSize, this->streamMonoMask, d_img, nPixels, d_colorsRGB, numColors);
-    cudaStreamSynchronize(this->streamMonoMask);
-
-    cudaMemcpy(img, d_img, size, cudaMemcpyDeviceToHost);
-
-    QImage result(img, image.width(), image.height(), QImage::Format_RGBA8888);
+    QImage result(image.bits(), image.width(), image.height(), QImage::Format_RGBA8888);
     QPixmap resultPixmap = QPixmap::fromImage(result);
 
     effectBtn->setProcessedPixmap(resultPixmap);
-
-    // Cleanup
-    delete[] img;
-    delete[] colorsRGB;
-    cudaFree(d_img);
-    cudaFree(d_colorsRGB);
 }
 
 void MainWindow::updateSoftPaletteThumbnail() {

@@ -29,3 +29,12 @@ extern const char* inverseContrastRGBAOpenCLKernelSource;
 
 extern const char* lensFilterOpenCLKernelSource;
 extern const char* lensFilterRGBAOpenCLKernelSource;
+
+extern const char* monoChromeOpenCLKernelSource;
+extern const char* monoChromeRGBAOpenCLKernelSource;
+
+extern const char* monoMaskOpenCLKernelSource;
+extern const char* monoMaskRGBAOpenCLKernelSource;
+
+extern const char* posterizeOpenCLKernelSource;
+extern const char* posterizeRGBAOpenCLKernelSource;

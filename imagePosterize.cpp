@@ -1,6 +1,6 @@
+#include "posterize.h"
 #include "imagePosterize.h"
 #include "image.h"
-#include "posterize_launcher.cuh"
 
 
 void IPosterizeWorker::process() {
@@ -9,24 +9,11 @@ void IPosterizeWorker::process() {
 
         unsigned char* d_img;
 
-        int blockSize = 1024;
-        int gridSize = (img.getSize() + blockSize - 1) / blockSize;
+        PosterizeProcessor processor(img.getSize(), m_threshold);
 
-        cudaStream_t stream;
-        cudaStreamCreate(&stream);
-
-        cudaMallocAsync(&d_img, img.getSize(), stream);
-
-        cudaMemcpyAsync(d_img, img.getData(), img.getSize(), cudaMemcpyHostToDevice, stream);
-
-        posterize(gridSize, blockSize, stream, d_img, img.getSize(), m_threshold);
-
-        cudaMemcpyAsync(img.getData(), d_img, img.getSize(), cudaMemcpyDeviceToHost, stream);
-
-        cudaStreamSynchronize(stream);
-
-        cudaFreeAsync(d_img, stream);
-        cudaStreamDestroy(stream);
+        processor.upload(img.getData());
+        processor.process();
+        processor.download(img.getData());
 
         img.save(m_outputPath);
 

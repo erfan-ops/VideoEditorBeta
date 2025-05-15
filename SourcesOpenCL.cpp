@@ -1,4 +1,4 @@
-#include "SourcesOpenCL.h"
+﻿#include "SourcesOpenCL.h"
 
 const char* softPaletteOpenCLKernelSource = R"CLC(
 __kernel void blendNearestColors_kernel(
@@ -764,5 +764,154 @@ __kernel void lensFilterRGBA_kernel(
     if (idx >= size) return;
 
     img[idx] = passThreshValues[idx % 4] * img[idx];
+}
+)CLC";
+
+const char* monoChromeOpenCLKernelSource = R"CLC(
+__kernel void monoChrome_kernel(
+    __global uchar* img,
+    const int nPixels
+) {
+    int pIdx = get_global_id(0);
+    if (pIdx >= nPixels) return;
+
+    int idx = pIdx * 3;
+
+    uchar m = (uchar)(0.114f * (float)(img[idx]) +
+                      0.587f * (float)(img[idx + 1]) +
+                      0.299f * (float)(img[idx + 2]));
+
+    img[idx] = m;
+    img[idx + 1] = m;
+    img[idx + 2] = m;
+}
+)CLC";
+
+const char* monoChromeRGBAOpenCLKernelSource = R"CLC(
+__kernel void monoChromeRGBA_kernel(
+    __global uchar* img,
+    const int nPixels
+) {
+    int pIdx = get_global_id(0);
+    if (pIdx >= nPixels) return;
+
+    int idx = pIdx * 4;
+
+    uchar m = (uchar)(0.114f * (float)(img[idx + 2]) +
+                      0.587f * (float)(img[idx + 1]) +
+                      0.299f * (float)(img[idx]));
+
+    img[idx] = m;
+    img[idx + 1] = m;
+    img[idx + 2] = m;
+}
+)CLC";
+
+const char* monoMaskOpenCLKernelSource = R"CLC(
+__kernel void monoMask_kernel(
+    __global uchar* img,
+    const int nPixels,
+    __global const uchar* colors_BGR,
+    const int num_colors
+) {
+    int pIdx = get_global_id(0);
+    if (pIdx >= nPixels) return;
+
+    int idx = pIdx * 3; // RGB index
+
+    // Compute grayscale mediant value
+    float mediant = (0.114f * (float)img[idx] +
+                     0.587f * (float)img[idx + 1] +
+                     0.299f * (float)img[idx + 2]) / 255.0f;
+
+    // Determine gradient segment
+    float segment_size = 1.0f / (float)(num_colors - 1);
+    int segment_index = (int)(mediant / segment_size);
+    if (segment_index > num_colors - 2) {
+        segment_index = num_colors - 2;
+    }
+
+    // Compute blending factor
+    float segment_start = (float)segment_index * segment_size;
+    float segment_end = (float)(segment_index + 1) * segment_size;
+    float scale_factor = (mediant - segment_start) / (segment_end - segment_start);
+
+    // Blend colors for B, G, R
+    for (int i = 0; i < 3; ++i) {
+        uchar color_start = colors_BGR[segment_index * 3 + i];
+        uchar color_end = colors_BGR[(segment_index + 1) * 3 + i];
+        img[idx + i] = (uchar)((float)color_start +
+                              ((float)(color_end - color_start) * scale_factor));
+    }
+}
+)CLC";
+
+const char* monoMaskRGBAOpenCLKernelSource = R"CLC(
+__kernel void monoMaskRGBA_kernel(
+    __global uchar* img,                // RGBA image
+    const int nPixels,                  // Number of pixels
+    __global const uchar* colors_BGR,   // Color palette (in BGR)
+    const int num_colors                // Number of palette entries
+) {
+    int pIdx = get_global_id(0);
+    if (pIdx >= nPixels) return;
+
+    int idx = pIdx * 4; // RGBA image: 4 channels per pixel
+
+    // Compute grayscale mediant from RGB
+    float mediant = (0.299f * (float)(img[idx]) +        // R
+                     0.587f * (float)(img[idx + 1]) +    // G
+                     0.114f * (float)(img[idx + 2]))     // B
+                     / 255.0f;
+
+    float segment_size = 1.0f / (float)(num_colors - 1);
+    int segment_index = (int)(mediant / segment_size);
+    segment_index = min(segment_index, num_colors - 2);
+
+    float segment_start = segment_index * segment_size;
+    float segment_end = (segment_index + 1) * segment_size;
+    float scale_factor = (mediant - segment_start) / (segment_end - segment_start);
+
+    // Blend BGR palette → into RGB output (reversed index)
+    for (int i = 0; i < 3; ++i) {
+        uchar color_start = colors_BGR[segment_index * 3 + (2 - i)];
+        uchar color_end = colors_BGR[(segment_index + 1) * 3 + (2 - i)];
+        img[idx + i] = (uchar)((float)color_start + ((float)(color_end - color_start)) * scale_factor);
+    }
+}
+)CLC";
+
+const char* posterizeOpenCLKernelSource = R"CLC(
+__kernel void posterize_kernel(
+    __global uchar* img,
+    const int size,
+    const float thresh
+) {
+    int idx = get_global_id(0);
+    if (idx >= size) return;
+
+    float halfThresh = thresh / 2.0f;
+    float colorValue = (float)(img[idx]) + halfThresh;
+    float result_value = colorValue - fmod(colorValue, thresh);
+
+    img[idx] = (uchar)(fmin(result_value, 255.0f));
+}
+)CLC";
+
+const char* posterizeRGBAOpenCLKernelSource = R"CLC(
+__kernel void posterizeRGBA_kernel(
+    __global uchar* img,
+    const int size,
+    const float thresh
+) {
+    int idx = get_global_id(0);
+    if (idx >= size) return;
+    if (idx % 4 == 3) return; // skip alpha
+
+    float halfThresh = thresh / 2.0f;
+    float colorValue = (float)(img[idx]) + halfThresh;
+    float result_value = colorValue - fmod(colorValue, thresh);
+    
+    img[idx] = (uchar)(fmin(result_value, 255.0f));
 }
 )CLC";

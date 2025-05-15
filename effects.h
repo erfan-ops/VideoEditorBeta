@@ -49,3 +49,6 @@
 #include "inverseColors.h"
 #include "inverseContrast.h"
 #include "lensFilter.h"
+#include "monoChrome.h"
+#include "monoMask.h"
+#include "posterize.h"

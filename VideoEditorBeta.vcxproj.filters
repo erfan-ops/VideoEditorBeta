@@ -295,6 +295,12 @@
     <Filter Include="Effects\Lens Filter\Launcher\CUDA">
       <UniqueIdentifier>{109adcf3-0b3d-40ed-92f0-5de23757c214}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Effects\MonoChrome\Launcher\CUDA">
+      <UniqueIdentifier>{23ea4768-2a6c-42a7-aece-ccf544e84308}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Posterize\Launcher\CUDA">
+      <UniqueIdentifier>{6c06685d-15fb-4c8f-a787-c400d7f1a8d5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -471,6 +477,15 @@
     <ClCompile Include="lensFilter.cpp">
       <Filter>Effects\Lens Filter\Launcher</Filter>
     </ClCompile>
+    <ClCompile Include="monoChrome.cpp">
+      <Filter>Effects\MonoChrome\Launcher</Filter>
+    </ClCompile>
+    <ClCompile Include="monoMask.cpp">
+      <Filter>Effects\Mono Mask\Launcher</Filter>
+    </ClCompile>
+    <ClCompile Include="posterize.cpp">
+      <Filter>Effects\Posterize\Launcher</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="outline_launcher.cu">
@@ -484,12 +499,6 @@
     </CudaCompile>
     <CudaCompile Include="radialBlur_launcher.cu">
       <Filter>Effects\Radial Blur\Launcher</Filter>
-    </CudaCompile>
-    <CudaCompile Include="monoChrome_launcher.cu">
-      <Filter>Effects\MonoChrome\Launcher</Filter>
-    </CudaCompile>
-    <CudaCompile Include="posterize_launcher.cu">
-      <Filter>Effects\Posterize\Launcher</Filter>
     </CudaCompile>
     <CudaCompile Include="trueOutlines_launcher.cu">
       <Filter>Effects\True Outlines\Launcher</Filter>
@@ -532,6 +541,12 @@
     </CudaCompile>
     <CudaCompile Include="lensFilter_launcher.cu">
       <Filter>Effects\Lens Filter\Launcher\CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="monoChrome_launcher.cu">
+      <Filter>Effects\MonoChrome\Launcher\CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="posterize_launcher.cu">
+      <Filter>Effects\Posterize\Launcher\CUDA</Filter>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
@@ -576,12 +591,6 @@
     </ClInclude>
     <ClInclude Include="radialBlur_launcher.cuh">
       <Filter>Effects\Radial Blur\Launcher</Filter>
-    </ClInclude>
-    <ClInclude Include="monoChrome_launcher.cuh">
-      <Filter>Effects\MonoChrome\Launcher</Filter>
-    </ClInclude>
-    <ClInclude Include="posterize_launcher.cuh">
-      <Filter>Effects\Posterize\Launcher</Filter>
     </ClInclude>
     <ClInclude Include="trueOutlines_launcher.cuh">
       <Filter>Effects\True Outlines\Launcher</Filter>
@@ -663,6 +672,21 @@
     </ClInclude>
     <ClInclude Include="lensFilter.h">
       <Filter>Effects\Lens Filter\Launcher</Filter>
+    </ClInclude>
+    <ClInclude Include="monoChrome_launcher.cuh">
+      <Filter>Effects\MonoChrome\Launcher\CUDA</Filter>
+    </ClInclude>
+    <ClInclude Include="monoChrome.h">
+      <Filter>Effects\MonoChrome\Launcher</Filter>
+    </ClInclude>
+    <ClInclude Include="monoMask.h">
+      <Filter>Effects\Mono Mask\Launcher</Filter>
+    </ClInclude>
+    <ClInclude Include="posterize_launcher.cuh">
+      <Filter>Effects\Posterize\Launcher\CUDA</Filter>
+    </ClInclude>
+    <ClInclude Include="posterize.h">
+      <Filter>Effects\Posterize\Launcher</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

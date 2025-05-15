@@ -50,14 +50,11 @@ private:
     float heightRatio{ 1 };
 
     // effect specifics
-    cudaStream_t streamMonoChrome;
     cudaStream_t streamOutLine;
     cudaStream_t streamTrueOutLine;
-    cudaStream_t streamPosterize;
     cudaStream_t streamRadialBlur;
     cudaStream_t streamPixelate;
     cudaStream_t streamVintage8bit;
-    cudaStream_t streamMonoMask;
 
     void processEffect(QPushButton* button, EffectBase* worker);
     void replaceButtonWithEffectButton(QPushButton*& button, const QString& imagePath);
