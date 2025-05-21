@@ -27,6 +27,7 @@
 #include "colorButton.h"
 
 #include "globals.h"
+#include "baseProcessor.h"
 
 
 MainWindow::MainWindow(QWidget* parent)
@@ -43,6 +44,7 @@ MainWindow::MainWindow(QWidget* parent)
     }
 
     // Then initialize the processor
+    BaseProcessor::init();
     SoftPaletteProcessor::init();
     BlackAndWhiteProcessor::init();
     BlurProcessor::init();
@@ -56,12 +58,12 @@ MainWindow::MainWindow(QWidget* parent)
     MonoChromeProcessor::init();
     MonoMaskProcessor::init();
     PosterizeProcessor::init();
+    PixelateProcessor::init();
         
 
     cudaStreamCreate(&this->streamOutLine);
     cudaStreamCreate(&this->streamTrueOutLine);
     cudaStreamCreate(&this->streamRadialBlur);
-    cudaStreamCreate(&this->streamPixelate);
     cudaStreamCreate(&this->streamVintage8bit);
 
     // Connect signals
@@ -825,7 +827,6 @@ MainWindow::~MainWindow()
     cudaStreamDestroy(this->streamOutLine);
     cudaStreamDestroy(this->streamTrueOutLine);
     cudaStreamDestroy(this->streamRadialBlur);
-    cudaStreamDestroy(this->streamPixelate);
     cudaStreamDestroy(this->streamVintage8bit);
 
     delete ui;
@@ -1253,7 +1254,6 @@ void MainWindow::updateCensorThumbnail() {
 
     QPixmap originalPixmap = effectBtn->getOriginalPixmap();
 
-    // 2. Process the image through CUDA
     QImage image = originalPixmap.toImage().convertToFormat(QImage::Format_RGBA8888);
 
     const int size = image.sizeInBytes();
@@ -1279,34 +1279,20 @@ void MainWindow::updatePixelateThumbnail() {
 
     QPixmap originalPixmap = effectBtn->getOriginalPixmap();
 
-    // 2. Process the image through CUDA
     QImage image = originalPixmap.toImage().convertToFormat(QImage::Format_RGBA8888);
 
     const int size = image.sizeInBytes();
 
-    unsigned char* img = new unsigned char[size];
-    memcpy(img, image.constBits(), size);
+    PixelateProcessor processor(size, image.width(), image.height(), pixelWidth, pixelHeight);
 
-    unsigned char* d_img;
-    cudaMalloc(&d_img, size);
-    cudaMemcpy(d_img, img, size, cudaMemcpyHostToDevice);
+    processor.upload(image.constBits());
+    processor.processRGBA();
+    processor.download(image.bits());
 
-    dim3 blockDim(32, 32);
-    dim3 gridDim((image.width() + blockDim.x - 1) / blockDim.x, (image.height() + blockDim.y - 1) / blockDim.y);
-
-    pixelateRGBA(gridDim, blockDim, this->streamPixelate, d_img, image.width(), image.height(), pixelWidth, pixelHeight);
-    cudaStreamSynchronize(this->streamPixelate);
-
-    cudaMemcpy(img, d_img, size, cudaMemcpyDeviceToHost);
-
-    QImage result(img, image.width(), image.height(), QImage::Format_RGBA8888);
+    QImage result(image.bits(), image.width(), image.height(), QImage::Format_RGBA8888);
     QPixmap resultPixmap = QPixmap::fromImage(result);
 
     effectBtn->setProcessedPixmap(resultPixmap);
-
-    // Cleanup
-    delete[] img;
-    cudaFree(d_img);
 }
 
 void MainWindow::updateVintage8bitThumbnail() {
@@ -1457,9 +1443,9 @@ void MainWindow::updateSoftPaletteThumbnail() {
 
     SoftPaletteProcessor softPaletteProcessor(nPixels, size, colorsBGR, numColors);
 
-    softPaletteProcessor.setImage(image.constBits());
+    softPaletteProcessor.upload(image.constBits());
     softPaletteProcessor.processRGBA();
-    softPaletteProcessor.upload(image.bits());
+    softPaletteProcessor.download(image.bits());
 
     QImage result(image.bits(), image.width(), image.height(), QImage::Format_RGBA8888);
     QPixmap resultPixmap = QPixmap::fromImage(result);

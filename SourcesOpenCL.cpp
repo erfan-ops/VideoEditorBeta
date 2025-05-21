@@ -915,3 +915,113 @@ __kernel void posterizeRGBA_kernel(
     img[idx] = (uchar)(fmin(result_value, 255.0f));
 }
 )CLC";
+
+const char* pixelateOpenCLKernelSource = R"CLC(
+__kernel void pixelate_kernel(
+    __global uchar* img,
+    const int rows, const int cols,
+    const int pixelWidth, const int pixelHeight,
+    const int xBound, const int yBound
+) {
+    int x = get_global_id(0);
+    int y = get_global_id(1);
+
+    if (x >= xBound || y >= yBound) {
+        return;
+    }
+
+    int blockY = y * pixelHeight;
+    int blockX = x * pixelWidth;
+
+    // Calculate the block's end position
+    int blockEndX = min(blockX + pixelWidth, cols);
+    int blockEndY = min(blockY + pixelHeight, rows);
+
+    // Accumulate the sum of colors in the block
+    ulong sum_colors[3] = { 0, 0, 0 }; // Use ulong to match CUDA size_t
+    int pixelCount = 0;
+
+    for (int yy = blockY; yy < blockEndY; ++yy) {
+        int yc = yy * cols;
+        for (int xx = blockX; xx < blockEndX; ++xx) {
+            int idx = (yc + xx) * 3;
+            for (int c = 0; c < 3; ++c) {
+                sum_colors[c] += img[idx + c];
+            }
+            pixelCount++;
+        }
+    }
+
+    // Calculate the average color
+    uchar avg_colors[3] = { 0, 0, 0 };
+    for (int c = 0; c < 3; ++c) {
+        avg_colors[c] = (uchar)(sum_colors[c] / pixelCount);
+    }
+
+    // Apply the average color to the entire block
+    for (int yy = blockY; yy < blockEndY; ++yy) {
+        int yc = yy * cols;
+        for (int xx = blockX; xx < blockEndX; ++xx) {
+            int idx = (yc + xx) * 3;
+            for (int c = 0; c < 3; ++c) {
+                img[idx + c] = avg_colors[c];
+            }
+        }
+    }
+}
+)CLC";
+
+const char* pixelateRGBAOpenCLKernelSource = R"CLC(
+__kernel void pixelateRGBA_kernel(
+    __global uchar* img,
+    const int rows, const int cols,
+    const int pixelWidth, const int pixelHeight,
+    const int xBound, const int yBound
+) {
+    int x = get_global_id(0);
+    int y = get_global_id(1);
+
+    if (x >= xBound || y >= yBound) {
+        return;
+    }
+
+    int blockY = y * pixelHeight;
+    int blockX = x * pixelWidth;
+
+    // Calculate the block's end position
+    int blockEndX = min(blockX + pixelWidth, cols);
+    int blockEndY = min(blockY + pixelHeight, rows);
+
+    // Accumulate the sum of colors in the block
+    ulong sum_colors[4] = { 0, 0, 0, 0 }; // Use ulong to match CUDA size_t
+    int pixelCount = 0;
+
+    for (int yy = blockY; yy < blockEndY; ++yy) {
+        int yc = yy * cols;
+        for (int xx = blockX; xx < blockEndX; ++xx) {
+            int idx = (yc + xx) * 4;
+            for (int c = 0; c < 4; ++c) {
+                sum_colors[c] += img[idx + c];
+            }
+            pixelCount++;
+        }
+    }
+
+    // Calculate the average color
+    uchar avg_colors[4] = { 0, 0, 0, 0 };
+    for (int c = 0; c < 4; ++c) {
+        avg_colors[c] = (uchar)(sum_colors[c] / pixelCount);
+    }
+
+    // Apply the average color to the entire block
+    for (int yy = blockY; yy < blockEndY; ++yy) {
+        int yc = yy * cols;
+        for (int xx = blockX; xx < blockEndX; ++xx) {
+            int idx = (yc + xx) * 4;
+            for (int c = 0; c < 4; ++c) {
+                img[idx + c] = avg_colors[c];
+            }
+        }
+    }
+}
+)CLC";

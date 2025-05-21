@@ -53,7 +53,6 @@ private:
     cudaStream_t streamOutLine;
     cudaStream_t streamTrueOutLine;
     cudaStream_t streamRadialBlur;
-    cudaStream_t streamPixelate;
     cudaStream_t streamVintage8bit;
 
     void processEffect(QPushButton* button, EffectBase* worker);

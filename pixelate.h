@@ -4,10 +4,10 @@
 #include <cuda_runtime.h>
 #include "baseProcessor.h"
 
-class SoftPaletteProcessor : public BaseProcessor {
+class PixelateProcessor : public BaseProcessor {
 public:
-    SoftPaletteProcessor(int nPixels, int size, unsigned char* colorsBGR, int numColors);
-    ~SoftPaletteProcessor();
+    PixelateProcessor(int size, int width, int height, int pixelWidth, int pixelHeight);
+    ~PixelateProcessor();
 
     void process() const;
     void processRGBA() const;
@@ -15,18 +15,22 @@ public:
     static void init();
 
 private:
-    unsigned char* d_colorsBGR = nullptr;
+    static bool firstTime;
 
-    int gridSize = 0;
-    int blockSize = 0;
+    dim3 gridDim;
+    dim3 blockDim;
 
     // OpenCL
     static cl_kernel m_openclKernel;
     static cl_kernel m_openclKernelRGBA;
-    cl_mem m_colorBuf = nullptr;
 
-    int m_nPixels;
-    int m_numColors;
+    // members
+    int m_pixelWidth;
+    int m_pixelHeight;
+    int m_width;
+    int m_height;
+    int m_xBound;
+    int m_yBound;
 
     // Allocate buffers
     void allocateCUDA();
@@ -39,6 +43,6 @@ private:
     void processRGBA_CUDA() const;
     void processRGBA_OpenCL() const;
 
-    static void (SoftPaletteProcessor::* processFunc)() const;
-    static void (SoftPaletteProcessor::* processFuncRGBA)() const;
+    static void (PixelateProcessor::* processFunc)() const;
+    static void (PixelateProcessor::* processFuncRGBA)() const;
 };

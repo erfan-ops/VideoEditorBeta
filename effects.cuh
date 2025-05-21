@@ -3,8 +3,20 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 
-__global__ void pixelate_kernel(unsigned char* __restrict__ img, int rows, int cols, int pixelWidth, int pixelHeight);
-__global__ void pixelateRGBA_kernel(unsigned char* __restrict__ img, int rows, int cols, int pixelWidth, int pixelHeight);
+__global__ void pixelate_kernel(
+    unsigned char* __restrict__ img,
+    const int rows, const int cols,
+    const int pixelWidth, const int pixelHeight,
+    const int xBound, const int yBound
+);
+
+__global__ void pixelateRGBA_kernel(
+    unsigned char* __restrict__ img,
+    const int rows, const int cols,
+    const int pixelWidth, const int pixelHeight,
+    const int xBound, const int yBound
+);
+
 __global__ void censor_kernel(unsigned char* __restrict__ img, int rows, int cols, int pixelWidth, int pixelHeight);
 __global__ void censorRGBA_kernel(unsigned char* __restrict__ img, int rows, int cols, int pixelWidth, int pixelHeight);
 __global__ void roundColors_kernel(unsigned char* __restrict__ img, const int size, const float thresh);

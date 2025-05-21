@@ -301,6 +301,9 @@
     <Filter Include="Effects\Posterize\Launcher\CUDA">
       <UniqueIdentifier>{6c06685d-15fb-4c8f-a787-c400d7f1a8d5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Effects\Pixelate\Launcher\CUDA">
+      <UniqueIdentifier>{48c3afff-9ef5-4501-a827-cbe9921b5ce0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -486,6 +489,12 @@
     <ClCompile Include="posterize.cpp">
       <Filter>Effects\Posterize\Launcher</Filter>
     </ClCompile>
+    <ClCompile Include="baseProcessor.cpp">
+      <Filter>Effects\BaseClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="pixelate.cpp">
+      <Filter>Effects\Pixelate\Launcher</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="outline_launcher.cu">
@@ -493,9 +502,6 @@
     </CudaCompile>
     <CudaCompile Include="effects.cu">
       <Filter>Effects\Kernels</Filter>
-    </CudaCompile>
-    <CudaCompile Include="pixelate_launcher.cu">
-      <Filter>Effects\Pixelate\Launcher</Filter>
     </CudaCompile>
     <CudaCompile Include="radialBlur_launcher.cu">
       <Filter>Effects\Radial Blur\Launcher</Filter>
@@ -548,6 +554,9 @@
     <CudaCompile Include="posterize_launcher.cu">
       <Filter>Effects\Posterize\Launcher\CUDA</Filter>
     </CudaCompile>
+    <CudaCompile Include="pixelate_launcher.cu">
+      <Filter>Effects\Pixelate\Launcher\CUDA</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="utils.h">
@@ -582,9 +591,6 @@
     </ClInclude>
     <ClInclude Include="effects.cuh">
       <Filter>Effects\Kernels</Filter>
-    </ClInclude>
-    <ClInclude Include="pixelate_launcher.cuh">
-      <Filter>Effects\Pixelate\Launcher</Filter>
     </ClInclude>
     <ClInclude Include="videoHeaders.h">
       <Filter>Effects\include</Filter>
@@ -687,6 +693,15 @@
     </ClInclude>
     <ClInclude Include="posterize.h">
       <Filter>Effects\Posterize\Launcher</Filter>
+    </ClInclude>
+    <ClInclude Include="baseProcessor.h">
+      <Filter>Effects\BaseClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="pixelate_launcher.cuh">
+      <Filter>Effects\Pixelate\Launcher\CUDA</Filter>
+    </ClInclude>
+    <ClInclude Include="pixelate.h">
+      <Filter>Effects\Pixelate\Launcher</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

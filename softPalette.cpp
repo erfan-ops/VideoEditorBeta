@@ -1,4 +1,4 @@
-#include "SoftPalette.h"
+﻿#include "SoftPalette.h"
 #include "softPalette_launcher.cuh"
 #include "globals.h"
 #include "utils.h"
@@ -11,9 +11,8 @@ cl_kernel SoftPaletteProcessor::m_openclKernel = nullptr;
 cl_kernel SoftPaletteProcessor::m_openclKernelRGBA = nullptr;
 
 SoftPaletteProcessor::SoftPaletteProcessor(int nPixels, int size, unsigned char* colorsBGR, int numColors)
-    : m_nPixels(nPixels), m_numColors(numColors), imgSize(size) {
-    // Allocate memory for image and color palette
-    m_img = new unsigned char[this->imgSize];  // For BGR (3 channels)
+    : m_nPixels(nPixels), m_numColors(numColors) {
+    this->imgSize = size;
 
     // Allocate buffers for CUDA or OpenCL
     if (isCudaAvailable()) {
@@ -36,11 +35,8 @@ SoftPaletteProcessor::SoftPaletteProcessor(int nPixels, int size, unsigned char*
 }
 
 SoftPaletteProcessor::~SoftPaletteProcessor() {
-    // Free image and color palette buffers
-    delete[] m_img;
-
-    // Free CUDA buffers
     if (isCudaAvailable()) {
+        // Free CUDA buffers
         if (d_img) {
             cudaFree(d_img);
         }
@@ -81,33 +77,14 @@ void SoftPaletteProcessor::processRGBA() const {
 }
 
 void SoftPaletteProcessor::processCUDA() const {
-    cudaMemcpyAsync(d_img, m_img, imgSize, cudaMemcpyHostToDevice, m_cudaStream);
-
     softPaletteLauncher(gridSize, blockSize, m_cudaStream, d_img, m_nPixels, d_colorsBGR, m_numColors);
-
-    cudaMemcpyAsync(m_img, d_img, imgSize, cudaMemcpyDeviceToHost, m_cudaStream);
-    cudaStreamSynchronize(m_cudaStream);
 }
 
 void SoftPaletteProcessor::processRGBA_CUDA() const {
-    cudaMemcpyAsync(d_img, m_img, imgSize, cudaMemcpyHostToDevice, m_cudaStream);
-
     softPaletteLauncherRGBA(gridSize, blockSize, m_cudaStream, d_img, m_nPixels, d_colorsBGR, m_numColors);
-
-    cudaMemcpyAsync(m_img, d_img, imgSize, cudaMemcpyDeviceToHost, m_cudaStream);
-    cudaStreamSynchronize(m_cudaStream);
 }
 
 void SoftPaletteProcessor::processOpenCL() const {
-    // 1. Copy input image to device
-    clEnqueueWriteBuffer(globalQueueOpenCL,
-        m_imgBuf,
-        CL_FALSE,  // Non-blocking write
-        0,
-        imgSize,
-        m_img,
-        0, nullptr, nullptr);
-
     clSetKernelArg(m_openclKernel, 0, sizeof(cl_mem), &m_imgBuf);
     clSetKernelArg(m_openclKernel, 1, sizeof(int), &m_nPixels);
     clSetKernelArg(m_openclKernel, 2, sizeof(cl_mem), &m_colorBuf);
@@ -123,29 +100,14 @@ void SoftPaletteProcessor::processOpenCL() const {
         nullptr,
         0, nullptr, &kernelEvent);
 
-    // 4. Read back results (wait for kernel to complete)
-    clEnqueueReadBuffer(globalQueueOpenCL,
-        m_imgBuf,
-        CL_TRUE,  // Blocking read
-        0,
-        imgSize,
-        m_img,
-        1, &kernelEvent, nullptr);
+    // ⏳ Wait for kernel to complete
+    clWaitForEvents(1, &kernelEvent);
 
     // Release the kernel event
     clReleaseEvent(kernelEvent);
 }
 
 void SoftPaletteProcessor::processRGBA_OpenCL() const {
-    // 1. Copy input image to device
-    clEnqueueWriteBuffer(globalQueueOpenCL,
-        m_imgBuf,
-        CL_FALSE,  // Non-blocking write
-        0,
-        imgSize,
-        m_img,
-        0, nullptr, nullptr);
-
     clSetKernelArg(m_openclKernelRGBA, 0, sizeof(cl_mem), &m_imgBuf);
     clSetKernelArg(m_openclKernelRGBA, 1, sizeof(int), &m_nPixels);
     clSetKernelArg(m_openclKernelRGBA, 2, sizeof(cl_mem), &m_colorBuf);
@@ -161,25 +123,11 @@ void SoftPaletteProcessor::processRGBA_OpenCL() const {
         nullptr,
         0, nullptr, &kernelEvent);
 
-    // 4. Read back results (wait for kernel to complete)
-    clEnqueueReadBuffer(globalQueueOpenCL,
-        m_imgBuf,
-        CL_TRUE,  // Blocking read
-        0,
-        imgSize,
-        m_img,
-        1, &kernelEvent, nullptr);
+    // ⏳ Wait for kernel to complete
+    clWaitForEvents(1, &kernelEvent);
 
     // Release the kernel event
     clReleaseEvent(kernelEvent);
-}
-
-void SoftPaletteProcessor::setImage(const unsigned char* img) {
-    memcpy(m_img, img, imgSize);
-}
-
-void SoftPaletteProcessor::upload(unsigned char* Dst) {
-    memcpy(Dst, m_img, imgSize);
 }
 
 void SoftPaletteProcessor::init() {

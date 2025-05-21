@@ -25,37 +25,6 @@ std::wstring secondsToTimeW(float seconds) {
     return wss.str();
 }
 
-// Display progress bar
-static void videoShowProgress(const Video& video, const Timer& timer, int batch_size) {
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-
-    int columns = csbi.srWindow.Right - csbi.srWindow.Left + 1;
-    int progressBarLength = columns - 82; // Adjust as needed
-
-    float progressPct = static_cast<float>(video.get_frame_count()) / video.get_total_frames();
-    int progress_in_mini = static_cast<int>(progressPct * (progressBarLength * PROGRESS_STATES_LEN + PROGRESS_STATES_LEN1));
-    int full_bars = progress_in_mini / PROGRESS_STATES_LEN;
-
-    // Build progress bar
-    std::wstring progress_bar = std::wstring(full_bars, L'█') + PROGRESS_STATES[progress_in_mini - static_cast<std::vector<wchar_t, std::allocator<wchar_t>>::size_type>(full_bars) * PROGRESS_STATES_LEN];
-    progress_bar += std::wstring(progressBarLength - full_bars, L' ');
-
-    // Calculate estimate time
-    float avg_time_per_frame = std::accumulate(timer.getPreviousTimes().begin(), timer.getPreviousTimes().end(), 0.0f) / timer.getPreviousTimes().size();
-    float estimate_time = (video.get_total_frames() - video.get_frame_count()) * avg_time_per_frame / batch_size;
-
-    // Print progress
-    std::wcout << L"\r"
-        << secondsToTimeW(timer.getTimeElapsed()) << L" elapsed |"
-        << progress_bar << L"| "
-        << video.get_frame_count() << L"/" << video.get_total_frames()
-        << L" (" << std::fixed << std::setprecision(1) << progressPct * 100 << L"%) ["
-        << secondsToTimeW(static_cast<float>(video.get_frame_count()) / video.get_fps()) << L"/"
-        << secondsToTimeW(video.get_total_video_duration()) << L"] estimate time: "
-        << secondsToTimeW(estimate_time) << L"   " << std::flush;
-}
-
 
 std::string wideStringToUtf8(const std::wstring& wstr) {
     std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;

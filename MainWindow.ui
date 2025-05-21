@@ -1791,6 +1791,9 @@ border-radius: 6px;</string>
         <height>121</height>
        </rect>
       </property>
+      <property name="horizontalScrollBarPolicy">
+       <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+      </property>
       <property name="widgetResizable">
        <bool>true</bool>
       </property>

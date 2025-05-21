@@ -3,12 +3,18 @@
 #include <cuda_runtime.h>
 #include "effects.cuh"
 
-__host__ void pixelate(dim3 gridDim, dim3 blockDim, cudaStream_t stream,
+__host__ void pixelate_CUDA(
+	dim3 gridDim, dim3 blockDim, cudaStream_t stream,
 	unsigned char* d_img,
-	int width, int height, int pixelWidth, int pixelHeight
+	const int width, const int height,
+	const int pixelWidth, const int pixelHeight,
+	const int xBound, const int yBound
 );
 
-__host__ void pixelateRGBA(dim3 gridDim, dim3 blockDim, cudaStream_t stream,
+__host__ void pixelateRGBA_CUDA(
+	dim3 gridDim, dim3 blockDim, cudaStream_t stream,
 	unsigned char* d_img,
-	int width, int height, int pixelWidth, int pixelHeight
+	const int width, const int height,
+	const int pixelWidth, const int pixelHeight,
+	const int xBound, const int yBound
 );

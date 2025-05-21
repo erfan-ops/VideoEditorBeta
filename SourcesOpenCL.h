@@ -38,3 +38,6 @@ extern const char* monoMaskRGBAOpenCLKernelSource;
 
 extern const char* posterizeOpenCLKernelSource;
 extern const char* posterizeRGBAOpenCLKernelSource;
+
+extern const char* pixelateOpenCLKernelSource;
+extern const char* pixelateRGBAOpenCLKernelSource;

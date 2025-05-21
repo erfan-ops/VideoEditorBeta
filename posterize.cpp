@@ -4,17 +4,26 @@
 #include "utils.h"
 #include "SourcesOpenCL.h"
 
+bool PosterizeProcessor::firstTime = true;
+
 void (PosterizeProcessor::* PosterizeProcessor::processFunc)() const = nullptr;
 void (PosterizeProcessor::* PosterizeProcessor::processFuncRGBA)() const = nullptr;
-
-void (PosterizeProcessor::* PosterizeProcessor::uploadFunc)(const unsigned char*) = nullptr;
-void (PosterizeProcessor::* PosterizeProcessor::downloadFunc)(unsigned char*) const = nullptr;
 
 cl_kernel PosterizeProcessor::m_openclKernel = nullptr;
 cl_kernel PosterizeProcessor::m_openclKernelRGBA = nullptr;
 
 PosterizeProcessor::PosterizeProcessor(int size, float thresh)
-    : imgSize(size), m_thresh(thresh) {
+    : m_thresh(thresh) {
+	if (PosterizeProcessor::firstTime) {
+        PosterizeProcessor::init();
+        PosterizeProcessor::firstTime = false;
+		if (BaseProcessor::firstTime) {
+			BaseProcessor::init();
+			BaseProcessor::firstTime = false;
+		}
+	}
+
+    this->imgSize = size;
 
     // Allocate buffers for CUDA or OpenCL
     if (isCudaAvailable()) {
@@ -45,43 +54,6 @@ void PosterizeProcessor::allocateCUDA() {
 void PosterizeProcessor::allocateOpenCL() {
     cl_int err;
     m_imgBuf = clCreateBuffer(globalContextOpenCL, CL_MEM_READ_WRITE, imgSize, nullptr, &err);
-}
-
-void PosterizeProcessor::upload(const unsigned char* Src) {
-    (this->*uploadFunc)(Src);
-}
-
-void PosterizeProcessor::download(unsigned char* Dst) const {
-    (this->*downloadFunc)(Dst);
-}
-
-void PosterizeProcessor::uploadCUDA(const unsigned char* Src) {
-    cudaMemcpyAsync(d_img, Src, imgSize, cudaMemcpyHostToDevice, m_cudaStream);
-}
-
-void PosterizeProcessor::downloadCUDA(unsigned char* Dst) const {
-    cudaMemcpyAsync(Dst, d_img, imgSize, cudaMemcpyDeviceToHost, m_cudaStream);
-    cudaStreamSynchronize(m_cudaStream);
-}
-
-void PosterizeProcessor::uploadOpenCL(const unsigned char* Src) {
-    clEnqueueWriteBuffer(globalQueueOpenCL,
-        m_imgBuf,
-        CL_FALSE,  // Non-blocking write
-        0,
-        imgSize,
-        Src,
-        0, nullptr, nullptr);
-}
-
-void PosterizeProcessor::downloadOpenCL(unsigned char* Dst) const {
-    clEnqueueReadBuffer(globalQueueOpenCL,
-        m_imgBuf,
-        CL_TRUE,  // Blocking read
-        0,
-        imgSize,
-        Dst,
-        0, nullptr, nullptr);
 }
 
 void PosterizeProcessor::process() const {
@@ -145,21 +117,21 @@ void PosterizeProcessor::processRGBA_OpenCL() const {
 }
 
 void PosterizeProcessor::init() {
-    if (isCudaAvailable()) {
-        PosterizeProcessor::processFunc = &PosterizeProcessor::processCUDA;
-        PosterizeProcessor::processFuncRGBA = &PosterizeProcessor::processRGBA_CUDA;
+    if (PosterizeProcessor::firstTime) {
+        if (isCudaAvailable()) {
+            PosterizeProcessor::processFunc = &PosterizeProcessor::processCUDA;
+            PosterizeProcessor::processFuncRGBA = &PosterizeProcessor::processRGBA_CUDA;
+        }
+        else {
+            PosterizeProcessor::processFunc = &PosterizeProcessor::processOpenCL;
+            PosterizeProcessor::processFuncRGBA = &PosterizeProcessor::processRGBA_OpenCL;
 
-        PosterizeProcessor::uploadFunc = &PosterizeProcessor::uploadCUDA;
-        PosterizeProcessor::downloadFunc = &PosterizeProcessor::downloadCUDA;
-    }
-    else {
-        PosterizeProcessor::processFunc = &PosterizeProcessor::processOpenCL;
-        PosterizeProcessor::processFuncRGBA = &PosterizeProcessor::processRGBA_OpenCL;
-
-        PosterizeProcessor::uploadFunc = &PosterizeProcessor::uploadOpenCL;
-        PosterizeProcessor::downloadFunc = &PosterizeProcessor::downloadOpenCL;
-
-        PosterizeProcessor::m_openclKernel = openclUtils::createKernelFromSource(globalContextOpenCL, globalDeviceOpenCL, posterizeOpenCLKernelSource, "posterize_kernel");
-        PosterizeProcessor::m_openclKernelRGBA = openclUtils::createKernelFromSource(globalContextOpenCL, globalDeviceOpenCL, posterizeRGBAOpenCLKernelSource, "posterizeRGBA_kernel");
+            PosterizeProcessor::m_openclKernel = openclUtils::createKernelFromSource(globalContextOpenCL, globalDeviceOpenCL, posterizeOpenCLKernelSource, "posterize_kernel");
+            PosterizeProcessor::m_openclKernelRGBA = openclUtils::createKernelFromSource(globalContextOpenCL, globalDeviceOpenCL, posterizeRGBAOpenCLKernelSource, "posterizeRGBA_kernel");
+        }
+        PosterizeProcessor::firstTime = false;
+        if (BaseProcessor::firstTime) {
+            BaseProcessor::init();
+        }
     }
 }

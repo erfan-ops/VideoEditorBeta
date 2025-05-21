@@ -9,9 +9,9 @@ void ISoftPaletteWorker::process() {
 
         SoftPaletteProcessor softPaletteProcessor(img.getNumPixels(), img.getSize(), m_colorsBGR, m_numColors);
 
-        softPaletteProcessor.setImage(img.getData());
-        softPaletteProcessor.process();
         softPaletteProcessor.upload(img.getData());
+        softPaletteProcessor.process();
+        softPaletteProcessor.download(img.getData());
 
         img.save(m_outputPath);
 

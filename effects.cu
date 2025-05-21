@@ -38,16 +38,21 @@ __global__ void censorRGBA_kernel(unsigned char* __restrict__ img, const int row
     }
 }
 
-__global__ void pixelate_kernel(unsigned char* __restrict__ img, int rows, int cols, int pixelWidth, int pixelHeight) {
+__global__ void pixelate_kernel(
+    unsigned char* __restrict__ img,
+    const int rows, const int cols,
+    const int pixelWidth, const int pixelHeight,
+    const int xBound, const int yBound
+) {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (x >= cols || y >= rows) {
+    if (x >= xBound || y >= yBound) {
         return;
     }
 
-    int blockY = (y / pixelHeight) * pixelHeight;
-    int blockX = (x / pixelWidth) * pixelWidth;
+    int blockY = y * pixelHeight;
+    int blockX = x * pixelWidth;
 
     // Calculate the block's end position
     int blockEndX = min(blockX + pixelWidth, cols);
@@ -57,10 +62,10 @@ __global__ void pixelate_kernel(unsigned char* __restrict__ img, int rows, int c
     size_t sum_colors[3] = { 0, 0, 0 };
     int pixelCount = 0;
 
-    for (int y = blockY; y < blockEndY; ++y) {
-        int yc = y * cols;
-        for (int x = blockX; x < blockEndX; ++x) {
-            int idx = (yc + x) * 3;
+    for (int yy = blockY; yy < blockEndY; ++yy) {
+        int yc = yy * cols;
+        for (int xx = blockX; xx < blockEndX; ++xx) {
+            int idx = (yc + xx) * 3;
             for (int c = 0; c < 3; ++c) {
                 sum_colors[c] += img[idx + c];
             }
@@ -75,10 +80,10 @@ __global__ void pixelate_kernel(unsigned char* __restrict__ img, int rows, int c
     }
 
     // Apply the average color to the entire block
-    for (int y = blockY; y < blockEndY; ++y) {
-        int yc = y * cols;
-        for (int x = blockX; x < blockEndX; ++x) {
-            int idx = (yc + x) * 3;
+    for (int yy = blockY; yy < blockEndY; ++yy) {
+        int yc = yy * cols;
+        for (int xx = blockX; xx < blockEndX; ++xx) {
+            int idx = (yc + xx) * 3;
             for (int c = 0; c < 3; ++c) {
                 img[idx + c] = avg_colors[c];
             }
@@ -86,16 +91,21 @@ __global__ void pixelate_kernel(unsigned char* __restrict__ img, int rows, int c
     }
 }
 
-__global__ void pixelateRGBA_kernel(unsigned char* __restrict__ img, int rows, int cols, int pixelWidth, int pixelHeight) {
+__global__ void pixelateRGBA_kernel(
+    unsigned char* __restrict__ img,
+    const int rows, const int cols,
+    const int pixelWidth, const int pixelHeight,
+    const int xBound, const int yBound
+) {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (x >= cols || y >= rows) {
+    if (x >= xBound || y >= yBound) {
         return;
     }
 
-    int blockY = (y / pixelHeight) * pixelHeight;
-    int blockX = (x / pixelWidth) * pixelWidth;
+    int blockY = y * pixelHeight;
+    int blockX = x * pixelWidth;
 
     // Calculate the block's end position
     int blockEndX = min(blockX + pixelWidth, cols);
@@ -105,9 +115,10 @@ __global__ void pixelateRGBA_kernel(unsigned char* __restrict__ img, int rows, i
     size_t sum_colors[4] = { 0, 0, 0, 0 };
     int pixelCount = 0;
 
-    for (int y = blockY; y < blockEndY; ++y) {
-        for (int x = blockX; x < blockEndX; ++x) {
-            int idx = (y * cols + x) * 4;
+    for (int yy = blockY; yy < blockEndY; ++yy) {
+        int yc = yy * cols;
+        for (int xx = blockX; xx < blockEndX; ++xx) {
+            int idx = (yc + xx) * 4;
             for (int c = 0; c < 4; ++c) {
                 sum_colors[c] += img[idx + c];
             }
@@ -116,15 +127,16 @@ __global__ void pixelateRGBA_kernel(unsigned char* __restrict__ img, int rows, i
     }
 
     // Calculate the average color
-    unsigned char avg_colors[4];
+    unsigned char avg_colors[4]{ 0 };
     for (int c = 0; c < 4; ++c) {
         avg_colors[c] = static_cast<unsigned char>(sum_colors[c] / pixelCount);
     }
 
     // Apply the average color to the entire block
-    for (int y = blockY; y < blockEndY; ++y) {
-        for (int x = blockX; x < blockEndX; ++x) {
-            int idx = (y * cols + x) * 4;
+    for (int yy = blockY; yy < blockEndY; ++yy) {
+        int yc = yy * cols;
+        for (int xx = blockX; xx < blockEndX; ++xx) {
+            int idx = (yc + xx) * 4;
             for (int c = 0; c < 4; ++c) {
                 img[idx + c] = avg_colors[c];
             }

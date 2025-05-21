@@ -69,9 +69,9 @@ void VSoftPaletteWorker::process() {
             bufferPool.pop();
             bufferLock.unlock();
 
-            softPaletteProcessor.setImage(video.getData());
+            softPaletteProcessor.upload(video.getData());
             softPaletteProcessor.process();
-            softPaletteProcessor.upload(frameBuffer.data);
+            softPaletteProcessor.download(frameBuffer.data);
 
             {
                 std::lock_guard<std::mutex> frameLock(queueMutex);

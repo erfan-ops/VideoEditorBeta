@@ -52,3 +52,4 @@
 #include "monoChrome.h"
 #include "monoMask.h"
 #include "posterize.h"
+#include "pixelate.h"
