@@ -50,7 +50,6 @@ private:
     float heightRatio{ 1 };
 
     // effect specifics
-    cudaStream_t streamOutLine;
     cudaStream_t streamTrueOutLine;
     cudaStream_t streamRadialBlur;
     cudaStream_t streamVintage8bit;

@@ -59,9 +59,9 @@ MainWindow::MainWindow(QWidget* parent)
     MonoMaskProcessor::init();
     PosterizeProcessor::init();
     PixelateProcessor::init();
+    OutlinesProcessor::init();
         
 
-    cudaStreamCreate(&this->streamOutLine);
     cudaStreamCreate(&this->streamTrueOutLine);
     cudaStreamCreate(&this->streamRadialBlur);
     cudaStreamCreate(&this->streamVintage8bit);
@@ -824,7 +824,6 @@ MainWindow::MainWindow(QWidget* parent)
 
 MainWindow::~MainWindow()
 {
-    cudaStreamDestroy(this->streamOutLine);
     cudaStreamDestroy(this->streamTrueOutLine);
     cudaStreamDestroy(this->streamRadialBlur);
     cudaStreamDestroy(this->streamVintage8bit);
@@ -1101,33 +1100,16 @@ void MainWindow::updateOutLineThumbnail() {
 
     int size = image.sizeInBytes();
 
-    unsigned char* img = new unsigned char[size];
-    memcpy(img, image.constBits(), size);
+    OutlinesProcessor processor(size, image.width(), image.height(), thicknessX, thicknessY);
 
-    unsigned char* d_img;
-    unsigned char* d_img_copy;
-    cudaMalloc(&d_img, size);
-    cudaMalloc(&d_img_copy, size);
-    cudaMemcpy(d_img, img, size, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_img_copy, d_img, size, cudaMemcpyDeviceToDevice);
+    processor.upload(image.constBits());
+    processor.processRGBA();
+    processor.download(image.bits());
 
-    dim3 blockDim(32, 32);
-    dim3 gridDim((image.width() + blockDim.x - 1) / blockDim.x, (image.height() + blockDim.y - 1) / blockDim.y);
-
-    outlinesRGBA(gridDim, blockDim, this->streamOutLine, d_img, d_img_copy, image.width(), image.height(), thicknessX, thicknessY);
-    cudaStreamSynchronize(this->streamOutLine);
-
-    cudaMemcpy(img, d_img, size, cudaMemcpyDeviceToHost);
-
-    QImage result(img, image.width(), image.height(), QImage::Format_RGBA8888);
+    QImage result(image.bits(), image.width(), image.height(), QImage::Format_RGBA8888);
     QPixmap resultPixmap = QPixmap::fromImage(result);
 
     effectBtn->setProcessedPixmap(resultPixmap);
-
-    // Cleanup
-    delete[] img;
-    cudaFree(d_img);
-    cudaFree(d_img_copy);
 }
 
 void MainWindow::updateTrueOutLineThumbnail() {

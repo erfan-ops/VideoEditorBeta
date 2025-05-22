@@ -1025,3 +1025,63 @@ __kernel void pixelateRGBA_kernel(
     }
 }
 )CLC";
+
+const char* outlinesOpenCLKernelSource = R"CLC(
+__kernel void outlines_kernel(
+    __global uchar* img,
+    __global const uchar* img_copy,
+    const int rows, const int cols,
+    const int shiftX, const int shiftY
+) {
+    int x = get_global_id(0);
+    int y = get_global_id(1);
+
+    if (x >= cols || y >= rows) return;
+
+    int idx = (y * cols + x) * 3;
+
+    if (x < cols - shiftX && y < rows - shiftY) {
+        int shiftedIdx = idx + 3 * (shiftY * cols + shiftX);
+
+        for (int c = 0; c < 3; c++) {
+            int color_idx = idx + c;
+            img[color_idx] = (uchar)(abs((short)(img_copy[color_idx]) - img_copy[shiftedIdx + c]));
+        }
+    }
+    else {
+        img[idx++] = 0;
+        img[idx++] = 0;
+        img[idx] = 0;
+    }
+}
+)CLC";
+
+const char* outlinesRGBAOpenCLKernelSource = R"CLC(
+__kernel void outlinesRGBA_kernel(
+    __global uchar* img,
+    __global const uchar* img_copy,
+    const int rows, const int cols,
+    const int shiftX, const int shiftY
+) {
+    int x = get_global_id(0);
+    int y = get_global_id(1);
+
+    if (x >= cols || y >= rows) return;
+
+    int idx = (y * cols + x) * 4;
+
+    if (x < cols - shiftX && y < rows - shiftY) {
+        int shiftedIdx = idx + 4 * (shiftY * cols + shiftX);
+
+        for (int c = 0; c < 3; c++) {
+            int color_idx = idx + c;
+            img[color_idx] = (uchar)(abs((short)(img_copy[color_idx]) - img_copy[shiftedIdx + c]));
+        }
+    }
+    else {
+        img[idx++] = 0;
+        img[idx++] = 0;
+        img[idx] = 0;
+    }
+}
+)CLC";

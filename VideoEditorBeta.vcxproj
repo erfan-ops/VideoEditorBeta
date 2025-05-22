@@ -172,6 +172,7 @@
     <ClCompile Include="mainWindow.cpp" />
     <ClCompile Include="monoChrome.cpp" />
     <ClCompile Include="monoMask.cpp" />
+    <ClCompile Include="outlines.cpp" />
     <ClCompile Include="pixelate.cpp" />
     <ClCompile Include="posterize.cpp" />
     <ClCompile Include="softPalette.cpp" />
@@ -260,6 +261,7 @@
     <ClInclude Include="monoMask.h" />
     <ClInclude Include="monoMask_launcher.cuh" />
     <QtMoc Include="videoMonoMask.h" />
+    <ClInclude Include="outlines.h" />
     <ClInclude Include="pixelate.h" />
     <ClInclude Include="posterize.h" />
     <ClInclude Include="softPalette.h" />

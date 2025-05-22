@@ -35,8 +35,8 @@ PixelateProcessor::PixelateProcessor(int size, int width, int height, int pixelW
 
         blockDim = dim3(32, 32);
         gridDim = dim3(
-            (m_width + blockDim.x - 1) / blockDim.x,
-            (m_height + blockDim.y - 1) / blockDim.y
+            (this->m_xBound + blockDim.x - 1) / blockDim.x,
+            (this->m_yBound + blockDim.y - 1) / blockDim.y
         );
     }
     else {

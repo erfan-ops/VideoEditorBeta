@@ -41,3 +41,6 @@ extern const char* posterizeRGBAOpenCLKernelSource;
 
 extern const char* pixelateOpenCLKernelSource;
 extern const char* pixelateRGBAOpenCLKernelSource;
+
+extern const char* outlinesOpenCLKernelSource;
+extern const char* outlinesRGBAOpenCLKernelSource;

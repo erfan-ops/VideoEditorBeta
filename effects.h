@@ -53,3 +53,4 @@
 #include "monoMask.h"
 #include "posterize.h"
 #include "pixelate.h"
+#include "outlines.h"

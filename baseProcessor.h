@@ -11,8 +11,8 @@ public:
     virtual void process() const = 0;
     virtual void processRGBA() const = 0;
 
-    void upload(const unsigned char* Src) { (this->*uploadFunc)(Src); };
-    void download(unsigned char* Dst) const { (this->*downloadFunc)(Dst); };
+    virtual void upload(const unsigned char* Src) { (this->*uploadFunc)(Src); };
+    virtual void download(unsigned char* Dst) const { (this->*downloadFunc)(Dst); };
 
     static void init();
 
@@ -33,11 +33,11 @@ protected:
     virtual void allocateCUDA() = 0;
     virtual void allocateOpenCL() = 0;
 
-    void uploadCUDA(const unsigned char* Src);
-    void uploadOpenCL(const unsigned char* Src);
+    virtual void uploadCUDA(const unsigned char* Src);
+    virtual void uploadOpenCL(const unsigned char* Src);
 
-    void downloadCUDA(unsigned char* Dst) const;
-    void downloadOpenCL(unsigned char* Dst) const;
+    virtual void downloadCUDA(unsigned char* Dst) const;
+    virtual void downloadOpenCL(unsigned char* Dst) const;
 
     // processors
     virtual void processCUDA() const = 0;

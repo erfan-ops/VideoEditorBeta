@@ -304,6 +304,9 @@
     <Filter Include="Effects\Pixelate\Launcher\CUDA">
       <UniqueIdentifier>{48c3afff-9ef5-4501-a827-cbe9921b5ce0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Effects\Outlines\Launcher\CUDA">
+      <UniqueIdentifier>{4d2b4628-3081-46fb-bbf9-a2da3c927862}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -495,11 +498,11 @@
     <ClCompile Include="pixelate.cpp">
       <Filter>Effects\Pixelate\Launcher</Filter>
     </ClCompile>
+    <ClCompile Include="outlines.cpp">
+      <Filter>Effects\Outlines\Launcher</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="outline_launcher.cu">
-      <Filter>Effects\Outlines\Launcher</Filter>
-    </CudaCompile>
     <CudaCompile Include="effects.cu">
       <Filter>Effects\Kernels</Filter>
     </CudaCompile>
@@ -557,6 +560,9 @@
     <CudaCompile Include="pixelate_launcher.cu">
       <Filter>Effects\Pixelate\Launcher\CUDA</Filter>
     </CudaCompile>
+    <CudaCompile Include="outline_launcher.cu">
+      <Filter>Effects\Outlines\Launcher\CUDA</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="utils.h">
@@ -582,9 +588,6 @@
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Resource Files</Filter>
-    </ClInclude>
-    <ClInclude Include="outline_launcher.cuh">
-      <Filter>Effects\Outlines\Launcher</Filter>
     </ClInclude>
     <ClInclude Include="effects.h">
       <Filter>Effects\include</Filter>
@@ -702,6 +705,12 @@
     </ClInclude>
     <ClInclude Include="pixelate.h">
       <Filter>Effects\Pixelate\Launcher</Filter>
+    </ClInclude>
+    <ClInclude Include="outline_launcher.cuh">
+      <Filter>Effects\Outlines\Launcher\CUDA</Filter>
+    </ClInclude>
+    <ClInclude Include="outlines.h">
+      <Filter>Effects\Outlines\Launcher</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
