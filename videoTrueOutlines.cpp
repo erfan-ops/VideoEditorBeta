@@ -1,5 +1,5 @@
+#include "trueOutlines.h"
 #include "videoTrueOutlines.h"
-#include "trueOutlines_launcher.cuh"
 #include "videoHeaders.h"
 
 
@@ -17,12 +17,6 @@ void VTrueOutlinesWorker::process() {
         
         Video video(m_inputPath, temp_video_name);
         Timer timer;
-        
-        unsigned char* d_img;
-        unsigned char* d_img_copy;
-        
-        videoUtils::checkCudaError(cudaMalloc(&d_img, video.getSize()), "Failed to allocate device memory for image");
-        videoUtils::checkCudaError(cudaMalloc(&d_img_copy, video.getSize()), "Failed to allocate device memory for image copy");
         
         std::queue<cv::Mat> bufferPool;
         for (int i = 0; i < videoUtils::nBuffers; i++) {
@@ -62,14 +56,7 @@ void VTrueOutlinesWorker::process() {
             }
             };
         
-        cudaStream_t stream;
-        videoUtils::checkCudaError(cudaStreamCreate(&stream), "Failed to create stream");
-        
-        dim3 blockDim(32, 32);
-        dim3 gridDim((video.getWidth() + blockDim.x - 1) / blockDim.x, (video.getHeight() + blockDim.y - 1) / blockDim.y);
-        
-        int blockSize = 1024;
-        int gridSize = (video.getNumPixels() + blockSize - 1) / blockSize;
+        TrueOutlinesProcessor processor(video.getSize(), video.getWidth(), video.getHeight(), m_thresh);
         
         std::thread writer(writerThread);
         
@@ -82,14 +69,9 @@ void VTrueOutlinesWorker::process() {
             bufferPool.pop();
             bufferLock.unlock();
         
-            cudaMemcpyAsync(d_img, video.getData(), video.getSize(), cudaMemcpyHostToDevice, stream);
-            cudaMemcpyAsync(d_img_copy, d_img, video.getSize(), cudaMemcpyDeviceToDevice, stream);
-        
-            trueOutlines(gridSize, blockSize, gridDim, blockDim, stream, d_img, d_img_copy,
-                         video.getWidth(), video.getHeight(), video.getNumPixels(), m_thresh);
-        
-            cudaMemcpyAsync(frameBuffer.data, d_img, video.getSize(), cudaMemcpyDeviceToHost, stream);
-            cudaStreamSynchronize(stream);
+            processor.upload(video.getData());
+            processor.process();
+            processor.download(frameBuffer.data);
         
             {
                 std::lock_guard<std::mutex> frameLock(queueMutex);
@@ -107,9 +89,6 @@ void VTrueOutlinesWorker::process() {
         writer.join();
         
         video.release();
-        cudaFree(d_img);
-        cudaFree(d_img_copy);
-        cudaStreamDestroy(stream);
         
         videoUtils::mergeAudio(temp_video_name, temp_audio_name, m_outputPath);
         

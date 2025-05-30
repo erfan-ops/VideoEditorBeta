@@ -166,6 +166,7 @@
     <ClCompile Include="inverseColors.cpp" />
     <ClCompile Include="inverseContrast.cpp" />
     <ClCompile Include="lensFilter.cpp" />
+    <ClCompile Include="magicEye.cpp" />
     <ClCompile Include="main.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -175,9 +176,11 @@
     <ClCompile Include="outlines.cpp" />
     <ClCompile Include="pixelate.cpp" />
     <ClCompile Include="posterize.cpp" />
+    <ClCompile Include="radialBlur.cpp" />
     <ClCompile Include="softPalette.cpp" />
     <ClCompile Include="SourcesOpenCL.cpp" />
     <ClCompile Include="timer.cpp" />
+    <ClCompile Include="trueOutlines.cpp" />
     <ClCompile Include="utils.cpp" />
     <ClCompile Include="Video.cpp" />
     <ClCompile Include="videoBlackAndWhite.cpp" />
@@ -257,6 +260,7 @@
     <ClInclude Include="lensFilter_launcher.cuh" />
     <QtMoc Include="videoLensFilter.h" />
     <QtMoc Include="videoChangePalette.h" />
+    <ClInclude Include="magicEye.h" />
     <ClInclude Include="monoChrome.h" />
     <ClInclude Include="monoMask.h" />
     <ClInclude Include="monoMask_launcher.cuh" />
@@ -264,11 +268,13 @@
     <ClInclude Include="outlines.h" />
     <ClInclude Include="pixelate.h" />
     <ClInclude Include="posterize.h" />
+    <ClInclude Include="radialBlur.h" />
     <ClInclude Include="softPalette.h" />
     <ClInclude Include="softPalette_launcher.cuh" />
     <QtMoc Include="videoSoftPalette.h" />
     <ClInclude Include="SourcesOpenCL.h" />
     <QtMoc Include="videoFlatLight.h" />
+    <ClInclude Include="trueOutlines.h" />
     <ClInclude Include="vintage8bit_launcher.cuh" />
     <QtMoc Include="videoMagicEye.h" />
     <QtMoc Include="videoTrueOutlines.h" />

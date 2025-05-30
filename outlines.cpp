@@ -7,7 +7,6 @@
 bool OutlinesProcessor::firstTime = true;
 
 void (OutlinesProcessor::* OutlinesProcessor::uploadFunc)(const unsigned char* Src) = nullptr;
-void (OutlinesProcessor::* OutlinesProcessor::downloadFunc)(unsigned char* Dst) const = nullptr;
 
 void (OutlinesProcessor::* OutlinesProcessor::processFunc)() const = nullptr;
 void (OutlinesProcessor::* OutlinesProcessor::processFuncRGBA)() const = nullptr;
@@ -47,10 +46,12 @@ OutlinesProcessor::OutlinesProcessor(int size, int width, int height, int xShift
 OutlinesProcessor::~OutlinesProcessor() {
     if (isCudaAvailable()) {
         cudaFree(d_img);
+        cudaFree(d_imgCopy);
         cudaStreamDestroy(m_cudaStream);
     }
     else {
         clReleaseMemObject(m_imgBuf);
+        clReleaseMemObject(m_imgCopyBuf);
     }
 }
 
@@ -62,7 +63,7 @@ void OutlinesProcessor::allocateCUDA() {
 void OutlinesProcessor::allocateOpenCL() {
     cl_int err;
     m_imgBuf = clCreateBuffer(globalContextOpenCL, CL_MEM_READ_WRITE, imgSize, nullptr, &err);
-    m_imgCopyBuf = clCreateBuffer(globalContextOpenCL, CL_MEM_READ_WRITE, imgSize, nullptr, &err);
+    m_imgCopyBuf = clCreateBuffer(globalContextOpenCL, CL_MEM_READ_ONLY, imgSize, nullptr, &err);
 }
 
 void OutlinesProcessor::uploadCUDA(const unsigned char* Src) {
@@ -160,14 +161,12 @@ void OutlinesProcessor::init() {
             OutlinesProcessor::processFuncRGBA = &OutlinesProcessor::processRGBA_CUDA;
 
             OutlinesProcessor::uploadFunc = &OutlinesProcessor::uploadCUDA;
-            OutlinesProcessor::downloadFunc = &OutlinesProcessor::downloadCUDA;
         }
         else {
             OutlinesProcessor::processFunc = &OutlinesProcessor::processOpenCL;
             OutlinesProcessor::processFuncRGBA = &OutlinesProcessor::processRGBA_OpenCL;
 
             OutlinesProcessor::uploadFunc = &OutlinesProcessor::uploadOpenCL;
-            OutlinesProcessor::downloadFunc = &OutlinesProcessor::downloadOpenCL;
 
             OutlinesProcessor::m_openclKernel = openclUtils::createKernelFromSource(globalContextOpenCL, globalDeviceOpenCL, outlinesOpenCLKernelSource, "outlines_kernel");
             OutlinesProcessor::m_openclKernelRGBA = openclUtils::createKernelFromSource(globalContextOpenCL, globalDeviceOpenCL, outlinesRGBAOpenCLKernelSource, "outlinesRGBA_kernel");

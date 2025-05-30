@@ -4,10 +4,10 @@
 #include <cuda_runtime.h>
 #include "baseProcessor.h"
 
-class OutlinesProcessor : public BaseProcessor {
+class RadialBlurProcessor : public BaseProcessor {
 public:
-    OutlinesProcessor(int size, int width, int height, int xShift, int yShift);
-    ~OutlinesProcessor();
+    RadialBlurProcessor(int size, int width, int height, float centerX, float centerY, int blurRadius, float intensity);
+    ~RadialBlurProcessor();
 
     void upload(const unsigned char* Src) { (this->*uploadFunc)(Src); };
 
@@ -29,12 +29,12 @@ private:
     cl_mem m_imgCopyBuf;
 
     // members
-    int m_pixelWidth;
-    int m_pixelHeight;
     int m_width;
     int m_height;
-    int m_xShift;
-    int m_yShift;
+    float m_centerX;
+    float m_centerY;
+    int m_blurRadius;
+    float m_intensity;
 
     // Allocate buffers
     void allocateCUDA();
@@ -50,8 +50,8 @@ private:
     void processRGBA_CUDA() const;
     void processRGBA_OpenCL() const;
 
-    static void (OutlinesProcessor::* uploadFunc)(const unsigned char* Src);
+    static void (RadialBlurProcessor::* uploadFunc)(const unsigned char* Src);
 
-    static void (OutlinesProcessor::* processFunc)() const;
-    static void (OutlinesProcessor::* processFuncRGBA)() const;
+    static void (RadialBlurProcessor::* processFunc)() const;
+    static void (RadialBlurProcessor::* processFuncRGBA)() const;
 };

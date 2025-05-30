@@ -307,6 +307,15 @@
     <Filter Include="Effects\Outlines\Launcher\CUDA">
       <UniqueIdentifier>{4d2b4628-3081-46fb-bbf9-a2da3c927862}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Effects\Magic Eye\Launcher\CUDA">
+      <UniqueIdentifier>{f05b9023-f01b-47ac-bbeb-3b0299845175}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\True Outlines\Launcher\CUDA">
+      <UniqueIdentifier>{4c3d0897-ca6e-4810-b9f9-a4aafa00c445}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Radial Blur\Launcher\CUDA">
+      <UniqueIdentifier>{b60d6228-4451-499e-a0ba-91527e323e00}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -501,19 +510,19 @@
     <ClCompile Include="outlines.cpp">
       <Filter>Effects\Outlines\Launcher</Filter>
     </ClCompile>
+    <ClCompile Include="magicEye.cpp">
+      <Filter>Effects\Magic Eye\Launcher</Filter>
+    </ClCompile>
+    <ClCompile Include="trueOutlines.cpp">
+      <Filter>Effects\True Outlines\Launcher</Filter>
+    </ClCompile>
+    <ClCompile Include="radialBlur.cpp">
+      <Filter>Effects\Radial Blur\Launcher</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="effects.cu">
       <Filter>Effects\Kernels</Filter>
-    </CudaCompile>
-    <CudaCompile Include="radialBlur_launcher.cu">
-      <Filter>Effects\Radial Blur\Launcher</Filter>
-    </CudaCompile>
-    <CudaCompile Include="trueOutlines_launcher.cu">
-      <Filter>Effects\True Outlines\Launcher</Filter>
-    </CudaCompile>
-    <CudaCompile Include="magicEye_launcher.cu">
-      <Filter>Effects\Magic Eye\Launcher</Filter>
     </CudaCompile>
     <CudaCompile Include="vintage8bit_launcher.cu">
       <Filter>Effects\Vintage8bit\Launcher</Filter>
@@ -563,6 +572,15 @@
     <CudaCompile Include="outline_launcher.cu">
       <Filter>Effects\Outlines\Launcher\CUDA</Filter>
     </CudaCompile>
+    <CudaCompile Include="magicEye_launcher.cu">
+      <Filter>Effects\Magic Eye\Launcher\CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="trueOutlines_launcher.cu">
+      <Filter>Effects\True Outlines\Launcher\CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="radialBlur_launcher.cu">
+      <Filter>Effects\Radial Blur\Launcher\CUDA</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="utils.h">
@@ -597,15 +615,6 @@
     </ClInclude>
     <ClInclude Include="videoHeaders.h">
       <Filter>Effects\include</Filter>
-    </ClInclude>
-    <ClInclude Include="radialBlur_launcher.cuh">
-      <Filter>Effects\Radial Blur\Launcher</Filter>
-    </ClInclude>
-    <ClInclude Include="trueOutlines_launcher.cuh">
-      <Filter>Effects\True Outlines\Launcher</Filter>
-    </ClInclude>
-    <ClInclude Include="magicEye_launcher.cuh">
-      <Filter>Effects\Magic Eye\Launcher</Filter>
     </ClInclude>
     <ClInclude Include="vintage8bit_launcher.cuh">
       <Filter>Effects\Vintage8bit\Launcher</Filter>
@@ -711,6 +720,24 @@
     </ClInclude>
     <ClInclude Include="outlines.h">
       <Filter>Effects\Outlines\Launcher</Filter>
+    </ClInclude>
+    <ClInclude Include="magicEye_launcher.cuh">
+      <Filter>Effects\Magic Eye\Launcher\CUDA</Filter>
+    </ClInclude>
+    <ClInclude Include="magicEye.h">
+      <Filter>Effects\Magic Eye\Launcher</Filter>
+    </ClInclude>
+    <ClInclude Include="trueOutlines_launcher.cuh">
+      <Filter>Effects\True Outlines\Launcher\CUDA</Filter>
+    </ClInclude>
+    <ClInclude Include="trueOutlines.h">
+      <Filter>Effects\True Outlines\Launcher</Filter>
+    </ClInclude>
+    <ClInclude Include="radialBlur_launcher.cuh">
+      <Filter>Effects\Radial Blur\Launcher\CUDA</Filter>
+    </ClInclude>
+    <ClInclude Include="radialBlur.h">
+      <Filter>Effects\Radial Blur\Launcher</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

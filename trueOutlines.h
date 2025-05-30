@@ -4,10 +4,10 @@
 #include <cuda_runtime.h>
 #include "baseProcessor.h"
 
-class OutlinesProcessor : public BaseProcessor {
+class TrueOutlinesProcessor : public BaseProcessor {
 public:
-    OutlinesProcessor(int size, int width, int height, int xShift, int yShift);
-    ~OutlinesProcessor();
+    TrueOutlinesProcessor(int size, int width, int height, int radius);
+    ~TrueOutlinesProcessor();
 
     void upload(const unsigned char* Src) { (this->*uploadFunc)(Src); };
 
@@ -19,22 +19,24 @@ public:
 private:
     static bool firstTime;
 
+    int gridSize;
+    int blockSize;
     dim3 gridDim;
     dim3 blockDim;
     unsigned char* d_imgCopy;
 
     // OpenCL
-    static cl_kernel m_openclKernel;
-    static cl_kernel m_openclKernelRGBA;
+    static cl_kernel m_blurOpenclKernel;
+    static cl_kernel m_blurOpenclKernelRGBA;
+    static cl_kernel m_subtractOpenclKernel;
+    static cl_kernel m_subtractOpenclKernelRGBA;
     cl_mem m_imgCopyBuf;
 
     // members
-    int m_pixelWidth;
-    int m_pixelHeight;
+    int m_radius;
+    int m_nPixels;
     int m_width;
     int m_height;
-    int m_xShift;
-    int m_yShift;
 
     // Allocate buffers
     void allocateCUDA();
@@ -50,8 +52,8 @@ private:
     void processRGBA_CUDA() const;
     void processRGBA_OpenCL() const;
 
-    static void (OutlinesProcessor::* uploadFunc)(const unsigned char* Src);
+    static void (TrueOutlinesProcessor::* uploadFunc)(const unsigned char* Src);
 
-    static void (OutlinesProcessor::* processFunc)() const;
-    static void (OutlinesProcessor::* processFuncRGBA)() const;
+    static void (TrueOutlinesProcessor::* processFunc)() const;
+    static void (TrueOutlinesProcessor::* processFuncRGBA)() const;
 };

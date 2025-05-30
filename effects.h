@@ -54,3 +54,6 @@
 #include "posterize.h"
 #include "pixelate.h"
 #include "outlines.h"
+#include "magicEye.h"
+#include "trueOutlines.h"
+#include "radialBlur.h"

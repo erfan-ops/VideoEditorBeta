@@ -60,10 +60,10 @@ MainWindow::MainWindow(QWidget* parent)
     PosterizeProcessor::init();
     PixelateProcessor::init();
     OutlinesProcessor::init();
-        
+    MagicEyeProcessor::init();
+    TrueOutlinesProcessor::init();
+    RadialBlurProcessor::init();
 
-    cudaStreamCreate(&this->streamTrueOutLine);
-    cudaStreamCreate(&this->streamRadialBlur);
     cudaStreamCreate(&this->streamVintage8bit);
 
     // Connect signals
@@ -824,8 +824,6 @@ MainWindow::MainWindow(QWidget* parent)
 
 MainWindow::~MainWindow()
 {
-    cudaStreamDestroy(this->streamTrueOutLine);
-    cudaStreamDestroy(this->streamRadialBlur);
     cudaStreamDestroy(this->streamVintage8bit);
 
     delete ui;
@@ -1123,42 +1121,16 @@ void MainWindow::updateTrueOutLineThumbnail() {
     // 2. Process the image through CUDA
     QImage image = originalPixmap.toImage().convertToFormat(QImage::Format_RGBA8888);
 
-    int size = image.sizeInBytes();
-    int nPixels = image.width() * image.height();
+    TrueOutlinesProcessor processor(image.sizeInBytes(), image.width(), image.height(), thresh);
 
-    unsigned char* img = new unsigned char[size];
-    memcpy(img, image.constBits(), size);
+    processor.upload(image.constBits());
+    processor.processRGBA();
+    processor.download(image.bits());
 
-    unsigned char* d_img;
-    unsigned char* d_img_copy;
-    cudaMalloc(&d_img, size);
-    cudaMalloc(&d_img_copy, size);
-    cudaMemcpy(d_img, img, size, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_img_copy, d_img, size, cudaMemcpyDeviceToDevice);
-
-    int blockSize = 1024;
-    int gridSize = (nPixels + blockSize - 1) / blockSize;
-
-    dim3 blockDim(32, 32);
-    dim3 gridDim((image.width() + blockDim.x - 1) / blockDim.x, (image.height() + blockDim.y - 1) / blockDim.y);
-
-    trueOutlinesRGBA(
-        gridSize, blockSize, gridDim, blockDim, this->streamTrueOutLine,
-        d_img, d_img_copy, image.width(), image.height(), nPixels, thresh
-    );
-    cudaStreamSynchronize(this->streamTrueOutLine);
-
-    cudaMemcpy(img, d_img, size, cudaMemcpyDeviceToHost);
-
-    QImage result(img, image.width(), image.height(), QImage::Format_RGBA8888);
+    QImage result(image.bits(), image.width(), image.height(), QImage::Format_RGBA8888);
     QPixmap resultPixmap = QPixmap::fromImage(result);
 
     effectBtn->setProcessedPixmap(resultPixmap);
-
-    // Cleanup
-    delete[] img;
-    cudaFree(d_img);
-    cudaFree(d_img_copy);
 }
 
 void MainWindow::updatePosterizeThumbnail() {
@@ -1200,31 +1172,16 @@ void MainWindow::updateRadialBlurThumbnail() {
     // 2. Process the image through CUDA
     QImage image = originalPixmap.toImage().convertToFormat(QImage::Format_RGBA8888);
 
-    const int size = image.sizeInBytes();
+    RadialBlurProcessor processor(image.sizeInBytes(), image.width(), image.height(), centerX, centerY, blurRadius, intensity);
 
-    unsigned char* img = new unsigned char[size];
-    memcpy(img, image.constBits(), size);
+    processor.upload(image.constBits());
+    processor.processRGBA();
+    processor.download(image.bits());
 
-    unsigned char* d_img;
-    cudaMalloc(&d_img, size);
-    cudaMemcpy(d_img, img, size, cudaMemcpyHostToDevice);
-
-    dim3 blockDim(32, 32);
-    dim3 gridDim((image.width() + blockDim.x - 1) / blockDim.x, (image.height() + blockDim.y - 1) / blockDim.y);
-
-    radialBlurRGBA(gridDim, blockDim, this->streamRadialBlur, d_img, image.width(), image.height(), centerX, centerY, blurRadius, intensity);
-    cudaStreamSynchronize(this->streamRadialBlur);
-
-    cudaMemcpy(img, d_img, size, cudaMemcpyDeviceToHost);
-
-    QImage result(img, image.width(), image.height(), QImage::Format_RGBA8888);
+    QImage result(image.bits(), image.width(), image.height(), QImage::Format_RGBA8888);
     QPixmap resultPixmap = QPixmap::fromImage(result);
 
     effectBtn->setProcessedPixmap(resultPixmap);
-
-    // Cleanup
-    delete[] img;
-    cudaFree(d_img);
 }
 
 void MainWindow::updateCensorThumbnail() {
@@ -1506,34 +1463,34 @@ void MainWindow::newThumbnails() {
     ui->centerX->setValue(0.5f * this->selectedPixmap.width());
     ui->centerY->setValue(0.5f * this->selectedPixmap.height());
 
-    int widthOver40 = orgW / 40;
+    int widthOver80 = orgW / 80;
 
-    ui->censorWidth->setValue(widthOver40);
-    ui->censorHeight->setValue(widthOver40);
+    ui->censorWidth->setValue(widthOver80);
+    ui->censorHeight->setValue(widthOver80);
 
     ui->censorWidth->setMaximum(orgW);
     ui->censorHeight->setMaximum(orgH);
 
-    ui->pixelWidth->setValue(widthOver40);
-    ui->pixelHeight->setValue(widthOver40);
+    ui->pixelWidth->setValue(widthOver80);
+    ui->pixelHeight->setValue(widthOver80);
 
     ui->pixelWidth->setMaximum(orgW);
     ui->pixelHeight->setMaximum(orgH);
 
-    ui->vintagePixelWidth->setValue(widthOver40);
-    ui->vintagePixelHeight->setValue(widthOver40);
+    ui->vintagePixelWidth->setValue(widthOver80);
+    ui->vintagePixelHeight->setValue(widthOver80);
 
     ui->vintagePixelWidth->setMaximum(orgW);
     ui->vintagePixelHeight->setMaximum(orgH);
 
-    ui->blurRadius->setValue(widthOver40);
+    ui->blurRadius->setValue(widthOver80);
     ui->blurRadius->setMaximum(orgW / 10);
 
     float rWidthRatio = 1.f / this->widthRatio;
 
     ui->ThicknessX->setValue(static_cast<int>(std::ceil(rWidthRatio)));
     ui->ThicknessY->setValue(static_cast<int>(std::ceil(rWidthRatio)));
-    ui->trueOutlinesThresh->setValue(static_cast<int>(std::ceil(rWidthRatio * 2.f)));
+    ui->trueOutlinesThresh->setValue(static_cast<int>(std::ceil(rWidthRatio * 4.f)));
 
 
     this->updateThumbnails();

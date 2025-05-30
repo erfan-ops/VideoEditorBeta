@@ -28,8 +28,8 @@ __global__ void nearestColor_kernel(unsigned char* __restrict__ img, const int n
 __global__ void nearestColorRGBA_kernel(unsigned char* __restrict__ img, const int nPixels, const unsigned char* __restrict__ colors_RGB, const int num_colors);
 __global__ void blendNearestColors_kernel(unsigned char* __restrict__ img, const int nPixels, const unsigned char* __restrict__ colors_BGR, const int num_colors);
 __global__ void blendNearestColorsRGBA_kernel(unsigned char* __restrict__ img, const int nPixels, const unsigned char* __restrict__ colors_BGR, const int num_colors);
-__global__ void radial_blur_kernel(unsigned char* __restrict__ img, int rows, int cols, float centerX, float centerY, int blurRadius, float intensity);
-__global__ void radialBlurRGBA_kernel(unsigned char* __restrict__ img, int rows, int cols, float centerX, float centerY, int blurRadius, float intensity);
+__global__ void radial_blur_kernel(unsigned char* __restrict__ img, const unsigned char* __restrict__ img_copy, int rows, int cols, float centerX, float centerY, int blurRadius, float intensity);
+__global__ void radialBlurRGBA_kernel(unsigned char* __restrict__ img, const unsigned char* __restrict__ img_copy, int rows, int cols, float centerX, float centerY, int blurRadius, float intensity);
 __global__ void reverse_contrast(unsigned char* __restrict__ img, const int nPixels);
 __global__ void reverseContrastRGBA_kernel(unsigned char* __restrict__ img, const int nPixels);
 __global__ void shift_hue_kernel(unsigned char* __restrict__ img, const int nPixels, const float rotationFactor);
@@ -37,6 +37,7 @@ __global__ void shiftHueRGBA_kernel(unsigned char* __restrict__ img, const int n
 __global__ void outlines_kernel(unsigned char* __restrict__ img, const unsigned char* __restrict__ img_copy, const int rows, const int cols, const int shiftX, const int shiftY);
 __global__ void outlinesRGBA_kernel(unsigned char* __restrict__ img, const unsigned char* __restrict__ img_copy, const int rows, const int cols, const int shiftX, const int shiftY);
 __global__ void subtract_kernel(unsigned char* __restrict__ img1, const unsigned char* __restrict__ img2, const int nPixels);
+__global__ void subtract_kernel2(unsigned char* __restrict__ img1, const unsigned char* __restrict__ img2, const int size);
 __global__ void subtractRGBA_kernel(unsigned char* __restrict__ img1, const unsigned char* __restrict__ img2, const int nPixels);
 __global__ void fastBlur_kernel(unsigned char* __restrict__ img, const unsigned char* __restrict__ img_copy, const int rows, const int cols, const int blur_radius);
 __global__ void fastBlurRGBA_kernel(unsigned char* __restrict__ img, const unsigned char* __restrict__ img_copy, const int rows, const int cols, const int blur_radius);

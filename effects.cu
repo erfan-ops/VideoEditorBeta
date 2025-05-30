@@ -442,7 +442,7 @@ __global__ void blendNearestColorsRGBA_kernel(
     img[idx + 2] = static_cast<unsigned char>(fminf(fmaxf(color_sum_b / weights_sum, 0.0f), 255.0f));
 }
 
-__global__ void radial_blur_kernel(unsigned char* __restrict__ img, int rows, int cols, float centerX, float centerY, int blurRadius, float intensity) {
+__global__ void radial_blur_kernel(unsigned char* __restrict__ img, const unsigned char* __restrict__ img_copy, int rows, int cols, float centerX, float centerY, int blurRadius, float intensity) {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
 
@@ -471,9 +471,9 @@ __global__ void radial_blur_kernel(unsigned char* __restrict__ img, int rows, in
         sampleY = max(0, min(sampleY, rows - 1));
 
         int idx = (sampleY * cols + sampleX) * 3;
-        sumR += img[idx];
-        sumG += img[idx + 1];
-        sumB += img[idx + 2];
+        sumR += img_copy[idx];
+        sumG += img_copy[idx + 1];
+        sumB += img_copy[idx + 2];
         count++;
     }
 
@@ -487,7 +487,7 @@ __global__ void radial_blur_kernel(unsigned char* __restrict__ img, int rows, in
     img[idx + 2] = avgB;
 }
 
-__global__ void radialBlurRGBA_kernel(unsigned char* __restrict__ img, int rows, int cols, float centerX, float centerY, int blurRadius, float intensity) {
+__global__ void radialBlurRGBA_kernel(unsigned char* __restrict__ img, const unsigned char* __restrict__ img_copy, int rows, int cols, float centerX, float centerY, int blurRadius, float intensity) {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
 
@@ -516,9 +516,9 @@ __global__ void radialBlurRGBA_kernel(unsigned char* __restrict__ img, int rows,
         sampleY = max(0, min(sampleY, rows - 1));
 
         int idx = (sampleY * cols + sampleX) * 4;
-        sumR += img[idx++];
-        sumG += img[idx++];
-        sumB += img[idx];
+        sumR += img_copy[idx++];
+        sumG += img_copy[idx++];
+        sumB += img_copy[idx];
         count++;
     }
 
@@ -762,6 +762,13 @@ __global__ void subtract_kernel(unsigned char* __restrict__ img1, const unsigned
         short diff = static_cast<short>(img1[color_idx]) - static_cast<short>(img2[color_idx]);
         img1[color_idx] = static_cast<unsigned char>(abs(diff));
     }
+}
+
+__global__ void subtract_kernel2(unsigned char* __restrict__ img1, const unsigned char* __restrict__ img2, const int size) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= size) return;
+
+    img1[idx] = static_cast<unsigned char>(abs(static_cast<short>(img1[idx]) - static_cast<short>(img2[idx])));
 }
 
 __global__ void subtractRGBA_kernel(unsigned char* __restrict__ img1, const unsigned char* __restrict__ img2, const int nPixels) {

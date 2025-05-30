@@ -44,3 +44,11 @@ extern const char* pixelateRGBAOpenCLKernelSource;
 
 extern const char* outlinesOpenCLKernelSource;
 extern const char* outlinesRGBAOpenCLKernelSource;
+
+extern const char* subtractOpenCLKernelSource;
+extern const char* subtractRGBAOpenCLKernelSource;
+
+extern const char* binaryNoiseOpenCLKernelSource;
+
+extern const char* radialBlurOpenCLKernelSource;
+extern const char* radialBlurRGBAOpenCLKernelSource;

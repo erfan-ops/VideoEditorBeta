@@ -1,5 +1,5 @@
+#include "magicEye.h"
 #include "videoMagicEye.h"
-#include "magicEye_launcher.cuh"
 #include "videoHeaders.h"
 
 
@@ -17,10 +17,6 @@ void VMagicEyeWorker::process() {
         
         Video video(m_inputPath, temp_video_name);
         Timer timer;
-        
-        unsigned char* d_img;
-        
-        videoUtils::checkCudaError(cudaMalloc(&d_img, video.getSize()), "Failed to allocate device memory for image");
         
         std::queue<cv::Mat> bufferPool;
         for (int i = 0; i < videoUtils::nBuffers; i++) {
@@ -61,17 +57,7 @@ void VMagicEyeWorker::process() {
             }
             };
         
-        cudaStream_t stream;
-        videoUtils::checkCudaError(cudaStreamCreate(&stream), "Failed to create stream");
-        
-        int blockSize = 1024;
-        int gridSize = (video.getNumPixels() + blockSize - 1) / blockSize;
-        
-        unsigned char* d_noise;
-        videoUtils::checkCudaError(cudaMalloc(&d_noise, video.getSize()), "Failed to allocate device memory for image");
-        
-        binaryNoise(gridSize, blockSize, stream, d_noise, video.getNumPixels(), time(nullptr));
-        cudaStreamSynchronize(stream);
+        MagicEyeProcessor processor(video.getSize(), video.getNumPixels(), m_middle);
         
         std::thread writer(writerThread);
         
@@ -84,12 +70,9 @@ void VMagicEyeWorker::process() {
             bufferPool.pop();
             bufferLock.unlock();
         
-            cudaMemcpyAsync(d_img, video.getData(), video.getSize(), cudaMemcpyHostToDevice, stream);
-        
-            magicEye(gridSize, blockSize, stream, d_img, d_noise, video.getNumPixels(), m_middle);
-        
-            cudaMemcpyAsync(frameBuffer.data, d_img, video.getSize(), cudaMemcpyDeviceToHost, stream);
-            cudaStreamSynchronize(stream);
+            processor.upload(video.getData());
+            processor.process();
+            processor.download(frameBuffer.data);
         
             {
                 std::lock_guard<std::mutex> frameLock(queueMutex);
@@ -107,9 +90,6 @@ void VMagicEyeWorker::process() {
         writer.join();
         
         video.release();
-        cudaFree(d_img);
-        cudaFree(d_noise);
-        cudaStreamDestroy(stream);
         
         videoUtils::mergeAudio(temp_video_name, temp_audio_name, m_outputPath);
         

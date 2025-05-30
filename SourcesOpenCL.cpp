@@ -1085,3 +1085,172 @@ __kernel void outlinesRGBA_kernel(
     }
 }
 )CLC";
+
+const char* subtractOpenCLKernelSource = R"CLC(
+__kernel void subtract_kernel(
+    __global uchar* img1,
+    __global const uchar* img2,
+    const int nPixels
+) {
+    int pIdx = get_global_id(0);
+    if (pIdx >= nPixels) return;
+
+    int idx = pIdx * 3;
+
+    for (int c = 0; c < 3; c++) {
+        int color_idx = idx + c;
+        short diff = (short)(img1[color_idx]) - (short)(img2[color_idx]);
+        img1[color_idx] = (uchar)(abs(diff));
+    }
+}
+)CLC";
+
+const char* subtractRGBAOpenCLKernelSource = R"CLC(
+__kernel void subtractRGBA_kernel(
+    __global uchar* img1,
+    __global const uchar* img2,
+    const int nPixels
+) {
+    int pIdx = get_global_id(0);
+    if (pIdx >= nPixels) return;
+
+    int idx = pIdx * 4;
+
+    for (int c = 0; c < 3; c++) {
+        int color_idx = idx + c;
+        short diff = (short)(img1[color_idx]) - (short)(img2[color_idx]);
+        img1[color_idx] = (uchar)(abs(diff));
+    }
+}
+)CLC";
+
+const char* binaryNoiseOpenCLKernelSource = R"CLC(
+#pragma OPENCL EXTENSION cl_khr_fp64 : enable
+
+__kernel void binaryNoise_kernel(
+    __global uchar* img,
+    const int nPixels,
+    const uint seed
+) {
+    int pIdx = get_global_id(0);
+    if (pIdx >= nPixels) return;
+
+    int idx = pIdx * 3;
+
+    // Use the built-in random function (if available)
+    double r = fract(sin((double)(seed + pIdx)) * 43758.5453, &r);
+    uchar c = (r > 0.5) ? 255 : 0;
+
+    img[idx]     = c;
+    img[idx + 1] = c;
+    img[idx + 2] = c;
+}
+)CLC";
+
+const char* radialBlurOpenCLKernelSource = R"CLC(
+__kernel void radialBlur_kernel(
+    __global uchar* img,
+    __global const uchar* img_copy,
+    const int rows,
+    const int cols,
+    const float centerX,
+    const float centerY,
+    const int blurRadius,
+    const float intensity
+) {
+    int x = get_global_id(0);
+    int y = get_global_id(1);
+
+    if (x >= cols || y >= rows) return;
+
+    float dirX = (float)x - centerX;
+    float dirY = (float)y - centerY;
+
+    float length = dirX * dirX + dirY * dirY;
+    if (length > 0.0f) {
+        length = sqrt(length);
+        dirX /= length;
+        dirY /= length;
+    }
+
+    float sumR = 0.0f, sumG = 0.0f, sumB = 0.0f;
+    int count = 0;
+
+    for (int i = -blurRadius; i <= blurRadius; ++i) {
+        int sampleX = (int)(x + dirX * (float)i * intensity);
+        int sampleY = (int)(y + dirY * (float)i * intensity);
+
+        sampleX = clamp(sampleX, 0, cols - 1);
+        sampleY = clamp(sampleY, 0, rows - 1);
+
+        int idx = (sampleY * cols + sampleX) * 3;
+        sumR += img_copy[idx];
+        sumG += img_copy[idx + 1];
+        sumB += img_copy[idx + 2];
+        count++;
+    }
+
+    uchar avgR = (uchar)(sumR / (float)count);
+    uchar avgG = (uchar)(sumG / (float)count);
+    uchar avgB = (uchar)(sumB / (float)count);
+
+    int idx = (y * cols + x) * 3;
+    img[idx]     = avgR;
+    img[idx + 1] = avgG;
+    img[idx + 2] = avgB;
+}
+)CLC";
+
+const char* radialBlurRGBAOpenCLKernelSource = R"CLC(
+__kernel void radialBlurRGBA_kernel(
+    __global uchar* img,
+    __global const uchar* img_copy,
+    const int rows,
+    const int cols,
+    const float centerX,
+    const float centerY,
+    const int blurRadius,
+    const float intensity
+) {
+    int x = get_global_id(0);
+    int y = get_global_id(1);
+
+    if (x >= cols || y >= rows) return;
+
+    float dirX = (float)x - centerX;
+    float dirY = (float)y - centerY;
+
+    float length = dirX * dirX + dirY * dirY;
+    if (length > 0.0f) {
+        length = sqrt(length);
+        dirX /= length;
+        dirY /= length;
+    }
+
+    float sumR = 0.0f, sumG = 0.0f, sumB = 0.0f;
+    int count = 0;
+
+    for (int i = -blurRadius; i <= blurRadius; ++i) {
+        int sampleX = (int)(x + dirX * (float)i * intensity);
+        int sampleY = (int)(y + dirY * (float)i * intensity);
+
+        sampleX = clamp(sampleX, 0, cols - 1);
+        sampleY = clamp(sampleY, 0, rows - 1);
+
+        int idx = (sampleY * cols + sampleX) * 4;
+        sumR += img_copy[idx];
+        sumG += img_copy[idx + 1];
+        sumB += img_copy[idx + 2];
+        count++;
+    }
+
+    uchar avgR = (uchar)(sumR / (float)count);
+    uchar avgG = (uchar)(sumG / (float)count);
+    uchar avgB = (uchar)(sumB / (float)count);
+
+    int idx = (y * cols + x) * 4;
+    img[idx]     = avgR;
+    img[idx + 1] = avgG;
+    img[idx + 2] = avgB;
+}
+)CLC";

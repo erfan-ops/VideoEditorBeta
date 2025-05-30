@@ -1,12 +1,7 @@
+#include "radialBlur.h"
 #include "videoRadialBlur.h"
-#include "radialBlur_launcher.cuh"
 #include "videoHeaders.h"
 
-
-VRadialBlurWorker::VRadialBlurWorker(int blurRadius, float intensity, float centerX, float centerY, QObject* parent)
-    : VideoEffect(parent), m_blurRadius(blurRadius), m_intensity(intensity), m_centerX(centerX), m_centerY(centerY)
-{
-}
 
 void VRadialBlurWorker::process() {
     try {
@@ -18,7 +13,6 @@ void VRadialBlurWorker::process() {
         std::wstring temp_video_name = video_root + L" " + current_time + output_ext;
         std::wstring temp_audio_name = video_root + L" " + current_time + L".aac";
         
-        // Extract audio
         videoUtils::extractAudio(m_inputPath, temp_audio_name);
         
         Video video(m_inputPath, temp_video_name);
@@ -26,11 +20,6 @@ void VRadialBlurWorker::process() {
         
         if (m_centerX < 0.0f || m_centerX >= video.getWidth()) m_centerX = video.getWidth() * 0.5f;
         if (m_centerY < 0.0f || m_centerY >= video.getHeight()) m_centerY = video.getHeight() * 0.5f;
-        
-        unsigned char* d_img;
-        
-        // Allocate device memory
-        videoUtils::checkCudaError(cudaMalloc(&d_img, video.getSize()), "Failed to allocate device memory for image");
         
         // Frame buffer pool (preallocated)
         std::queue<cv::Mat> bufferPool;
@@ -72,11 +61,7 @@ void VRadialBlurWorker::process() {
             }
             };
         
-        cudaStream_t stream;
-        videoUtils::checkCudaError(cudaStreamCreate(&stream), "Failed to create stream");
-        
-        dim3 blockDim(32, 32);
-        dim3 gridDim((video.getWidth() + blockDim.x - 1) / blockDim.x, (video.getHeight() + blockDim.y - 1) / blockDim.y);
+        RadialBlurProcessor processor(video.getSize(), video.getWidth(), video.getHeight(), m_centerX, m_centerY, m_blurRadius, m_intensity);
         
         std::thread writer(writerThread);
         
@@ -89,12 +74,9 @@ void VRadialBlurWorker::process() {
             bufferPool.pop();
             bufferLock.unlock();
         
-            cudaMemcpyAsync(d_img, video.getData(), video.getSize(), cudaMemcpyHostToDevice, stream);
-        
-            radialBlur(gridDim, blockDim, stream, d_img, video.getWidth(), video.getHeight(), m_centerX, m_centerY, m_blurRadius, m_intensity);
-        
-            cudaMemcpyAsync(frameBuffer.data, d_img, video.getSize(), cudaMemcpyDeviceToHost, stream);
-            cudaStreamSynchronize(stream);
+            processor.upload(video.getData());
+            processor.process();
+            processor.download(frameBuffer.data);
         
             {
                 std::lock_guard<std::mutex> frameLock(queueMutex);
@@ -112,8 +94,6 @@ void VRadialBlurWorker::process() {
         writer.join();
         
         video.release();
-        cudaFree(d_img);
-        cudaStreamDestroy(stream);
         
         videoUtils::mergeAudio(temp_video_name, temp_audio_name, m_outputPath);
         
