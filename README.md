@@ -7,14 +7,9 @@
 - **Qt 6.8.2 UI**: Intuitive and responsive user interface built with Qt.
 - **Custom OpenCV 4.10.0**: Streamlined OpenCV build optimized for image and video I/O.
 - **CUDA 12.6 Acceleration**: GPU-powered effects for real-time processing.
+- **OpenCL Acceleration**: All effects are also implemented using OpenCL for broader GPU compatibility.
 - **Modular Effect System**: Easily extendable architecture for adding new effects.
 - **Sample Projects**: Includes example projects demonstrating various effects.
-
-## 🛠️ Effects Implemented
-
-- **Black & White**: Convert videos to grayscale using CUDA.
-- **Blur**: Apply Gaussian blur effects with GPU acceleration.
-- **Censor**: Obscure sensitive areas in videos using CUDA-based techniques.
 
 ## 📁 Project Structure
 
@@ -78,7 +73,7 @@ VideoEditorBeta/
 
 ## 📌 Future Plans
 
-- **OpenCL Support**: Extend GPU acceleration to AMD and Intel GPUs.
+- **✅ OpenCL Support**: Complete support added for AMD and Intel GPUs.
 - **Additional Effects**: Implement more video effects such as sharpening, color correction, and transitions.
 - **Cross-Platform Support**: Enhance compatibility with macOS and Linux systems.
 
