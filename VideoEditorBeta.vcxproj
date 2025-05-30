@@ -205,6 +205,7 @@
     <ClCompile Include="videoSoftPalette.cpp" />
     <ClCompile Include="videoTrueOutlines.cpp" />
     <ClCompile Include="videoVintage8bit.cpp" />
+    <ClCompile Include="vintage8Bit.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="blackAndWhite_launcher.cu" />
@@ -275,6 +276,7 @@
     <ClInclude Include="SourcesOpenCL.h" />
     <QtMoc Include="videoFlatLight.h" />
     <ClInclude Include="trueOutlines.h" />
+    <ClInclude Include="vintage8Bit.h" />
     <ClInclude Include="vintage8bit_launcher.cuh" />
     <QtMoc Include="videoMagicEye.h" />
     <QtMoc Include="videoTrueOutlines.h" />

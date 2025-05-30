@@ -49,9 +49,6 @@ private:
     float widthRatio{ 1 };
     float heightRatio{ 1 };
 
-    // effect specifics
-    cudaStream_t streamVintage8bit;
-
     void processEffect(QPushButton* button, EffectBase* worker);
     void replaceButtonWithEffectButton(QPushButton*& button, const QString& imagePath);
     void updateProgress(const Video& video, const Timer& timer);

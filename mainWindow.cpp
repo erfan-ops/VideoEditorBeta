@@ -63,8 +63,7 @@ MainWindow::MainWindow(QWidget* parent)
     MagicEyeProcessor::init();
     TrueOutlinesProcessor::init();
     RadialBlurProcessor::init();
-
-    cudaStreamCreate(&this->streamVintage8bit);
+    Vintage8BitProcessor::init();
 
     // Connect signals
     QObject::connect(ui->btnSelect, &QPushButton::clicked, [&]() {
@@ -824,8 +823,6 @@ MainWindow::MainWindow(QWidget* parent)
 
 MainWindow::~MainWindow()
 {
-    cudaStreamDestroy(this->streamVintage8bit);
-
     delete ui;
 }
 
@@ -1220,9 +1217,7 @@ void MainWindow::updatePixelateThumbnail() {
 
     QImage image = originalPixmap.toImage().convertToFormat(QImage::Format_RGBA8888);
 
-    const int size = image.sizeInBytes();
-
-    PixelateProcessor processor(size, image.width(), image.height(), pixelWidth, pixelHeight);
+    PixelateProcessor processor(image.sizeInBytes(), image.width(), image.height(), pixelWidth, pixelHeight);
 
     processor.upload(image.constBits());
     processor.processRGBA();
@@ -1244,67 +1239,18 @@ void MainWindow::updateVintage8bitThumbnail() {
 
     QPixmap originalPixmap = effectBtn->getOriginalPixmap();
 
-    // 2. Process the image through CUDA
     QImage image = originalPixmap.toImage().convertToFormat(QImage::Format_RGBA8888);
 
-    const int size = image.sizeInBytes();
-    const int nPixels = image.width() * image.height();
+    Vintage8BitProcessor processor(image.sizeInBytes(), image.width(), image.height(), pixelWidth, pixelHeight, thresh);
 
-    unsigned char* img = new unsigned char[size];
-    memcpy(img, image.constBits(), size);
+    processor.upload(image.constBits());
+    processor.processRGBA();
+    processor.download(image.bits());
 
-    unsigned char colorsBGR[] = {
-            64, 9, 67,
-            61, 70, 133,
-            59, 131, 197,
-            58, 124, 127,
-            61, 64, 61,
-            122, 188, 191,
-            122, 194, 255,
-            121, 246, 255,
-            187, 251, 254,
-            125, 134, 197,
-            56, 72, 118,
-            120, 202, 250,
-            47, 126, 205,
-            20, 44, 105
-    };
-
-    unsigned char* d_img;
-    unsigned char* d_colorsRGB;
-    cudaMalloc(&d_img, size);
-    cudaMalloc(&d_colorsRGB, sizeof(colorsBGR));
-    cudaMemcpy(d_img, img, size, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_colorsRGB, colorsBGR, sizeof(colorsBGR), cudaMemcpyHostToDevice);
-
-    dim3 blockDim(32, 32);
-    dim3 gridDim((image.width() + blockDim.x - 1) / blockDim.x, (image.height() + blockDim.y - 1) / blockDim.y);
-
-    int blockSize = 1024;
-    int gridPixels = (nPixels + blockSize - 1) / blockSize;
-    int gridSize = (size + blockSize - 1) / blockSize;
-
-    vintage8bitRGBA(
-        gridDim, blockDim,
-        gridPixels, blockSize,
-        gridSize, this->streamVintage8bit,
-        d_img, pixelWidth, pixelHeight, thresh,
-        d_colorsRGB, sizeof(colorsBGR) / 3,
-        image.width(), image.height(), nPixels, size
-    );
-    cudaStreamSynchronize(this->streamVintage8bit);
-
-    cudaMemcpy(img, d_img, size, cudaMemcpyDeviceToHost);
-
-    QImage result(img, image.width(), image.height(), QImage::Format_RGBA8888);
+    QImage result(image.bits(), image.width(), image.height(), QImage::Format_RGBA8888);
     QPixmap resultPixmap = QPixmap::fromImage(result);
 
     effectBtn->setProcessedPixmap(resultPixmap);
-
-    // Cleanup
-    delete[] img;
-    cudaFree(d_img);
-    cudaFree(d_colorsRGB);
 }
 
 void MainWindow::updateChangePaletteThumbnail() {

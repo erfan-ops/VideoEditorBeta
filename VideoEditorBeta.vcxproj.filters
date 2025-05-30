@@ -316,6 +316,9 @@
     <Filter Include="Effects\Radial Blur\Launcher\CUDA">
       <UniqueIdentifier>{b60d6228-4451-499e-a0ba-91527e323e00}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Effects\Vintage8bit\Launcher\CUDA">
+      <UniqueIdentifier>{a9913843-9931-4897-b919-3bcbdb291b17}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -519,13 +522,13 @@
     <ClCompile Include="radialBlur.cpp">
       <Filter>Effects\Radial Blur\Launcher</Filter>
     </ClCompile>
+    <ClCompile Include="vintage8Bit.cpp">
+      <Filter>Effects\Vintage8bit\Launcher</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="effects.cu">
       <Filter>Effects\Kernels</Filter>
-    </CudaCompile>
-    <CudaCompile Include="vintage8bit_launcher.cu">
-      <Filter>Effects\Vintage8bit\Launcher</Filter>
     </CudaCompile>
     <CudaCompile Include="softPalette_launcher.cu">
       <Filter>Effects\Soft Palette\Launcher\CUDA</Filter>
@@ -581,6 +584,9 @@
     <CudaCompile Include="radialBlur_launcher.cu">
       <Filter>Effects\Radial Blur\Launcher\CUDA</Filter>
     </CudaCompile>
+    <CudaCompile Include="vintage8bit_launcher.cu">
+      <Filter>Effects\Vintage8bit\Launcher\CUDA</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="utils.h">
@@ -615,9 +621,6 @@
     </ClInclude>
     <ClInclude Include="videoHeaders.h">
       <Filter>Effects\include</Filter>
-    </ClInclude>
-    <ClInclude Include="vintage8bit_launcher.cuh">
-      <Filter>Effects\Vintage8bit\Launcher</Filter>
     </ClInclude>
     <ClInclude Include="launchers.h">
       <Filter>Effects\include</Filter>
@@ -738,6 +741,12 @@
     </ClInclude>
     <ClInclude Include="radialBlur.h">
       <Filter>Effects\Radial Blur\Launcher</Filter>
+    </ClInclude>
+    <ClInclude Include="vintage8bit_launcher.cuh">
+      <Filter>Effects\Vintage8bit\Launcher\CUDA</Filter>
+    </ClInclude>
+    <ClInclude Include="vintage8Bit.h">
+      <Filter>Effects\Vintage8bit\Launcher</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

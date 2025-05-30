@@ -57,3 +57,4 @@
 #include "magicEye.h"
 #include "trueOutlines.h"
 #include "radialBlur.h"
+#include "vintage8Bit.h"
