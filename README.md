@@ -1,6 +1,6 @@
-# VideoEditorBeta
+# RetroShade
 
-**VideoEditorBeta** is a lightweight, GPU-accelerated image and video editing library featuring a Qt-based user interface. It leverages a custom build of OpenCV 4.10.0 for efficient media I/O and CUDA 12.6 for high-performance processing. Future plans include OpenCL support to extend compatibility to non-NVIDIA GPUs.
+**RetroShade** is a lightweight, GPU-accelerated image and video editing library featuring a Qt-based user interface. It leverages a custom build of OpenCV 4.10.0 for efficient media I/O and CUDA 12.6 for high-performance processing. Future plans include OpenCL support to extend compatibility to non-NVIDIA GPUs.
 
 ## ✨ Features
 
@@ -15,24 +15,54 @@
 
 ```
 VideoEditorBeta/
-├── include/                 # Header files
-├── lib/                     # Compiled libraries
-├── samples/                 # Sample projects demonstrating effects
-├── src/                     # Source files
-│   ├── EffectButton.cpp/.h  # UI components for effect buttons
-│   ├── ImageOutlines.h      # Image outline definitions
-│   ├── Video.cpp/.h         # Core video processing classes
-│   ├── effects/             # CUDA implementations of effects
-│   │   ├── blackAndWhite_launcher.cu/.cuh
-│   │   ├── blur_launcher.cu/.cuh
-│   │   ├── censor_launcher.cu/.cuh
-├── resources/               # Resource files (e.g., icons, UI layouts)
-│   ├── MainWindow.ui        # Main window layout
-│   ├── Resource.qrc         # Qt resource file
-├── VideoEditorBeta.sln      # Visual Studio solution file
-├── VideoEditorBeta.vcxproj  # Visual Studio project file
-├── README.md                # Project documentation
-├── LICENSE                  # MIT License
+│
+├── bin/                          # Precompiled binaries (e.g., DLLs)
+│   └── *.dll
+│
+├── lib/                          # Static or dynamic libraries (if any)
+│
+├── include/                      # External include files (if any)
+│
+├── Header Files/                # General header files
+│   ├── utils.h
+│   ├── timer.h
+│   ├── image.h
+│   └── ...
+│
+├── Source Files/                # Main application source code
+│   ├── main.cpp
+│   ├── utils.cpp
+│   ├── image.cpp
+│   └── ...
+│
+├── Resource Files/              # Resource-related files
+│   ├── resource.h
+│   ├── VideoEditorBeta.rc
+│   └── Resource.qrc
+│
+├── UI/                          # User interface components
+│   ├── mainWindow.cpp/.h/.ui
+│   ├── EffectButton.cpp/.h
+│   └── ColorButton.cpp/.h
+│
+└── Effects/                     # Video/image processing effects
+    ├── <EffectName>/            # One folder per effect
+    │   ├── Image/               # Image-specific effect implementation
+    │   │   ├── image<EffectName>.h
+    │   │   └── image<EffectName>.cpp
+    │   │
+    │   ├── Video/               # Video-specific effect implementation
+    │   │   ├── video<EffectName>.h
+    │   │   └── video<EffectName>.cpp
+    │   │
+    │   └── Launcher/            # Shared launcher logic for the effect
+    │       ├── <EffectName>.h
+    │       ├── <EffectName>.cpp
+    │       └── CUDA/            # CUDA-specific GPU code
+    │           ├── <EffectName>_launcher.cu
+    │           └── <EffectName>_launcher.cuh
+    │
+    └── ...
 ```
 
 ## 🛠️ How to Build (Visual Studio)
