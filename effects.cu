@@ -636,19 +636,55 @@ __global__ void reverseContrastRGBA_kernel(unsigned char* __restrict__ img, cons
     img[idx + 2] = static_cast<unsigned char>(fminf(fmaxf(new_b * 255.0f, 0.0f), 255.0f));
 }
 
-__device__ static __inline__ void rgb_to_yiq(float r, float g, float b, float& y, float& i, float& q) {
-    y = 0.299f * r + 0.587f * g + 0.114f * b;
-    i = 0.596f * r - 0.274f * g - 0.322f * b;
-    q = 0.211f * r - 0.523f * g + 0.312f * b;
+__device__ static __inline__ void RGBtoHSL(float r, float g, float b, float& h, float& s, float& l) {
+    float max_c = fmaxf(fmaxf(r, g), b);
+    float min_c = fminf(fminf(r, g), b);
+    float delta = max_c - min_c;
+
+    l = 0.5f * (max_c + min_c);
+
+    if (delta < 1e-6f) {
+        h = 0.0f;
+        s = 0.0f;
+        return;
+    }
+
+    s = delta / (1.0f - fabsf(2.0f * l - 1.0f));
+
+    if (max_c == r)
+        h = fmodf((g - b) / delta, 6.0f);
+    else if (max_c == g)
+        h = ((b - r) / delta) + 2.0f;
+    else
+        h = ((r - g) / delta) + 4.0f;
+
+    h /= 6.0f;
+    if (h < 0.0f) h += 1.0f;
 }
 
-__device__ static __inline__ void yiq_to_rgb(float y, float i, float q, float& r, float& g, float& b) {
-    r = y + 0.956f * i + 0.621f * q;
-    g = y - 0.272f * i - 0.647f * q;
-    b = y - 1.106f * i + 1.703f * q;
+__device__ static __inline__ float hueToRGB(float p, float q, float t) {
+    if (t < 0.0f) t += 1.0f;
+    if (t > 1.0f) t -= 1.0f;
+    if (t < 1.0f / 6.0f) return p + (q - p) * 6.0f * t;
+    if (t < 1.0f / 2.0f) return q;
+    if (t < 2.0f / 3.0f) return p + (q - p) * (2.0f / 3.0f - t) * 6.0f;
+    return p;
 }
 
-__global__ void shift_hue_kernel(unsigned char* __restrict__ img, const int nPixels, const float rotationFactor) {
+__device__ static __inline__ void HSLtoRGB(float h, float s, float l, float& r, float& g, float& b) {
+    if (s < 1e-6f) {
+        r = g = b = l;
+        return;
+    }
+
+    float q = l < 0.5f ? l * (1.0f + s) : l + s - l * s;
+    float p = 2.0f * l - q;
+    r = hueToRGB(p, q, h + 1.0f / 3.0f);
+    g = hueToRGB(p, q, h);
+    b = hueToRGB(p, q, h - 1.0f / 3.0f);
+}
+
+__global__ void shift_hue_kernel(unsigned char* __restrict__ img, const int nPixels, const float hue, const float saturation, const float lightness) {
     int pIdx = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (pIdx >= nPixels) return;
@@ -659,24 +695,21 @@ __global__ void shift_hue_kernel(unsigned char* __restrict__ img, const int nPix
     float g = img[idx + 1] / 255.0f;
     float r = img[idx + 2] / 255.0f;
 
-    float y, i, q;
-    rgb_to_yiq(r, g, b, y, i, q);
+    float h, s, l;
+    RGBtoHSL(r, g, b, h, s, l);
 
-    float cos_theta, sin_theta;
-    sincospif(rotationFactor, &sin_theta, &cos_theta);
+    h = fmodf(h + hue, 1.0f);
+    s = fminf(fmaxf(s + saturation, 0.0f), 1.0f);
+    l = fminf(fmaxf(l + lightness, 0.0f), 1.0f);
 
-    // Rotate in the I-Q plane
-    float new_i = i * cos_theta - q * sin_theta;
-    float new_q = i * sin_theta + q * cos_theta;
-
-    yiq_to_rgb(y, new_i, new_q, r, g, b);
+    HSLtoRGB(h, s, l, r, g, b);
 
     img[idx] = static_cast<unsigned char>(min(max(b, 0.0f), 1.0f) * 255);
     img[idx + 1] = static_cast<unsigned char>(min(max(g, 0.0f), 1.0f) * 255);
     img[idx + 2] = static_cast<unsigned char>(min(max(r, 0.0f), 1.0f) * 255);
 }
 
-__global__ void shiftHueRGBA_kernel(unsigned char* __restrict__ img, const int nPixels, const float rotationFactor) {
+__global__ void shiftHueRGBA_kernel(unsigned char* __restrict__ img, const int nPixels, const float hue, const float saturation, const float lightness) {
     int pIdx = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (pIdx >= nPixels) return;
@@ -687,17 +720,14 @@ __global__ void shiftHueRGBA_kernel(unsigned char* __restrict__ img, const int n
     float g = img[idx + 1] / 255.0f;
     float b = img[idx + 2] / 255.0f;
 
-    float y, i, q;
-    rgb_to_yiq(r, g, b, y, i, q);
+    float h, s, l;
+    RGBtoHSL(r, g, b, h, s, l);
 
-    float cos_theta, sin_theta;
-    sincospif(rotationFactor, &sin_theta, &cos_theta);
+    h = fmodf(h + hue, 1.0f);
+    s = fminf(fmaxf(s + saturation, 0.0f), 1.0f);
+    l = fminf(fmaxf(l + lightness, 0.0f), 1.0f);
 
-    // Rotate in the I-Q plane
-    float new_i = i * cos_theta - q * sin_theta;
-    float new_q = i * sin_theta + q * cos_theta;
-
-    yiq_to_rgb(y, new_i, new_q, r, g, b);
+    HSLtoRGB(h, s, l, r, g, b);
 
     img[idx] = static_cast<unsigned char>(min(max(r, 0.0f), 1.0f) * 255);
     img[idx + 1] = static_cast<unsigned char>(min(max(g, 0.0f), 1.0f) * 255);
@@ -1112,54 +1142,6 @@ __global__ void generateBinaryNoise(unsigned char* __restrict__ img, const int n
     img[idx] = c;
 }
 
-__device__ static __inline__ void RGBtoHSL(float r, float g, float b, float& h, float& s, float& l) {
-    float max_c = fmaxf(fmaxf(r, g), b);
-    float min_c = fminf(fminf(r, g), b);
-    float delta = max_c - min_c;
-
-    l = 0.5f * (max_c + min_c);
-
-    if (delta < 1e-6f) {
-        h = 0.0f;
-        s = 0.0f;
-        return;
-    }
-
-    s = delta / (1.0f - fabsf(2.0f * l - 1.0f));
-
-    if (max_c == r)
-        h = fmodf((g - b) / delta, 6.0f);
-    else if (max_c == g)
-        h = ((b - r) / delta) + 2.0f;
-    else
-        h = ((r - g) / delta) + 4.0f;
-
-    h /= 6.0f;
-    if (h < 0.0f) h += 1.0f;
-}
-
-__device__ static __inline__ float hueToRGB(float p, float q, float t) {
-    if (t < 0.0f) t += 1.0f;
-    if (t > 1.0f) t -= 1.0f;
-    if (t < 1.0f / 6.0f) return p + (q - p) * 6.0f * t;
-    if (t < 1.0f / 2.0f) return q;
-    if (t < 2.0f / 3.0f) return p + (q - p) * (2.0f / 3.0f - t) * 6.0f;
-    return p;
-}
-
-__device__ static __inline__ void HSLtoRGB(float h, float s, float l, float& r, float& g, float& b) {
-    if (s < 1e-6f) {
-        r = g = b = l;
-        return;
-    }
-
-    float q = l < 0.5f ? l * (1.0f + s) : l + s - l * s;
-    float p = 2.0f * l - q;
-    r = hueToRGB(p, q, h + 1.0f / 3.0f);
-    g = hueToRGB(p, q, h);
-    b = hueToRGB(p, q, h - 1.0f / 3.0f);
-}
-
 __global__ void fixedLightness_kernel(unsigned char* __restrict__ img, const int nPixels, const float lightness) {
     int pIdx = blockIdx.x * blockDim.x + threadIdx.x;
     if (pIdx >= nPixels) return;
@@ -1212,4 +1194,58 @@ __global__ void fixedLightnessRGBA_kernel(unsigned char* __restrict__ img, const
     img[idx + 2] = static_cast<unsigned char>(fminf(fmaxf(r * 255.0f, 0.0f), 255.0f));
     img[idx + 1] = static_cast<unsigned char>(fminf(fmaxf(g * 255.0f, 0.0f), 255.0f));
     img[idx] = static_cast<unsigned char>(fminf(fmaxf(b * 255.0f, 0.0f), 255.0f));
+}
+
+__global__ void flatSaturation_kernel(unsigned char* __restrict__ img, const int nPixels, const float saturation) {
+    int pIdx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (pIdx >= nPixels) return;
+
+    int idx = pIdx * 3;
+
+    // Read and normalize RGB
+    float r = img[idx + 2] / 255.0f;
+    float g = img[idx + 1] / 255.0f;
+    float b = img[idx] / 255.0f;
+
+    // Convert to HSL
+    float h, s, l;
+    RGBtoHSL(r, g, b, h, s, l);
+
+    // Set lightness
+    s = saturation;
+
+    // Convert back to RGB
+    HSLtoRGB(h, s, l, r, g, b);
+
+    // Write back
+    img[idx + 2] = static_cast<unsigned char>(fminf(fmaxf(r * 255.0f, 0.0f), 255.0f));
+    img[idx + 1] = static_cast<unsigned char>(fminf(fmaxf(g * 255.0f, 0.0f), 255.0f));
+    img[idx] = static_cast<unsigned char>(fminf(fmaxf(b * 255.0f, 0.0f), 255.0f));
+}
+
+__global__ void flatSaturationRGBA_kernel(unsigned char* __restrict__ img, const int nPixels, const float saturation) {
+    int pIdx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (pIdx >= nPixels) return;
+
+    int idx = pIdx * 4;
+
+    // Read and normalize RGB
+    float r = img[idx] / 255.0f;
+    float g = img[idx + 1] / 255.0f;
+    float b = img[idx + 2] / 255.0f;
+
+    // Convert to HSL
+    float h, s, l;
+    RGBtoHSL(r, g, b, h, s, l);
+
+    // Set lightness
+    s = saturation;
+
+    // Convert back to RGB
+    HSLtoRGB(h, s, l, r, g, b);
+
+    // Write back
+    img[idx] = static_cast<unsigned char>(fminf(fmaxf(r * 255.0f, 0.0f), 255.0f));
+    img[idx + 1] = static_cast<unsigned char>(fminf(fmaxf(g * 255.0f, 0.0f), 255.0f));
+    img[idx + 2] = static_cast<unsigned char>(fminf(fmaxf(b * 255.0f, 0.0f), 255.0f));
 }

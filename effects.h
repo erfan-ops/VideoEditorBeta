@@ -19,6 +19,7 @@
 #include "videoMonoMask.h"
 #include "videoSoftPalette.h"
 #include "videoFlatLight.h"
+#include "videoFlatSaturation.h"
 
 #include "ImageOutlines.h"
 #include "imageBlur.h"
@@ -38,6 +39,7 @@
 #include "imageMonoMask.h"
 #include "imageSoftpalette.h"
 #include "imageFlatLight.h"
+#include "imageFlatSaturation.h"
 
 #include "softPalette.h"
 #include "blackAndWhite.h"
@@ -58,3 +60,4 @@
 #include "trueOutlines.h"
 #include "radialBlur.h"
 #include "vintage8Bit.h"
+#include "flatSaturation.h"

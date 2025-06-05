@@ -30,8 +30,8 @@ protected:
     int imgSize;
 
     // Allocate buffers
-    virtual void allocateCUDA() = 0;
-    virtual void allocateOpenCL() = 0;
+    virtual void allocateCUDA();
+    virtual void allocateOpenCL();
 
     virtual void uploadCUDA(const unsigned char* Src);
     virtual void uploadOpenCL(const unsigned char* Src);

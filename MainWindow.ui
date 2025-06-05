@@ -639,7 +639,7 @@
        <rect>
         <x>50</x>
         <y>850</y>
-        <width>161</width>
+        <width>191</width>
         <height>31</height>
        </rect>
       </property>
@@ -652,7 +652,7 @@
        <string notr="true"/>
       </property>
       <property name="text">
-       <string>Hue Shift</string>
+       <string>Color Tune</string>
       </property>
      </widget>
      <widget class="QPushButton" name="btnHueShift">
@@ -1898,13 +1898,13 @@ border-radius: 6px;</string>
        </rect>
       </property>
       <property name="minimum">
-       <number>0</number>
+       <number>50</number>
       </property>
       <property name="maximum">
-       <number>360</number>
+       <number>150</number>
       </property>
       <property name="value">
-       <number>180</number>
+       <number>100</number>
       </property>
       <property name="orientation">
        <enum>Qt::Orientation::Horizontal</enum>
@@ -1937,6 +1937,15 @@ border-radius: 6px;</string>
         <height>32</height>
        </rect>
       </property>
+      <property name="minimum">
+       <number>-100</number>
+      </property>
+      <property name="maximum">
+       <number>100</number>
+      </property>
+      <property name="value">
+       <number>0</number>
+      </property>
       <property name="orientation">
        <enum>Qt::Orientation::Horizontal</enum>
       </property>
@@ -1967,6 +1976,92 @@ border-radius: 6px;</string>
         <width>200</width>
         <height>32</height>
        </rect>
+      </property>
+      <property name="minimum">
+       <number>-100</number>
+      </property>
+      <property name="maximum">
+       <number>100</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Orientation::Horizontal</enum>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_37">
+      <property name="geometry">
+       <rect>
+        <x>630</x>
+        <y>2470</y>
+        <width>251</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>28</pointsize>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+      <property name="text">
+       <string>Flat Saturation</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="btnFlatSaturation">
+      <property name="geometry">
+       <rect>
+        <x>630</x>
+        <y>2510</y>
+        <width>291</width>
+        <height>161</height>
+       </rect>
+      </property>
+      <property name="cursor">
+       <cursorShape>PointingHandCursor</cursorShape>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_38">
+      <property name="geometry">
+       <rect>
+        <x>930</x>
+        <y>2510</y>
+        <width>101</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>14</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Saturation:</string>
+      </property>
+     </widget>
+     <widget class="QSlider" name="flatSaturationSlider">
+      <property name="geometry">
+       <rect>
+        <x>930</x>
+        <y>2530</y>
+        <width>200</width>
+        <height>32</height>
+       </rect>
+      </property>
+      <property name="minimum">
+       <number>0</number>
+      </property>
+      <property name="maximum">
+       <number>100</number>
+      </property>
+      <property name="value">
+       <number>100</number>
       </property>
       <property name="orientation">
        <enum>Qt::Orientation::Horizontal</enum>

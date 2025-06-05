@@ -74,4 +74,5 @@ private:
     void updateMonoMaskThumbnail();
     void updateSoftPaletteThumbnail();
     void updateFlatLightThumbnail();
+    void updateFlatSaturationThumbnail();
 };

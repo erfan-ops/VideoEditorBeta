@@ -100,18 +100,6 @@
     <Filter Include="Effects\Inverse Contrast\Video">
       <UniqueIdentifier>{ad355c84-ad5e-47b8-874e-a533b0ac4431}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Effects\Hue Shift">
-      <UniqueIdentifier>{11a160ab-bc50-457c-9219-4ea695de0e33}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Effects\Hue Shift\Launcher">
-      <UniqueIdentifier>{512b9adb-8614-466e-ad4d-0fc6782fc7dc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Effects\Hue Shift\Image">
-      <UniqueIdentifier>{30de6bd2-64cf-4641-b8ec-b77067df3aba}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Effects\Hue Shift\Video">
-      <UniqueIdentifier>{b9eb344a-4105-4d95-b20c-1808733c6ccf}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Effects\Radial Blur">
       <UniqueIdentifier>{71129b45-74d5-4192-a45d-a5d00290afd4}</UniqueIdentifier>
     </Filter>
@@ -283,9 +271,6 @@
     <Filter Include="Effects\Change Palette\Launcher\CUDA">
       <UniqueIdentifier>{53036b61-8176-4dd4-b062-79ff54ee3d19}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Effects\Hue Shift\Launcher\CUDA">
-      <UniqueIdentifier>{0ef7589e-9fa4-4779-af90-1f7aa7317ab3}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Effects\Inverse Colors\Launcher\CUDA">
       <UniqueIdentifier>{3a2df497-3dfc-4cd1-a8b9-8bd286a0c265}</UniqueIdentifier>
     </Filter>
@@ -318,6 +303,39 @@
     </Filter>
     <Filter Include="Effects\Vintage8bit\Launcher\CUDA">
       <UniqueIdentifier>{a9913843-9931-4897-b919-3bcbdb291b17}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Flat Saturation">
+      <UniqueIdentifier>{62ffb9a5-2904-4892-9d6d-86e5fa835f3b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Flat Saturation\Image">
+      <UniqueIdentifier>{a9361672-e5ed-407f-8bef-00b4ed733a8d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Flat Saturation\Video">
+      <UniqueIdentifier>{8069e604-169f-4592-b9ec-77c409000ccb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Flat Saturation\Launcher">
+      <UniqueIdentifier>{c9826979-eabc-45cc-855c-87f9d51da8c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Flat Saturation\Launcher\CUDA">
+      <UniqueIdentifier>{78a8d9c8-6707-47dc-bd95-32d64ca69f76}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Flat Saturation\Launcher\OpenCL">
+      <UniqueIdentifier>{1627240c-46be-4837-be67-7a4309e9b350}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Color Tune">
+      <UniqueIdentifier>{11a160ab-bc50-457c-9219-4ea695de0e33}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Color Tune\Launcher">
+      <UniqueIdentifier>{512b9adb-8614-466e-ad4d-0fc6782fc7dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Color Tune\Launcher\CUDA">
+      <UniqueIdentifier>{0ef7589e-9fa4-4779-af90-1f7aa7317ab3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Color Tune\Image">
+      <UniqueIdentifier>{30de6bd2-64cf-4641-b8ec-b77067df3aba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\Color Tune\Video">
+      <UniqueIdentifier>{b9eb344a-4105-4d95-b20c-1808733c6ccf}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -382,10 +400,10 @@
       <Filter>Effects\Inverse Contrast\Video</Filter>
     </ClCompile>
     <ClCompile Include="imageHueShift.cpp">
-      <Filter>Effects\Hue Shift\Image</Filter>
+      <Filter>Effects\Color Tune\Image</Filter>
     </ClCompile>
     <ClCompile Include="videoHueShift.cpp">
-      <Filter>Effects\Hue Shift\Video</Filter>
+      <Filter>Effects\Color Tune\Video</Filter>
     </ClCompile>
     <ClCompile Include="imageRadialBlur.cpp">
       <Filter>Effects\Radial Blur\Image</Filter>
@@ -484,7 +502,7 @@
       <Filter>Effects\Change Palette\Launcher</Filter>
     </ClCompile>
     <ClCompile Include="hueShift.cpp">
-      <Filter>Effects\Hue Shift\Launcher</Filter>
+      <Filter>Effects\Color Tune\Launcher</Filter>
     </ClCompile>
     <ClCompile Include="inverseColors.cpp">
       <Filter>Effects\Inverse Colors\Launcher</Filter>
@@ -525,6 +543,15 @@
     <ClCompile Include="vintage8Bit.cpp">
       <Filter>Effects\Vintage8bit\Launcher</Filter>
     </ClCompile>
+    <ClCompile Include="flatSaturation.cpp">
+      <Filter>Effects\Flat Saturation\Launcher</Filter>
+    </ClCompile>
+    <ClCompile Include="imageFlatSaturation.cpp">
+      <Filter>Effects\Flat Saturation\Image</Filter>
+    </ClCompile>
+    <ClCompile Include="videoFlatSaturation.cpp">
+      <Filter>Effects\Flat Saturation\Video</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="effects.cu">
@@ -552,7 +579,7 @@
       <Filter>Effects\Change Palette\Launcher\CUDA</Filter>
     </CudaCompile>
     <CudaCompile Include="hueShift_launcher.cu">
-      <Filter>Effects\Hue Shift\Launcher\CUDA</Filter>
+      <Filter>Effects\Color Tune\Launcher\CUDA</Filter>
     </CudaCompile>
     <CudaCompile Include="inverseColors_launcher.cu">
       <Filter>Effects\Inverse Colors\Launcher\CUDA</Filter>
@@ -586,6 +613,9 @@
     </CudaCompile>
     <CudaCompile Include="vintage8bit_launcher.cu">
       <Filter>Effects\Vintage8bit\Launcher\CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="flatSaturation_CUDA.cu">
+      <Filter>Effects\Flat Saturation\Launcher\CUDA</Filter>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
@@ -671,10 +701,10 @@
       <Filter>Effects\Change Palette\Launcher</Filter>
     </ClInclude>
     <ClInclude Include="hueShift.h">
-      <Filter>Effects\Hue Shift\Launcher</Filter>
+      <Filter>Effects\Color Tune\Launcher</Filter>
     </ClInclude>
     <ClInclude Include="hueShift_launcher.cuh">
-      <Filter>Effects\Hue Shift\Launcher\CUDA</Filter>
+      <Filter>Effects\Color Tune\Launcher\CUDA</Filter>
     </ClInclude>
     <ClInclude Include="inverseColors_launcher.cuh">
       <Filter>Effects\Inverse Colors\Launcher\CUDA</Filter>
@@ -748,6 +778,15 @@
     <ClInclude Include="vintage8Bit.h">
       <Filter>Effects\Vintage8bit\Launcher</Filter>
     </ClInclude>
+    <ClInclude Include="flatSaturation.h">
+      <Filter>Effects\Flat Saturation\Launcher</Filter>
+    </ClInclude>
+    <ClInclude Include="flatSaturation_CUDA.cuh">
+      <Filter>Effects\Flat Saturation\Launcher\CUDA</Filter>
+    </ClInclude>
+    <ClInclude Include="flatSaturation_OpenCL.h">
+      <Filter>Effects\Flat Saturation\Launcher\OpenCL</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -808,10 +847,10 @@
       <Filter>Effects\Inverse Contrast\Video</Filter>
     </QtMoc>
     <QtMoc Include="imageHueShift.h">
-      <Filter>Effects\Hue Shift\Image</Filter>
+      <Filter>Effects\Color Tune\Image</Filter>
     </QtMoc>
     <QtMoc Include="videoHueShift.h">
-      <Filter>Effects\Hue Shift\Video</Filter>
+      <Filter>Effects\Color Tune\Video</Filter>
     </QtMoc>
     <QtMoc Include="imageRadialBlur.h">
       <Filter>Effects\Radial Blur\Image</Filter>
@@ -884,6 +923,12 @@
     </QtMoc>
     <QtMoc Include="videoFlatLight.h">
       <Filter>Effects\Flat Light\Video</Filter>
+    </QtMoc>
+    <QtMoc Include="imageFlatSaturation.h">
+      <Filter>Effects\Flat Saturation\Image</Filter>
+    </QtMoc>
+    <QtMoc Include="videoFlatSaturation.h">
+      <Filter>Effects\Flat Saturation\Video</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

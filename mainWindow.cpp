@@ -64,6 +64,7 @@ MainWindow::MainWindow(QWidget* parent)
     TrueOutlinesProcessor::init();
     RadialBlurProcessor::init();
     Vintage8BitProcessor::init();
+    FlatSaturationProcessor::init();
 
     // Connect signals
     QObject::connect(ui->btnSelect, &QPushButton::clicked, [&]() {
@@ -96,6 +97,7 @@ MainWindow::MainWindow(QWidget* parent)
     replaceButtonWithEffectButton(ui->btnMonoMask, ":/samples/samples/sample.jpg");
     replaceButtonWithEffectButton(ui->btnSoftPalette, ":/samples/samples/sample.jpg");
     replaceButtonWithEffectButton(ui->btnFlatLight, ":/samples/samples/sample.jpg");
+    replaceButtonWithEffectButton(ui->btnFlatSaturation, ":/samples/samples/sample.jpg");
 
     EffectButton* effectBtn = qobject_cast<EffectButton*>(ui->btnRadialBlur);
     QPixmap originalPixmap = effectBtn->getOriginalPixmap();
@@ -217,20 +219,24 @@ MainWindow::MainWindow(QWidget* parent)
         });
 
     QObject::connect(ui->btnHueShift, &QPushButton::clicked, this, [&]() {
-        int shift = ui->hueShiftSlider->value();
+        int hue = ui->hueShiftSlider->value() / 100.0f;
+        int saturation = ui->saturationSlider->value() / 100.0f;
+        int lightness = ui->lighnessSlider->value() / 100.0f;
 
         EffectBase* worker = nullptr;
         if (videoExtentions.find(fileUtils::splitextw(selectedFilePath).second) != videoExtentions.end()) {
-            worker = new VHueShiftWorker(shift);
+            worker = new VHueShiftWorker(hue, saturation, lightness);
             QObject::connect(worker, &EffectBase::progressChanged, this, &MainWindow::updateProgress, Qt::QueuedConnection);
         }
         else {
-            worker = new IHueShiftWorker(shift);
+            worker = new IHueShiftWorker(hue, saturation, lightness);
         }
 
         processEffect(ui->btnHueShift, worker);
         });
     QObject::connect(ui->hueShiftSlider, QOverload<int>::of(&QSlider::valueChanged), this, &MainWindow::updateHueShiftThumbnail);
+    QObject::connect(ui->saturationSlider, QOverload<int>::of(&QSlider::valueChanged), this, &MainWindow::updateHueShiftThumbnail);
+    QObject::connect(ui->lighnessSlider, QOverload<int>::of(&QSlider::valueChanged), this, &MainWindow::updateHueShiftThumbnail);
 
     QObject::connect(ui->btnRadialBlur, &QPushButton::clicked, this, [&]() {
         int blurRadius = ui->radialBlurRadius->value();
@@ -819,6 +825,22 @@ MainWindow::MainWindow(QWidget* parent)
         processEffect(ui->btnFlatLight, worker);
         });
     QObject::connect(ui->lightness, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::updateFlatLightThumbnail);
+
+    QObject::connect(ui->btnFlatSaturation, &QPushButton::clicked, this, [&]() {
+        float saturation = ui->flatSaturationSlider->value() / 100.f;
+
+        EffectBase* worker = nullptr;
+        if (videoExtentions.find(fileUtils::splitextw(selectedFilePath).second) != videoExtentions.end()) {
+            worker = new VFlatSaturationWorker(saturation);
+            QObject::connect(worker, &EffectBase::progressChanged, this, &MainWindow::updateProgress, Qt::QueuedConnection);
+        }
+        else {
+            worker = new IFlatSaturationWorker(saturation);
+        }
+
+        processEffect(ui->btnFlatSaturation, worker);
+        });
+    QObject::connect(ui->flatSaturationSlider, QOverload<int>::of(&QSlider::valueChanged), this, &MainWindow::updateFlatSaturationThumbnail);
 }
 
 MainWindow::~MainWindow()
@@ -909,7 +931,9 @@ void MainWindow::updateProgress(const Video& video, const Timer& timer) {
 
 
 void MainWindow::updateHueShiftThumbnail() {
-    float rotationFactor = ui->hueShiftSlider->value() / 180.0f;
+    float hue = ui->hueShiftSlider->value() / 100.0f;
+    float saturation = ui->saturationSlider->value() / 100.0f;
+    float lightness = ui->lighnessSlider->value() / 100.0f;
 
     EffectButton* effectBtn = qobject_cast<EffectButton*>(ui->btnHueShift);
     if (!effectBtn) return;
@@ -922,7 +946,7 @@ void MainWindow::updateHueShiftThumbnail() {
     int size = image.sizeInBytes();
     int nPixels = image.width() * image.height();
 
-    HueShiftProcessor processor(size, nPixels, rotationFactor);
+    HueShiftProcessor processor(size, nPixels, hue, saturation, lightness);
 
     processor.setImage(image.constBits());
     processor.processRGBA();
@@ -1363,6 +1387,31 @@ void MainWindow::updateFlatLightThumbnail() {
     effectBtn->setProcessedPixmap(resultPixmap);
 }
 
+void MainWindow::updateFlatSaturationThumbnail() {
+    float saturation = ui->flatSaturationSlider->value() / 100.f;
+
+    EffectButton* effectBtn = qobject_cast<EffectButton*>(ui->btnFlatSaturation);
+    if (!effectBtn) return;
+
+    QPixmap originalPixmap = effectBtn->getOriginalPixmap();
+
+    QImage image = originalPixmap.toImage().convertToFormat(QImage::Format_RGBA8888);
+
+    const int size = image.sizeInBytes();
+    const int nPixels = image.width() * image.height();
+
+    FlatSaturationProcessor processor(size, nPixels, saturation);
+
+    processor.upload(image.constBits());
+    processor.processRGBA();
+    processor.download(image.bits());
+
+    QImage result(image.bits(), image.width(), image.height(), QImage::Format_RGBA8888);
+    QPixmap resultPixmap = QPixmap::fromImage(result);
+
+    effectBtn->setProcessedPixmap(resultPixmap);
+}
+
 
 static void setThumbnail(QPushButton* button, QPixmap pixmap) {
     EffectButton* effectBtn = qobject_cast<EffectButton*>(button);
@@ -1402,6 +1451,7 @@ void MainWindow::newThumbnails() {
     setThumbnail(ui->btnMonoMask, this->selectedPixmap);
     setThumbnail(ui->btnSoftPalette, this->selectedPixmap);
     setThumbnail(ui->btnFlatLight, this->selectedPixmap);
+    setThumbnail(ui->btnFlatSaturation, this->selectedPixmap);
 
     ui->centerX->setMaximum(this->selectedPixmap.width());
     ui->centerY->setMaximum(this->selectedPixmap.height());
@@ -1461,4 +1511,5 @@ void MainWindow::updateThumbnails() {
     this->updateMonoMaskThumbnail();
     this->updateSoftPaletteThumbnail();
     this->updateFlatLightThumbnail();
+    this->updateFlatSaturationThumbnail();
 }

@@ -142,6 +142,7 @@
     </ClCompile>
     <ClCompile Include="fileDialog.cpp" />
     <ClCompile Include="flatLight.cpp" />
+    <ClCompile Include="flatSaturation.cpp" />
     <ClCompile Include="globals.cpp" />
     <ClCompile Include="hueShift.cpp" />
     <ClCompile Include="image.cpp" />
@@ -150,6 +151,7 @@
     <ClCompile Include="imageCensor.cpp" />
     <ClCompile Include="imageChangePalette.cpp" />
     <ClCompile Include="imageFlatLight.cpp" />
+    <ClCompile Include="imageFlatSaturation.cpp" />
     <ClCompile Include="imageHueShift.cpp" />
     <ClCompile Include="imageInverseColors.cpp" />
     <ClCompile Include="imageInverseContrast.cpp" />
@@ -187,6 +189,7 @@
     <ClCompile Include="videoCensor.cpp" />
     <ClCompile Include="videoChangePalette.cpp" />
     <ClCompile Include="videoFlatLight.cpp" />
+    <ClCompile Include="videoFlatSaturation.cpp" />
     <ClCompile Include="videoHueShift.cpp">
       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
       <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).moc</QtMocFileName>
@@ -213,6 +216,7 @@
     <CudaCompile Include="censor_launcher.cu" />
     <CudaCompile Include="changePalette_launcher.cu" />
     <CudaCompile Include="flatLight_launcher.cu" />
+    <CudaCompile Include="flatSaturation_CUDA.cu" />
     <CudaCompile Include="hueShift_launcher.cu" />
     <CudaCompile Include="inverseColors_launcher.cu" />
     <CudaCompile Include="inverseContrast_launcher.cu" />
@@ -251,9 +255,13 @@
     <QtMoc Include="colorButton.h" />
     <ClInclude Include="flatLight.h" />
     <ClInclude Include="flatLight_launcher.cuh" />
+    <ClInclude Include="flatSaturation.h" />
+    <ClInclude Include="flatSaturation_OpenCL.h" />
+    <ClInclude Include="flatSaturation_CUDA.cuh" />
     <ClInclude Include="globals.h" />
     <QtMoc Include="imageFlatLight.h" />
     <ClInclude Include="hueShift.h" />
+    <QtMoc Include="imageFlatSaturation.h" />
     <ClInclude Include="inverseColors.h" />
     <ClInclude Include="inverseContrast.h" />
     <ClInclude Include="launchers.h" />
@@ -276,6 +284,7 @@
     <ClInclude Include="SourcesOpenCL.h" />
     <QtMoc Include="videoFlatLight.h" />
     <ClInclude Include="trueOutlines.h" />
+    <QtMoc Include="videoFlatSaturation.h" />
     <ClInclude Include="vintage8Bit.h" />
     <ClInclude Include="vintage8bit_launcher.cuh" />
     <QtMoc Include="videoMagicEye.h" />

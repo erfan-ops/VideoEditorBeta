@@ -5,7 +5,7 @@
 
 class HueShiftProcessor {
 public:
-    HueShiftProcessor(int size, int nPixels, float shift);
+    HueShiftProcessor(int size, int nPixels, float hue, float saturation, float lightness);
     ~HueShiftProcessor();
 
     // Function pointer to process image with either CUDA or OpenCL
@@ -40,7 +40,9 @@ private:
     unsigned char* m_img = nullptr;
     int imgSize;
     int m_nPixels;
-    float m_shift;
+    float m_hue;
+    float m_saturation;
+    float m_lightness;
 
     // Allocate buffers
     void allocateCUDA();

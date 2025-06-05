@@ -1,18 +1,18 @@
-#include "hueShift.h"
-#include "imageHueShift.h"
+#include "flatSaturation.h"
+#include "imageFlatSaturation.h"
 #include "image.h"
 
 
-void IHueShiftWorker::process() {
+void IFlatSaturationWorker::process() {
     try {
         Image img(m_inputPath);
-        
-        HueShiftProcessor processor(img.getSize(), img.getNumPixels(), m_hue, m_saturation, m_lightness);
 
-        processor.setImage(img.getData());
-        processor.process();
+        FlatSaturationProcessor processor(img.getSize(), img.getNumPixels(), m_saturation);
+
         processor.upload(img.getData());
-        
+        processor.process();
+        processor.download(img.getData());
+
         img.save(m_outputPath);
 
         emit finished();

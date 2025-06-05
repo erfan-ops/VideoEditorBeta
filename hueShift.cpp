@@ -10,8 +10,8 @@ void (HueShiftProcessor::* HueShiftProcessor::processFuncRGBA)() const = nullptr
 cl_kernel HueShiftProcessor::m_openclKernel = nullptr;
 cl_kernel HueShiftProcessor::m_openclKernelRGBA = nullptr;
 
-HueShiftProcessor::HueShiftProcessor(int size, int nPixels, float shift)
-    : imgSize(size), m_nPixels(nPixels), m_shift(shift) {
+HueShiftProcessor::HueShiftProcessor(int size, int nPixels, float hue, float saturation, float lightness)
+    : imgSize(size), m_nPixels(nPixels), m_hue(hue), m_saturation(saturation), m_lightness(lightness) {
     m_img = new unsigned char[this->imgSize];
 
     // Allocate buffers for CUDA or OpenCL
@@ -60,7 +60,7 @@ void HueShiftProcessor::processRGBA() const {
 void HueShiftProcessor::processCUDA() const {
     cudaMemcpyAsync(d_img, m_img, imgSize, cudaMemcpyHostToDevice, m_cudaStream);
 
-    hueShift_CUDA(gridSize, blockSize, m_cudaStream, d_img, m_nPixels, m_shift);
+    hueShift_CUDA(gridSize, blockSize, m_cudaStream, d_img, m_nPixels, m_hue, m_saturation, m_lightness);
 
     cudaMemcpyAsync(m_img, d_img, imgSize, cudaMemcpyDeviceToHost, m_cudaStream);
     cudaStreamSynchronize(m_cudaStream);
@@ -69,17 +69,16 @@ void HueShiftProcessor::processCUDA() const {
 void HueShiftProcessor::processRGBA_CUDA() const {
     cudaMemcpyAsync(d_img, m_img, imgSize, cudaMemcpyHostToDevice, m_cudaStream);
 
-    hueShiftRGBA_CUDA(gridSize, blockSize, m_cudaStream, d_img, m_nPixels, m_shift);
+    hueShiftRGBA_CUDA(gridSize, blockSize, m_cudaStream, d_img, m_nPixels, m_hue, m_saturation, m_lightness);
 
     cudaMemcpyAsync(m_img, d_img, imgSize, cudaMemcpyDeviceToHost, m_cudaStream);
     cudaStreamSynchronize(m_cudaStream);
 }
 
 void HueShiftProcessor::processOpenCL() const {
-    // 1. Copy input image to device
     clEnqueueWriteBuffer(globalQueueOpenCL,
         m_imgBuf,
-        CL_FALSE,  // Non-blocking write
+        CL_FALSE,
         0,
         imgSize,
         m_img,
@@ -87,7 +86,9 @@ void HueShiftProcessor::processOpenCL() const {
 
     clSetKernelArg(m_openclKernel, 0, sizeof(cl_mem), &m_imgBuf);
     clSetKernelArg(m_openclKernel, 1, sizeof(int), &m_nPixels);
-    clSetKernelArg(m_openclKernel, 2, sizeof(float), &m_shift);
+    clSetKernelArg(m_openclKernel, 2, sizeof(float), &m_hue);
+    clSetKernelArg(m_openclKernel, 3, sizeof(float), &m_saturation);
+    clSetKernelArg(m_openclKernel, 4, sizeof(float), &m_lightness);
 
     size_t globalSize = m_nPixels;
     cl_event kernelEvent;
@@ -99,24 +100,21 @@ void HueShiftProcessor::processOpenCL() const {
         nullptr,
         0, nullptr, &kernelEvent);
 
-    // 4. Read back results (wait for kernel to complete)
     clEnqueueReadBuffer(globalQueueOpenCL,
         m_imgBuf,
-        CL_TRUE,  // Blocking read
+        CL_TRUE,
         0,
         imgSize,
         m_img,
         1, &kernelEvent, nullptr);
 
-    // Release the kernel event
     clReleaseEvent(kernelEvent);
 }
 
 void HueShiftProcessor::processRGBA_OpenCL() const {
-    // 1. Copy input image to device
     clEnqueueWriteBuffer(globalQueueOpenCL,
         m_imgBuf,
-        CL_FALSE,  // Non-blocking write
+        CL_FALSE,
         0,
         imgSize,
         m_img,
@@ -124,7 +122,9 @@ void HueShiftProcessor::processRGBA_OpenCL() const {
 
     clSetKernelArg(m_openclKernelRGBA, 0, sizeof(cl_mem), &m_imgBuf);
     clSetKernelArg(m_openclKernelRGBA, 1, sizeof(int), &m_nPixels);
-    clSetKernelArg(m_openclKernelRGBA, 2, sizeof(float), &m_shift);
+    clSetKernelArg(m_openclKernelRGBA, 2, sizeof(float), &m_hue);
+    clSetKernelArg(m_openclKernelRGBA, 3, sizeof(float), &m_saturation);
+    clSetKernelArg(m_openclKernelRGBA, 4, sizeof(float), &m_lightness);
 
     size_t globalSize = m_nPixels;
     cl_event kernelEvent;
@@ -136,16 +136,14 @@ void HueShiftProcessor::processRGBA_OpenCL() const {
         nullptr,
         0, nullptr, &kernelEvent);
 
-    // 4. Read back results (wait for kernel to complete)
     clEnqueueReadBuffer(globalQueueOpenCL,
         m_imgBuf,
-        CL_TRUE,  // Blocking read
+        CL_TRUE,
         0,
         imgSize,
         m_img,
         1, &kernelEvent, nullptr);
 
-    // Release the kernel event
     clReleaseEvent(kernelEvent);
 }
 
@@ -166,7 +164,7 @@ void HueShiftProcessor::init() {
         HueShiftProcessor::processFunc = &HueShiftProcessor::processOpenCL;
         HueShiftProcessor::processFuncRGBA = &HueShiftProcessor::processRGBA_OpenCL;
 
-        HueShiftProcessor::m_openclKernel = openclUtils::createKernelFromSource(globalContextOpenCL, globalDeviceOpenCL, hueShiftOpenCLKernelSource, "hueShift_kernel");
-        HueShiftProcessor::m_openclKernelRGBA = openclUtils::createKernelFromSource(globalContextOpenCL, globalDeviceOpenCL, hueShiftRGBAOpenCLKernelSource, "hueShiftRGBA_kernel");
+        HueShiftProcessor::m_openclKernel = openclUtils::createKernelFromSource(globalContextOpenCL, globalDeviceOpenCL, hueShiftOpenCLKernelSource, "HSL_kernel");
+        HueShiftProcessor::m_openclKernelRGBA = openclUtils::createKernelFromSource(globalContextOpenCL, globalDeviceOpenCL, hueShiftRGBAOpenCLKernelSource, "HSLRGBA_kernel");
     }
 }

@@ -515,102 +515,159 @@ __kernel void changePaletteRGBA_kernel(
 )CLC";
 
 const char* hueShiftOpenCLKernelSource = R"CLC(
-inline void rgb_to_yiq(float r, float g, float b, __private float* y, __private float* i, __private float* q) {
-    *y = 0.299f * r + 0.587f * g + 0.114f * b;
-    *i = 0.596f * r - 0.274f * g - 0.322f * b;
-    *q = 0.211f * r - 0.523f * g + 0.312f * b;
+inline void RGBtoHSL(float r, float g, float b, float* h, float* s, float* l) {
+    float max_c = fmax(fmax(r, g), b);
+    float min_c = fmin(fmin(r, g), b);
+    float delta = max_c - min_c;
+
+    *l = 0.5f * (max_c + min_c);
+
+    if (delta < 1e-6f) {
+        *h = 0.0f;
+        *s = 0.0f;
+        return;
+    }
+
+    *s = delta / (1.0f - fabs(2.0f * (*l) - 1.0f));
+
+    if (max_c == r)
+        *h = fmod((g - b) / delta, 6.0f);
+    else if (max_c == g)
+        *h = ((b - r) / delta) + 2.0f;
+    else
+        *h = ((r - g) / delta) + 4.0f;
+
+    *h /= 6.0f;
+    if (*h < 0.0f) *h += 1.0f;
 }
 
-inline void yiq_to_rgb(float y, float i, float q, __private float* r, __private float* g, __private float* b) {
-    *r = y + 0.956f * i + 0.621f * q;
-    *g = y - 0.272f * i - 0.647f * q;
-    *b = y - 1.105f * i + 1.702f * q;
+inline float hueToRGB(float p, float q, float t) {
+    if (t < 0.0f) t += 1.0f;
+    if (t > 1.0f) t -= 1.0f;
+    if (t < 1.0f / 6.0f) return p + (q - p) * 6.0f * t;
+    if (t < 1.0f / 2.0f) return q;
+    if (t < 2.0f / 3.0f) return p + (q - p) * (2.0f / 3.0f - t) * 6.0f;
+    return p;
 }
 
-__kernel void hueShift_kernel(
-    __global uchar* img,
-    const int nPixels,
-    const float rotationFactor
-) {
+inline void HSLtoRGB(float h, float s, float l, float* r, float* g, float* b) {
+    if (s < 1e-6f) {
+        *r = *g = *b = l;
+        return;
+    }
+
+    float q = l < 0.5f ? l * (1.0f + s) : l + s - l * s;
+    float p = 2.0f * l - q;
+
+    *r = hueToRGB(p, q, h + 1.0f / 3.0f);
+    *g = hueToRGB(p, q, h);
+    *b = hueToRGB(p, q, h - 1.0f / 3.0f);
+}
+
+__kernel void HSL_kernel(__global uchar* img, const int nPixels, const float hue, const float saturation, const float lightness) {
     int pIdx = get_global_id(0);
     if (pIdx >= nPixels) return;
 
     int idx = pIdx * 3;
 
-    float b = (float)(img[idx])     / 255.0f;
-    float g = (float)(img[idx + 1]) / 255.0f;
-    float r = (float)(img[idx + 2]) / 255.0f;
+    float b = img[idx] / 255.0f;
+    float g = img[idx + 1] / 255.0f;
+    float r = img[idx + 2] / 255.0f;
 
-    float y, i, q;
-    rgb_to_yiq(r, g, b, &y, &i, &q);
+    float h, s, l;
+    RGBtoHSL(r, g, b, &h, &s, &l);
 
-    float angle = M_PI_F * rotationFactor;
-    float cos_theta = cos(angle);
-    float sin_theta = sin(angle);
+    h = fmod(h + hue, 1.0f);
+    s = clamp(s + saturation, 0.0f, 1.0f);
+    l = clamp(l + lightness, 0.0f, 1.0f);
 
-    float new_i = i * cos_theta - q * sin_theta;
-    float new_q = i * sin_theta + q * cos_theta;
+    HSLtoRGB(h, s, l, &r, &g, &b);
 
-    yiq_to_rgb(y, new_i, new_q, &r, &g, &b);
-
-    // Clamp and write back
-    r = clamp(r, 0.0f, 1.0f);
-    g = clamp(g, 0.0f, 1.0f);
-    b = clamp(b, 0.0f, 1.0f);
-
-    img[idx]     = (uchar)(b * 255.0f);
-    img[idx + 1] = (uchar)(g * 255.0f);
-    img[idx + 2] = (uchar)(r * 255.0f);
+    img[idx]     = (uchar)(clamp(b, 0.0f, 1.0f) * 255.0f);
+    img[idx + 1] = (uchar)(clamp(g, 0.0f, 1.0f) * 255.0f);
+    img[idx + 2] = (uchar)(clamp(r, 0.0f, 1.0f) * 255.0f);
 }
 )CLC";
 
+
 const char* hueShiftRGBAOpenCLKernelSource = R"CLC(
-inline void rgb_to_yiq(float r, float g, float b, __private float* y, __private float* i, __private float* q) {
-    *y = 0.299f * r + 0.587f * g + 0.114f * b;
-    *i = 0.596f * r - 0.274f * g - 0.322f * b;
-    *q = 0.211f * r - 0.523f * g + 0.312f * b;
+inline void RGBtoHSL(float r, float g, float b, float* h, float* s, float* l) {
+    float max_c = fmax(fmax(r, g), b);
+    float min_c = fmin(fmin(r, g), b);
+    float delta = max_c - min_c;
+
+    *l = 0.5f * (max_c + min_c);
+
+    if (delta < 1e-6f) {
+        *h = 0.0f;
+        *s = 0.0f;
+        return;
+    }
+
+    *s = delta / (1.0f - fabs(2.0f * (*l) - 1.0f));
+
+    if (max_c == r)
+        *h = fmod((g - b) / delta, 6.0f);
+    else if (max_c == g)
+        *h = ((b - r) / delta) + 2.0f;
+    else
+        *h = ((r - g) / delta) + 4.0f;
+
+    *h /= 6.0f;
+    if (*h < 0.0f) *h += 1.0f;
 }
 
-inline void yiq_to_rgb(float y, float i, float q, __private float* r, __private float* g, __private float* b) {
-    *r = y + 0.956f * i + 0.621f * q;
-    *g = y - 0.272f * i - 0.647f * q;
-    *b = y - 1.105f * i + 1.702f * q;
+inline float hueToRGB(float p, float q, float t) {
+    if (t < 0.0f) t += 1.0f;
+    if (t > 1.0f) t -= 1.0f;
+    if (t < 1.0f / 6.0f) return p + (q - p) * 6.0f * t;
+    if (t < 1.0f / 2.0f) return q;
+    if (t < 2.0f / 3.0f) return p + (q - p) * (2.0f / 3.0f - t) * 6.0f;
+    return p;
 }
 
-__kernel void hueShiftRGBA_kernel(
+inline void HSLtoRGB(float h, float s, float l, float* r, float* g, float* b) {
+    if (s < 1e-6f) {
+        *r = *g = *b = l;
+        return;
+    }
+
+    float q = l < 0.5f ? l * (1.0f + s) : l + s - l * s;
+    float p = 2.0f * l - q;
+
+    *r = hueToRGB(p, q, h + 1.0f / 3.0f);
+    *g = hueToRGB(p, q, h);
+    *b = hueToRGB(p, q, h - 1.0f / 3.0f);
+}
+
+__kernel void HSLRGBA_kernel(
     __global uchar* img,
     const int nPixels,
-    const float rotationFactor
+    const float hue,
+    const float saturation,
+    const float lightness
 ) {
     int pIdx = get_global_id(0);
     if (pIdx >= nPixels) return;
 
     int idx = pIdx * 4;
 
-    float r = (float)(img[idx])     / 255.0f;
-    float g = (float)(img[idx + 1]) / 255.0f;
-    float b = (float)(img[idx + 2]) / 255.0f;
+    float r = img[idx] / 255.0f;
+    float g = img[idx + 1] / 255.0f;
+    float b = img[idx + 2] / 255.0f;
 
-    float y, i, q;
-    rgb_to_yiq(r, g, b, &y, &i, &q);
+    float h, s, l;
+    RGBtoHSL(r, g, b, &h, &s, &l);
 
-    float angle = M_PI_F * rotationFactor;
-    float cos_theta = cos(angle);
-    float sin_theta = sin(angle);
+    h = fmod(h + hue, 1.0f);
+    s = clamp(s + saturation, 0.0f, 1.0f);
+    l = clamp(l + lightness, 0.0f, 1.0f);
 
-    float new_i = i * cos_theta - q * sin_theta;
-    float new_q = i * sin_theta + q * cos_theta;
+    HSLtoRGB(h, s, l, &r, &g, &b);
 
-    yiq_to_rgb(y, new_i, new_q, &r, &g, &b);
-
-    // Clamp and write back
-    r = clamp(r, 0.0f, 1.0f);
-    g = clamp(g, 0.0f, 1.0f);
-    b = clamp(b, 0.0f, 1.0f);
-
-    img[idx]     = (uchar)(r * 255.0f);
-    img[idx + 1] = (uchar)(g * 255.0f);
-    img[idx + 2] = (uchar)(b * 255.0f);
+    img[idx]     = (uchar)(clamp(r, 0.0f, 1.0f) * 255.0f);
+    img[idx + 1] = (uchar)(clamp(g, 0.0f, 1.0f) * 255.0f);
+    img[idx + 2] = (uchar)(clamp(b, 0.0f, 1.0f) * 255.0f);
 }
 )CLC";
 

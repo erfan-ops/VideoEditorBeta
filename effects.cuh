@@ -32,8 +32,8 @@ __global__ void radial_blur_kernel(unsigned char* __restrict__ img, const unsign
 __global__ void radialBlurRGBA_kernel(unsigned char* __restrict__ img, const unsigned char* __restrict__ img_copy, int rows, int cols, float centerX, float centerY, int blurRadius, float intensity);
 __global__ void reverse_contrast(unsigned char* __restrict__ img, const int nPixels);
 __global__ void reverseContrastRGBA_kernel(unsigned char* __restrict__ img, const int nPixels);
-__global__ void shift_hue_kernel(unsigned char* __restrict__ img, const int nPixels, const float rotationFactor);
-__global__ void shiftHueRGBA_kernel(unsigned char* __restrict__ img, const int nPixels, const float rotationFactor);
+__global__ void shift_hue_kernel(unsigned char* __restrict__ img, const int nPixels, const float hue, const float saturation, const float lightness);
+__global__ void shiftHueRGBA_kernel(unsigned char* __restrict__ img, const int nPixels, const float hue, const float saturation, const float lightness);
 __global__ void outlines_kernel(unsigned char* __restrict__ img, const unsigned char* __restrict__ img_copy, const int rows, const int cols, const int shiftX, const int shiftY);
 __global__ void outlinesRGBA_kernel(unsigned char* __restrict__ img, const unsigned char* __restrict__ img_copy, const int rows, const int cols, const int shiftX, const int shiftY);
 __global__ void subtract_kernel(unsigned char* __restrict__ img1, const unsigned char* __restrict__ img2, const int nPixels);
@@ -54,3 +54,5 @@ __global__ void blackNwhite_kernel(unsigned char* __restrict__ img, const int nP
 __global__ void generateBinaryNoise(unsigned char* __restrict__ img, const int nPixels, size_t seed);
 __global__ void fixedLightness_kernel(unsigned char* __restrict__ img, const int nPixels, const float lightness);
 __global__ void fixedLightnessRGBA_kernel(unsigned char* __restrict__ img, const int nPixels, const float lightness);
+__global__ void flatSaturation_kernel(unsigned char* __restrict__ img, const int nPixels, const float saturation);
+__global__ void flatSaturationRGBA_kernel(unsigned char* __restrict__ img, const int nPixels, const float saturation);
