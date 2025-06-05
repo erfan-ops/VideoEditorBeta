@@ -811,7 +811,7 @@ MainWindow::MainWindow(QWidget* parent)
         });
     
     QObject::connect(ui->btnFlatLight, &QPushButton::clicked, this, [&]() {
-        float lightness = ui->lightness->value();
+        float lightness = ui->flatLightnessSlider->value() / 100.0f;
 
         EffectBase* worker = nullptr;
         if (videoExtentions.find(fileUtils::splitextw(selectedFilePath).second) != videoExtentions.end()) {
@@ -824,7 +824,7 @@ MainWindow::MainWindow(QWidget* parent)
 
         processEffect(ui->btnFlatLight, worker);
         });
-    QObject::connect(ui->lightness, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::updateFlatLightThumbnail);
+    QObject::connect(ui->flatLightnessSlider, QOverload<int>::of(&QSlider::valueChanged), this, &MainWindow::updateFlatLightThumbnail);
 
     QObject::connect(ui->btnFlatSaturation, &QPushButton::clicked, this, [&]() {
         float saturation = ui->flatSaturationSlider->value() / 100.f;
@@ -1363,7 +1363,7 @@ void MainWindow::updateSoftPaletteThumbnail() {
 }
 
 void MainWindow::updateFlatLightThumbnail() {
-    float lightness = ui->lightness->value();
+    float lightness = ui->flatLightnessSlider->value() / 100.0f;
 
     EffectButton* effectBtn = qobject_cast<EffectButton*>(ui->btnFlatLight);
     if (!effectBtn) return;
