@@ -20,7 +20,6 @@
 
 #include "filedialog.h"
 #include "effects.h"
-#include "launchers.h"
 #include "utils.h"
 
 #include "EffectButton.h"
@@ -30,7 +29,7 @@
 #include "baseProcessor.h"
 
 
-MainWindow::MainWindow(QWidget* parent)
+MainWindow::MainWindow(int argc, char** argv, QWidget* parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
@@ -98,6 +97,19 @@ MainWindow::MainWindow(QWidget* parent)
     replaceButtonWithEffectButton(ui->btnSoftPalette, ":/samples/samples/sample.jpg");
     replaceButtonWithEffectButton(ui->btnFlatLight, ":/samples/samples/sample.jpg");
     replaceButtonWithEffectButton(ui->btnFlatSaturation, ":/samples/samples/sample.jpg");
+
+    if (argc > 1 && std::filesystem::exists(argv[1])) {
+        std::wstring argvPath = stringUtils::string_to_wstring(argv[1]);
+        if (videoExtentions.find(fileUtils::splitextw(argvPath).second) != videoExtentions.end()) {
+            selectedFilePath = argvPath;
+            ui->label->setText(QString::fromStdWString(L"Selected: " + selectedFilePath));
+        }
+        else if (imageExtentions.find(fileUtils::splitextw(argvPath).second) != imageExtentions.end()) {
+            selectedFilePath = argvPath;
+            ui->label->setText(QString::fromStdWString(L"Selected: " + selectedFilePath));
+            this->newThumbnails();
+        }
+    }
 
     EffectButton* effectBtn = qobject_cast<EffectButton*>(ui->btnRadialBlur);
     QPixmap originalPixmap = effectBtn->getOriginalPixmap();
@@ -219,9 +231,9 @@ MainWindow::MainWindow(QWidget* parent)
         });
 
     QObject::connect(ui->btnHueShift, &QPushButton::clicked, this, [&]() {
-        int hue = ui->hueShiftSlider->value() / 100.0f;
-        int saturation = ui->saturationSlider->value() / 100.0f;
-        int lightness = ui->lighnessSlider->value() / 100.0f;
+        float hue = ui->hueShiftSlider->value() / 100.0f;
+        float saturation = ui->saturationSlider->value() / 100.0f;
+        float lightness = ui->lighnessSlider->value() / 100.0f;
 
         EffectBase* worker = nullptr;
         if (videoExtentions.find(fileUtils::splitextw(selectedFilePath).second) != videoExtentions.end()) {

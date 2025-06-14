@@ -6,6 +6,7 @@
 #include <unordered_set>
 
 extern std::unordered_set<std::wstring> videoExtentions;
+extern std::unordered_set<std::wstring> imageExtentions;
 
 class FileDialog {
 private:

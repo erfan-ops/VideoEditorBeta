@@ -12,7 +12,7 @@ void IHueShiftWorker::process() {
         processor.setImage(img.getData());
         processor.process();
         processor.upload(img.getData());
-        
+
         img.save(m_outputPath);
 
         emit finished();

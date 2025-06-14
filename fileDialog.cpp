@@ -20,6 +20,10 @@ const QString FileDialog::filters =
 "All Files (*.*)";
 
 std::unordered_set<std::wstring> videoExtentions = { L".mp4", L".avi", L".mkv", L".mov" };
+std::unordered_set<std::wstring> imageExtentions = {
+    L".jpg", L".jpeg", L".png", L".bmp", L".tif", L".tiff", L".webp",
+    L".ppm", L".pgm", L".pbm", L".hdr", L".exr", L".sr", L".ras"
+};
 
 // Helper functions (local to .cpp file)
 namespace {
