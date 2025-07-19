@@ -374,6 +374,7 @@ __global__ void blendNearestColors_kernel(
         int dg = int(g) - int(pg);
         int dr = int(r) - int(pr);
         float dist_squared = float(db * db + dg * dg + dr * dr);
+        //float dist = sqrtf(dist_squared);
 
         // Avoid division by zero: assign a very high weight to exact matches
         float weight = (dist_squared == 0.0f) ? 1e6f : 1.0f / dist_squared;
@@ -426,6 +427,7 @@ __global__ void blendNearestColorsRGBA_kernel(
         int dg = int(g) - int(pg);
         int dr = int(r) - int(pr);
         float dist_squared = float(db * db + dg * dg + dr * dr);
+        //float dist = sqrtf(dist_squared);
 
         // Avoid division by zero: assign a very high weight to exact matches
         float weight = (dist_squared == 0.0f) ? 1e6f : 1.0f / dist_squared;

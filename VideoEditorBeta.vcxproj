@@ -322,7 +322,6 @@
     <ClInclude Include="image.h" />
     <QtMoc Include="imageBlur.h" />
     <QtMoc Include="imageCensor.h" />
-    <ClInclude Include="imageEditor.cuh" />
     <QtMoc Include="imageEffectBase.h" />
     <QtMoc Include="ImageOutlines.h" />
     <QtMoc Include="imagePixelate.h" />
@@ -335,7 +334,6 @@
     <ClInclude Include="Video.h" />
     <QtMoc Include="videoBlur.h" />
     <QtMoc Include="videoCensor.h" />
-    <ClInclude Include="videoEditor.cuh" />
     <ClInclude Include="effects.cuh" />
     <QtMoc Include="videoEffectBase.h" />
     <QtMoc Include="videoOutlines.h" />
